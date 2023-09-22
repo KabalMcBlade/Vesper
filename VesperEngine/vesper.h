@@ -23,6 +23,7 @@
 
 #include "Scene/game_object.h"
 
-#include "App/window_handle.h"
-
 #include "Frontend/simple_render_system.h"
+
+#include "App/config.h"
+#include "App/window_handle.h"

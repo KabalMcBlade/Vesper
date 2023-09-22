@@ -110,6 +110,7 @@ call "$(ProjectDir)copy_assets.bat" $(OutDir)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="App\config.h" />
     <ClInclude Include="Core\core_defines.h" />
     <ClInclude Include="Core\memory_copy.h" />
     <ClInclude Include="Backend\renderer.h" />

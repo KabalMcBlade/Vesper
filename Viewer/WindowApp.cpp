@@ -17,8 +17,14 @@
 
 VESPERENGINE_USING_NAMESPACE
 
-WindowApp::WindowApp()
+WindowApp::WindowApp(Config& _config)
 {
+	m_window = std::make_unique<ViewerWindow>(_config.WindowWidth, _config.WindowHeight, _config.WindowName);
+	m_device = std::make_unique<Device>(*m_window);
+	m_renderer = std::make_unique<Renderer>(*m_window, *m_device);
+
+	m_simpleRenderSystem = std::make_unique<SimpleRenderSystem>(*m_device, m_renderer->GetSwapChainRenderPass());
+
 	LoadGameObjects();
 }
 
@@ -29,13 +35,11 @@ WindowApp::~WindowApp()
 
 void WindowApp::Run()
 {
-	SimpleRenderSystem simpleRenderSystem { m_device, m_renderer.GetSwapChainRenderPass() };
-
-	while (!m_window.ShouldClose())
+	while (!m_window->ShouldClose())
 	{
 		glfwPollEvents();
 
-		auto commandBuffer = m_renderer.BeginFrame();
+		auto commandBuffer = m_renderer->BeginFrame();
 		if (commandBuffer != VK_NULL_HANDLE)
 		{
 			// For instance, add here before the swap chain:
@@ -43,19 +47,19 @@ void WindowApp::Run()
 			//	render shadow casting objects
 			// end off screen shadow pass
 
-			m_renderer.BeginSwapChainRenderPass(commandBuffer);
+			m_renderer->BeginSwapChainRenderPass(commandBuffer);
 
 			m_rainbowSystem.Update(1.0f/6.0f, m_gameObjects);
 
-			simpleRenderSystem.RenderGameObjects(commandBuffer, m_gameObjects);
+			m_simpleRenderSystem->RenderGameObjects(commandBuffer, m_gameObjects);
 
-			m_renderer.EndSwapChainRenderPass(commandBuffer);
+			m_renderer->EndSwapChainRenderPass(commandBuffer);
 
-			m_renderer.EndFrame();
+			m_renderer->EndFrame();
 		}
 	}
 
-	vkDeviceWaitIdle(m_device.GetDevice());
+	vkDeviceWaitIdle(m_device->GetDevice());
 }
 
 void WindowApp::LoadGameObjects()
@@ -67,9 +71,7 @@ void WindowApp::LoadGameObjects()
 		{{-0.5f, 0.5f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f, 1.0f}}
 	};
 
-	//m_model = std::make_unique<Model>(m_device, vertices);
-
-	auto model = std::make_shared<Model>(m_device, vertices);
+	auto model = std::make_shared<Model>(*m_device, vertices);
 
 	auto triangle = GameObject::CreateGameObject();
 	triangle.m_model = model;

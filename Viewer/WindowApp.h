@@ -13,11 +13,7 @@ VESPERENGINE_USING_NAMESPACE
 class WindowApp final
 {
 public:
-	static constexpr int32 kWidth = 800;
-	static constexpr int32 kHeight = 600;
-
-public:
-	WindowApp();
+	WindowApp(Config& _config);
 	~WindowApp();
 
 	WindowApp(const WindowApp&) = delete;
@@ -30,10 +26,11 @@ private:
 	void LoadGameObjects();
 
 private:
-	ViewerWindow m_window{ kWidth, kHeight, "Hello Vulkan" };
-	Device m_device{ m_window };
-	Renderer m_renderer{ m_window, m_device };
+	std::unique_ptr<ViewerWindow> m_window;
+	std::unique_ptr<Device> m_device;
+	std::unique_ptr<Renderer> m_renderer;
 
+	std::unique_ptr<SimpleRenderSystem> m_simpleRenderSystem;
 	std::vector<GameObject> m_gameObjects;
 
 	// test for fun

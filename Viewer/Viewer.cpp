@@ -21,7 +21,12 @@ int main()
 // 	glm::vec4 test3 = test0;
 // 	glm::vec4 testAdd = test0 + test3;
 
-    WindowApp app;
+	Config cfg;
+    cfg.WindowName = "Vesper Viewer";
+	cfg.WindowWidth = 800;
+	cfg.WindowHeight = 600;
+    
+    WindowApp app(cfg);
 
     try
     {
