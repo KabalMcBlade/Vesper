@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 
+
 VESPERENGINE_USING_NAMESPACE
 
 class WindowApp final
@@ -23,15 +24,17 @@ public:
 	void Run();
 
 private:
-	void LoadGameObjects();
+	void LoadGameEntities();
+	void UnloadGameEntities();
 
 private:
 	std::unique_ptr<ViewerWindow> m_window;
 	std::unique_ptr<Device> m_device;
 	std::unique_ptr<Renderer> m_renderer;
 
+
+	std::unique_ptr<GameEntityLoaderSystem> m_gameEntityLoaderSystem;
 	std::unique_ptr<SimpleRenderSystem> m_simpleRenderSystem;
-	std::vector<GameObject> m_gameObjects;
 
 	// test for fun
 	RainbowSystem m_rainbowSystem {60.0f};

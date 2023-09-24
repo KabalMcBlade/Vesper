@@ -25,6 +25,9 @@ int main()
     cfg.WindowName = "Vesper Viewer";
 	cfg.WindowWidth = 800;
 	cfg.WindowHeight = 600;
+
+    cfg.MaxEntities = 1000;
+    cfg.MaxComponentsPerEntity = 32;
     
     WindowApp app(cfg);
 

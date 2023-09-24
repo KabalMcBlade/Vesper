@@ -13,7 +13,9 @@ VESPERENGINE_USING_NAMESPACE
 class ViewerWindow : public WindowHandle
 {
 public:
-	ViewerWindow(uint32 _width, uint32 _height, std::string _name);
+	ViewerWindow(
+		uint32 _width, uint32 _height, std::string _name,
+		uint16 _maxEntities, uint16 _maxComponentsPerEntity);
 	virtual ~ViewerWindow();
 
 	// To avoid copy, because the GLFWwindow is a pointer and we rely on this very class to be on the stack

@@ -1,7 +1,7 @@
 #include "pch.h"
-
 #include "Backend/pipeline.h"
-#include "Geometry/model.h"
+
+#include "Backend/vertex.h"
 
 #include <stdexcept>
 
@@ -195,8 +195,8 @@ void Pipeline::CreateGraphicsPipeline(const std::string& _filepath_vert, const s
 	shaderStages[1].pSpecializationInfo = nullptr;
 
 	
-	auto attributeDescription = Model::Vertex::GetAttributeDescriptions();
-	auto bindingDescription = Model::Vertex::GetBindingDescriptions();
+	auto attributeDescription = Vertex::GetAttributeDescriptions();
+	auto bindingDescription = Vertex::GetBindingDescriptions();
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;

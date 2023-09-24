@@ -14,23 +14,26 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
-
 VESPERENGINE_USING_NAMESPACE
 
 WindowApp::WindowApp(Config& _config)
 {
-	m_window = std::make_unique<ViewerWindow>(_config.WindowWidth, _config.WindowHeight, _config.WindowName);
+	m_window = std::make_unique<ViewerWindow>(
+		_config.WindowWidth, _config.WindowHeight, _config.WindowName,
+		_config.MaxEntities, _config.MaxComponentsPerEntity);
+
 	m_device = std::make_unique<Device>(*m_window);
 	m_renderer = std::make_unique<Renderer>(*m_window, *m_device);
 
+	m_gameEntityLoaderSystem = std::make_unique<GameEntityLoaderSystem>(*m_device);
 	m_simpleRenderSystem = std::make_unique<SimpleRenderSystem>(*m_device, m_renderer->GetSwapChainRenderPass());
 
-	LoadGameObjects();
+	LoadGameEntities();
 }
 
 WindowApp::~WindowApp()
 {
-
+	UnloadGameEntities();
 }
 
 void WindowApp::Run()
@@ -49,9 +52,10 @@ void WindowApp::Run()
 
 			m_renderer->BeginSwapChainRenderPass(commandBuffer);
 
-			m_rainbowSystem.Update(1.0f/6.0f, m_gameObjects);
+			// for fun
+			m_rainbowSystem.Update(1.0f/6.0f);
 
-			m_simpleRenderSystem->RenderGameObjects(commandBuffer, m_gameObjects);
+			m_simpleRenderSystem->RenderGameEntities(commandBuffer);
 
 			m_renderer->EndSwapChainRenderPass(commandBuffer);
 
@@ -62,23 +66,34 @@ void WindowApp::Run()
 	vkDeviceWaitIdle(m_device->GetDevice());
 }
 
-void WindowApp::LoadGameObjects()
+void WindowApp::LoadGameEntities()
 {
-	std::vector<Model::Vertex> vertices
+	std::vector<Vertex> vertices
 	{
 		{{0.0f, -0.5f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
 		{{0.5f, 0.5f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
 		{{-0.5f, 0.5f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f, 1.0f}}
 	};
 
-	auto model = std::make_shared<Model>(*m_device, vertices);
 
-	auto triangle = GameObject::CreateGameObject();
-	triangle.m_model = model;
-	triangle.m_color = { 0.1f, 0.8f, 0.1f, 1.0f };
-	triangle.m_transform2D.translation.x = 0.2f;
-	triangle.m_transform2D.scale = { 2.f, .5f, 1.0f, 1.0f };
-	triangle.m_transform2D.rotation = 0.25f * glm::two_pi<float>();
+	ecs::Entity triangle = m_gameEntityLoaderSystem->CreateGameEntity();
 
-	m_gameObjects.push_back(std::move(triangle));
+	m_gameEntityLoaderSystem->LoadGameEntity(triangle, vertices);
+
+	// I know these are present for sure
+	TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(triangle);
+	MaterialComponent& materialComponent = ecs::ComponentManager::GetComponent<MaterialComponent>(triangle);
+
+	materialComponent.Color = { 0.1f, 0.8f, 0.1f, 1.0f };
+
+	transformComponent.Position = { 0.0f, 0.0f, 0.0f, 1.0f };
+	transformComponent.Scale = { 1.f, 1.0f, 1.0f, 0.0f };
+	transformComponent.Rotation = glm::quat { 1.0f, 0.0f, 0.0f, 0.0f };
+}
+
+
+void WindowApp::UnloadGameEntities()
+{
+	m_gameEntityLoaderSystem->UnloadGameEntities();
+	m_gameEntityLoaderSystem->DestroyGameEntities();
 }

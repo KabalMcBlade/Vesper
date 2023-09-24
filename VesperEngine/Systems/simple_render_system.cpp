@@ -14,6 +14,9 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
+#include <gtx/quaternion.hpp>
+
+#include "ECS/ecs.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN
@@ -21,13 +24,13 @@ VESPERENGINE_NAMESPACE_BEGIN
 // TEMP HERE
 struct SimplePushConstantData
 {
-	glm::mat4 transform{ 1.0f };
+	glm::mat4 Transform{ 1.0f };
 	glm::vec4 OffsetPosition;
 	glm::vec4 Color;
 };
 
 SimpleRenderSystem::SimpleRenderSystem(Device& _device, VkRenderPass _renderPass)
-	: m_device {_device }
+	: CoreRenderSystem {_device }
 {
 	CreatePipelineLayout();
 	CreatePipeline(_renderPass);
@@ -85,23 +88,33 @@ void SimpleRenderSystem::CreatePipeline(VkRenderPass _renderPass)
 		);
 }
 
-void SimpleRenderSystem::RenderGameObjects(VkCommandBuffer _commandBuffer, std::vector<GameObject>& _gameObjects)
+void SimpleRenderSystem::RenderGameEntities(VkCommandBuffer _commandBuffer)
 {
 	m_pipeline->Bind(_commandBuffer);
 
-	for (auto& obj : _gameObjects)
+	for (auto iterator : ecs::IterateEntitiesWithAll<RenderComponent, TransformComponent, MaterialComponent>())
 	{
-		obj.m_transform2D.rotation = glm::mod(obj.m_transform2D.rotation + 0.001f, glm::two_pi<float>());
+		RenderComponent& renderComponent = ecs::ComponentManager::GetComponent<RenderComponent>(iterator);
+		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(iterator);
+
+		// BEGIN TEMP
+		const float rotationRad = (1.0f / 60.0f) * 0.0174533f;
+		const glm::quat& prev = transformComponent.Rotation;
+		glm::quat curr = glm::angleAxis(rotationRad, glm::vec3(0.f, 0.f, 1.f));
+		curr = prev * curr;
+		transformComponent.Rotation = curr;
 
 		SimplePushConstantData push{};
-		push.OffsetPosition = obj.m_transform2D.translation;
-		push.Color = obj.m_color;
-		push.transform = obj.m_transform2D.mat4();
+		push.OffsetPosition = transformComponent.Position;
+		push.Transform = glm::toMat4(transformComponent.Rotation);
+
+		const MaterialComponent& materialComponent = ecs::ComponentManager::GetComponent<MaterialComponent>(iterator);
+		push.Color = materialComponent.Color;
 
 		vkCmdPushConstants(_commandBuffer, m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData), &push);
 
-		obj.m_model->Bind(_commandBuffer);
-		obj.m_model->Draw(_commandBuffer);
+		Bind(renderComponent, _commandBuffer);
+		Draw(renderComponent, _commandBuffer);
 	}
 }
 

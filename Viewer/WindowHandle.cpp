@@ -4,8 +4,12 @@
 
 VESPERENGINE_USING_NAMESPACE
 
-ViewerWindow::ViewerWindow(uint32 _width, uint32 _height, std::string _name)
-	: WindowHandle(_width, _height, _name)
+ViewerWindow::ViewerWindow(
+	uint32 _width, uint32 _height, std::string _name,
+	uint16 _maxEntities, uint16 _maxComponentsPerEntity)
+	: WindowHandle(
+		_width, _height, _name,
+		_maxEntities, _maxComponentsPerEntity)
 {
 	InitWindow();
 }

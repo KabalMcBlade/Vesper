@@ -39,19 +39,10 @@
     <ClInclude Include="Backend\swap_chain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Geometry\model.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Core\memory_copy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Scene\game_object.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Backend\renderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Frontend\simple_render_system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="App\config.h">
@@ -90,6 +81,21 @@
     <ClInclude Include="ECS\utility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Systems\core_render_system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\game_entity_loader_system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\simple_render_system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\core_components.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Backend\vertex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -110,22 +116,25 @@
     <ClCompile Include="Backend\swap_chain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Geometry\model.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene\game_object.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Backend\renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Frontend\simple_render_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ECS\component_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ECS\entity_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Systems\core_render_system.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Systems\game_entity_loader_system.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Systems\simple_render_system.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Backend\vertex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

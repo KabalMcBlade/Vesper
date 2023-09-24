@@ -28,7 +28,7 @@ public:
 	}
 
 	// randomly select a color for each game object every mFlickerRate seconds
-	void Update(float dt, std::vector<GameObject>& gameObjects) 
+	void Update(float dt) 
 	{
 		m_elapsedTime -= dt;
 		if (m_elapsedTime < 0.f)
@@ -36,10 +36,12 @@ public:
 			m_elapsedTime += m_flickerRate;
 			std::uniform_int_distribution<int> randInt{ 0, static_cast<int>(m_colors.size()) - 1 };
 
-			for (auto& obj : gameObjects) 
+			for (auto iterator : ecs::IterateEntitiesWithAll<MaterialComponent>())
 			{
-				int randValue = randInt(m_rng);
-				obj.m_color = m_colors[randValue];
+				int32 randValue = randInt(m_rng);
+
+				MaterialComponent& materialComponent = ecs::ComponentManager::GetComponent<MaterialComponent>(iterator);
+				materialComponent.Color = m_colors[randValue];
 			}
 		}
 	}
