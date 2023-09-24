@@ -53,7 +53,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;VESPERENGINE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;ECS_EXPORTS;VESPERENGINE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -83,7 +83,7 @@ call "$(ProjectDir)copy_assets.bat" $(OutDir)</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;VESPERENGINE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;ECS_EXPORTS;VESPERENGINE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -114,6 +114,17 @@ call "$(ProjectDir)copy_assets.bat" $(OutDir)</Command>
     <ClInclude Include="Core\core_defines.h" />
     <ClInclude Include="Core\memory_copy.h" />
     <ClInclude Include="Backend\renderer.h" />
+    <ClInclude Include="ECS\component_manager.h" />
+    <ClInclude Include="ECS\ecs.h" />
+    <ClInclude Include="ECS\entity.h" />
+    <ClInclude Include="ECS\entity_collector.h" />
+    <ClInclude Include="ECS\entity_manager.h" />
+    <ClInclude Include="ECS\hash.h" />
+    <ClInclude Include="ECS\iterate_entities_with_all.h" />
+    <ClInclude Include="ECS\iterate_entities_with_any.h" />
+    <ClInclude Include="ECS\iterate_entities_with_not.h" />
+    <ClInclude Include="ECS\types.h" />
+    <ClInclude Include="ECS\utility.h" />
     <ClInclude Include="Scene\game_object.h" />
     <ClInclude Include="Geometry\model.h" />
     <ClInclude Include="Backend\device.h" />
@@ -127,6 +138,8 @@ call "$(ProjectDir)copy_assets.bat" $(OutDir)</Command>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Backend\renderer.cpp" />
+    <ClCompile Include="ECS\component_manager.cpp" />
+    <ClCompile Include="ECS\entity_manager.cpp" />
     <ClCompile Include="Scene\game_object.cpp" />
     <ClCompile Include="Geometry\model.cpp" />
     <ClCompile Include="Backend\device.cpp" />
