@@ -1,0 +1,3 @@
+[submodule "VesperEngine/ECS"]
+	path = VesperEngine/ECS
+	url = C:\\Projects\\ECS-API
