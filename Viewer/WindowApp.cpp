@@ -3,8 +3,8 @@
 #include <array>
 #include <stdexcept>
 #include <iostream>
+#include <chrono>
 
-// TEMP HERE
 #define GLM_FORCE_INTRINSICS
 //#define GLM_FORCE_SSE2		// or GLM_FORCE_SSE42 or else, but the above one use compiler to find out which one is enabled
 #define GLM_FORCE_ALIGNED
@@ -25,9 +25,19 @@ WindowApp::WindowApp(Config& _config)
 	m_device = std::make_unique<Device>(*m_window);
 	m_renderer = std::make_unique<Renderer>(*m_window, *m_device);
 
-	m_gameEntityLoaderSystem = std::make_unique<GameEntityLoaderSystem>(*m_device);
+	m_gameEntitySystem = std::make_unique<GameEntitySystem>();
+	m_modelSystem = std::make_unique<ModelSystem>(*m_device);
 	m_simpleRenderSystem = std::make_unique<SimpleRenderSystem>(*m_device, m_renderer->GetSwapChainRenderPass());
+	m_cameraSystem = std::make_unique<CameraSystem>();
 
+	m_keyboardController = std::make_unique<KeyboardMovementCameraController>();
+
+	m_mouseController = std::make_unique<MouseLookCameraController>();
+	m_mouseController->SetMouseCallback(m_window->GetWindow());
+
+	m_rainbowSystem = std::make_unique<RainbowSystem>(60.0f);
+
+	LoadCameraEntities();
 	LoadGameEntities();
 }
 
@@ -38,9 +48,30 @@ WindowApp::~WindowApp()
 
 void WindowApp::Run()
 {
+	auto currentTime = std::chrono::high_resolution_clock::now();
+
 	while (!m_window->ShouldClose())
 	{
 		glfwPollEvents();
+
+		auto newTime = std::chrono::high_resolution_clock::now();
+		const float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
+		currentTime = newTime;
+
+		// We could clamp frameTime to use a min between it and a max frame value, to avoid big "hiccups" if the renderer stop (i.e. resizing window while moving the camera)
+
+		m_keyboardController->MoveInPlaneXZ(m_window->GetWindow(), frameTime);
+		m_mouseController->Update(frameTime);
+
+		const float aspectRatio = m_renderer->GetAspectRatio();
+		for (auto camera : ecs::IterateEntitiesWithAll<CameraComponent, CameraTransformComponent>())
+		{
+			CameraTransformComponent& transformComponent = ecs::ComponentManager::GetComponent<CameraTransformComponent>(camera);
+			CameraComponent& cameraComponent = ecs::ComponentManager::GetComponent<CameraComponent>(camera);
+
+			m_cameraSystem->SetViewRotation(cameraComponent, transformComponent);
+			m_cameraSystem->SetPerspectiveProjection(cameraComponent, glm::radians(50.0f), aspectRatio, 0.1f, 10.0f);
+		}
 
 		auto commandBuffer = m_renderer->BeginFrame();
 		if (commandBuffer != VK_NULL_HANDLE)
@@ -53,7 +84,7 @@ void WindowApp::Run()
 			m_renderer->BeginSwapChainRenderPass(commandBuffer);
 
 			// for fun
-			m_rainbowSystem.Update(1.0f/6.0f);
+			//m_rainbowSystem->Update(1.0f/6.0f);
 
 			m_simpleRenderSystem->RenderGameEntities(commandBuffer);
 
@@ -66,34 +97,44 @@ void WindowApp::Run()
 	vkDeviceWaitIdle(m_device->GetDevice());
 }
 
+void WindowApp::LoadCameraEntities()
+{
+	ecs::Entity camera = m_gameEntitySystem->CreateGameEntity(EntityType::Camera);
+
+	m_cameraSystem->SetCurrentActiveCamera(camera);
+
+	CameraTransformComponent& transformComponent = ecs::ComponentManager::GetComponent<CameraTransformComponent>(camera);
+	transformComponent.Position = { 0.0f, 0.0f, 0.0f };//{ -1.0f, -2.0f, 2.0f };
+	
+	CameraComponent& cameraComponent = ecs::ComponentManager::GetComponent<CameraComponent>(camera);
+
+	m_cameraSystem->SetViewRotation(cameraComponent, transformComponent);
+	m_cameraSystem->SetPerspectiveProjection(cameraComponent, glm::radians(50.0f), 1.0f, 0.1f, 10.0f);
+}
+
 void WindowApp::LoadGameEntities()
 {
-	std::vector<Vertex> vertices
-	{
-		{{0.0f, -0.5f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
-		{{0.5f, 0.5f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
-		{{-0.5f, 0.5f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f, 1.0f}}
-	};
+	std::unique_ptr<ModelData> cubeData = PrimitiveFactory::GenerateCube(
+		{ 0.0f, 0.0f, 0.0f },
+		{ glm::vec3(.9f, .9f, .9f), glm::vec3(.8f, .8f, .1f), glm::vec3(.9f, .6f, .1f), glm::vec3(.8f, .1f, .1f), glm::vec3(.1f, .1f, .8f), glm::vec3(.1f, .8f, .1f) }
+	);
 
+	ecs::Entity cube = m_gameEntitySystem->CreateGameEntity(EntityType::Object);
 
-	ecs::Entity triangle = m_gameEntityLoaderSystem->CreateGameEntity();
+	m_modelSystem->LoadModel(cube, std::move(cubeData));
 
-	m_gameEntityLoaderSystem->LoadGameEntity(triangle, vertices);
-
-	// I know these are present for sure
-	TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(triangle);
-	MaterialComponent& materialComponent = ecs::ComponentManager::GetComponent<MaterialComponent>(triangle);
-
-	materialComponent.Color = { 0.1f, 0.8f, 0.1f, 1.0f };
-
-	transformComponent.Position = { 0.0f, 0.0f, 0.0f, 1.0f };
-	transformComponent.Scale = { 1.f, 1.0f, 1.0f, 0.0f };
+	TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(cube);
+	transformComponent.Position = { 0.0f, 0.0f, 2.5f };
+	transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
 	transformComponent.Rotation = glm::quat { 1.0f, 0.0f, 0.0f, 0.0f };
+
+// 	MaterialComponent& materialComponent = ecs::ComponentManager::GetComponent<MaterialComponent>(cube);
+// 	materialComponent.Color = { 0.1f, 0.8f, 0.1f, 1.0f };
 }
 
 
 void WindowApp::UnloadGameEntities()
 {
-	m_gameEntityLoaderSystem->UnloadGameEntities();
-	m_gameEntityLoaderSystem->DestroyGameEntities();
+	m_modelSystem->UnloadModels();
+	m_gameEntitySystem->DestroyGameEntities();
 }

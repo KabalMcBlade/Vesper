@@ -4,10 +4,11 @@
 
 #include "Core/core_defines.h"
 #include "Backend/pipeline.h"
+#include "Components/camera_components.h"
 #include "Systems/core_render_system.h"
 #include "App/window_handle.h"
 
-#include <vector>
+#include <memory>
 
 
 VESPERENGINE_NAMESPACE_BEGIN

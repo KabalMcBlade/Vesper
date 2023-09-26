@@ -5,7 +5,6 @@
 #include <stdexcept>
 #include <iostream>
 
-// TEMP HERE
 #define GLM_FORCE_INTRINSICS
 //#define GLM_FORCE_SSE2		// or GLM_FORCE_SSE42 or else, but the above one use compiler to find out which one is enabled
 #define GLM_FORCE_ALIGNED
@@ -16,16 +15,17 @@
 #include <glm/ext.hpp>
 #include <gtx/quaternion.hpp>
 
+#include "Components/graphics_components.h"
+#include "Components/object_components.h"
+
 #include "ECS/ecs.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-// TEMP HERE
 struct SimplePushConstantData
 {
 	glm::mat4 Transform{ 1.0f };
-	glm::vec4 OffsetPosition;
 	glm::vec4 Color;
 };
 
@@ -92,30 +92,51 @@ void SimpleRenderSystem::RenderGameEntities(VkCommandBuffer _commandBuffer)
 {
 	m_pipeline->Bind(_commandBuffer);
 
-	for (auto iterator : ecs::IterateEntitiesWithAll<RenderComponent, TransformComponent, MaterialComponent>())
+	// Iterate all the camera and update the objects transform based on projection view
+	for (auto camera : ecs::IterateEntitiesWithAll<CameraComponent>())
 	{
-		RenderComponent& renderComponent = ecs::ComponentManager::GetComponent<RenderComponent>(iterator);
-		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(iterator);
+		const CameraComponent& cameraComponent = ecs::ComponentManager::GetComponent<CameraComponent>(camera);
+		
+		auto projectionView = cameraComponent.ProjectionMatrix * cameraComponent.ViewMatrix;
 
-		// BEGIN TEMP
-		const float rotationRad = (1.0f / 60.0f) * 0.0174533f;
-		const glm::quat& prev = transformComponent.Rotation;
-		glm::quat curr = glm::angleAxis(rotationRad, glm::vec3(0.f, 0.f, 1.f));
-		curr = prev * curr;
-		transformComponent.Rotation = curr;
+		// First: update transform and push constants
+		// NOTE: the camera has a special transform CameraTransformComponent, so is not collected from here
+		for (auto gameEntity : ecs::IterateEntitiesWithAll<TransformComponent>())
+		{
+			TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(gameEntity);
 
-		SimplePushConstantData push{};
-		push.OffsetPosition = transformComponent.Position;
-		push.Transform = glm::toMat4(transformComponent.Rotation);
+			auto transform = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
+			transform = transform * glm::toMat4(transformComponent.Rotation);
+			transform = glm::scale(transform, transformComponent.Scale);
 
-		const MaterialComponent& materialComponent = ecs::ComponentManager::GetComponent<MaterialComponent>(iterator);
-		push.Color = materialComponent.Color;
+			SimplePushConstantData push{};
+			push.Transform = projectionView * transform;
+			push.Color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
-		vkCmdPushConstants(_commandBuffer, m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData), &push);
-
-		Bind(renderComponent, _commandBuffer);
-		Draw(renderComponent, _commandBuffer);
+			vkCmdPushConstants(_commandBuffer, m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData), &push);
+		}
 	}
+
+	// Second: render whatever has both VertexBufferComponent and IndexBufferComponent
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<VertexBufferComponent, IndexBufferComponent>())
+	{
+		VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
+		IndexBufferComponent& indexBufferComponent = ecs::ComponentManager::GetComponent<IndexBufferComponent>(gameEntity);
+
+		Bind(vertexBufferComponent, indexBufferComponent, _commandBuffer);
+		Draw(indexBufferComponent, _commandBuffer);
+	}
+
+	// honestly we should have only object with indices
+	// 
+// 	// Third: whatever has only VertexBufferComponent
+// 	for (auto gameEntity : ecs::IterateEntitiesWithAll<VertexBufferComponent>())
+// 	{
+// 		VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
+// 
+// 		Bind(vertexBufferComponent, _commandBuffer);
+// 		Draw(vertexBufferComponent, _commandBuffer);
+// 	}
 }
 
 VESPERENGINE_NAMESPACE_END

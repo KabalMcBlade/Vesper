@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "Backend/vertex.h"
+#include "Backend/model_data.h"
 
 #include "vulkan/vulkan.h"
 
@@ -23,12 +23,12 @@ std::vector<VkVertexInputAttributeDescription> Vertex::GetAttributeDescriptions(
 
 	attributeDescriptions[0].binding = 0;
 	attributeDescriptions[0].location = 0;
-	attributeDescriptions[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;	// vec4
+	attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;	// vec3
 	attributeDescriptions[0].offset = offsetof(Vertex, Position);
 
 	attributeDescriptions[1].binding = 0;	// binding still 0, because the Position and Color are interleaving in the same binding
 	attributeDescriptions[1].location = 1;
-	attributeDescriptions[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;	// vec4
+	attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;	// vec3		// note: vertex color has no alpha
 	attributeDescriptions[1].offset = offsetof(Vertex, Color);
 
 	return attributeDescriptions;

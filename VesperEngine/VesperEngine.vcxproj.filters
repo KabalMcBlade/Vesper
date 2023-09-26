@@ -84,16 +84,31 @@
     <ClInclude Include="Systems\core_render_system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Systems\game_entity_loader_system.h">
+    <ClInclude Include="Systems\game_entity_system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Systems\simple_render_system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Components\core_components.h">
+    <ClInclude Include="Components\graphics_components.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Backend\vertex.h">
+    <ClInclude Include="Backend\model_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\object_components.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\camera_components.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\camera_system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\primitive_factory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\model_system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -128,13 +143,22 @@
     <ClCompile Include="Systems\core_render_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Systems\game_entity_loader_system.cpp">
+    <ClCompile Include="Systems\game_entity_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Systems\simple_render_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Backend\vertex.cpp">
+    <ClCompile Include="Backend\model_data.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Systems\camera_system.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\primitive_factory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Systems\model_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

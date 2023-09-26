@@ -23,6 +23,7 @@ public:
 
 public:
 	VESPERENGINE_INLINE VkRenderPass GetSwapChainRenderPass() const { return m_swapChain->GetRenderPass(); }
+	VESPERENGINE_INLINE float GetAspectRatio() const { return m_swapChain->GetExtentAspectRatio(); };
 	VESPERENGINE_INLINE bool IsFrameStarted() const { return m_isFrameStarted; }
 	VESPERENGINE_INLINE VkCommandBuffer GetCurrentCommandBuffer() const 
 	{

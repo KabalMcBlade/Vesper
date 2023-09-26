@@ -14,16 +14,23 @@
 #include "Core/core_defines.h"
 #include "Core/memory_copy.h"
 
-#include "Backend/vertex.h"
+#include "Backend/model_data.h"
 #include "Backend/pipeline.h"
 #include "Backend/device.h"
 #include "Backend/swap_chain.h"
 #include "Backend/renderer.h"
 
-#include "Components/core_components.h"
+#include "Components/graphics_components.h"
+#include "Components/object_components.h"
+#include "Components/camera_components.h"
 
-#include "Systems/game_entity_loader_system.h"
+#include "Systems/game_entity_system.h"
+#include "Systems/model_system.h"
+#include "Systems/core_render_system.h"
 #include "Systems/simple_render_system.h"
+#include "Systems/camera_system.h"
+
+#include "Utility/primitive_factory.h"
 
 #include "App/config.h"
 #include "App/window_handle.h"

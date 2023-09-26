@@ -96,11 +96,15 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="KeyboardMovementCameraController.cpp" />
+    <ClCompile Include="MouseLookCameraController.cpp" />
     <ClCompile Include="Viewer.cpp" />
     <ClCompile Include="WindowApp.cpp" />
     <ClCompile Include="WindowHandle.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="KeyboardMovementCameraController.h" />
+    <ClInclude Include="MouseLookCameraController.h" />
     <ClInclude Include="RainbowSystem.h" />
     <ClInclude Include="ThirdParty\glfw\include\glfw3.h" />
     <ClInclude Include="ThirdParty\glfw\include\glfw3native.h" />

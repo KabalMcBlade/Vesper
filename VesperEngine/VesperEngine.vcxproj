@@ -111,7 +111,12 @@ call "$(ProjectDir)copy_assets.bat" $(OutDir)</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="App\config.h" />
-    <ClInclude Include="Backend\vertex.h" />
+    <ClInclude Include="Backend\model_data.h" />
+    <ClInclude Include="Systems\model_system.h" />
+    <ClInclude Include="Utility\primitive_factory.h" />
+    <ClInclude Include="Systems\camera_system.h" />
+    <ClInclude Include="Components\camera_components.h" />
+    <ClInclude Include="Components\object_components.h" />
     <ClInclude Include="Core\core_defines.h" />
     <ClInclude Include="Core\memory_copy.h" />
     <ClInclude Include="Backend\renderer.h" />
@@ -126,21 +131,24 @@ call "$(ProjectDir)copy_assets.bat" $(OutDir)</Command>
     <ClInclude Include="ECS\iterate_entities_with_not.h" />
     <ClInclude Include="ECS\types.h" />
     <ClInclude Include="ECS\utility.h" />
-    <ClInclude Include="Components\core_components.h" />
+    <ClInclude Include="Components\graphics_components.h" />
     <ClInclude Include="Backend\device.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Backend\pipeline.h" />
     <ClInclude Include="Backend\swap_chain.h" />
     <ClInclude Include="Systems\core_render_system.h" />
-    <ClInclude Include="Systems\game_entity_loader_system.h" />
+    <ClInclude Include="Systems\game_entity_system.h" />
     <ClInclude Include="Systems\simple_render_system.h" />
     <ClInclude Include="vesper.h" />
     <ClInclude Include="App\window_handle.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Backend\renderer.cpp" />
-    <ClCompile Include="Backend\vertex.cpp" />
+    <ClCompile Include="Backend\model_data.cpp" />
+    <ClCompile Include="Systems\model_system.cpp" />
+    <ClCompile Include="Utility\primitive_factory.cpp" />
+    <ClCompile Include="Systems\camera_system.cpp" />
     <ClCompile Include="ECS\component_manager.cpp" />
     <ClCompile Include="ECS\entity_manager.cpp" />
     <ClCompile Include="Backend\device.cpp" />
@@ -153,7 +161,7 @@ call "$(ProjectDir)copy_assets.bat" $(OutDir)</Command>
     <ClCompile Include="App\window_handle.cpp" />
     <ClCompile Include="Backend\swap_chain.cpp" />
     <ClCompile Include="Systems\core_render_system.cpp" />
-    <ClCompile Include="Systems\game_entity_loader_system.cpp" />
+    <ClCompile Include="Systems\game_entity_system.cpp" />
     <ClCompile Include="Systems\simple_render_system.cpp" />
   </ItemGroup>
   <ItemGroup>

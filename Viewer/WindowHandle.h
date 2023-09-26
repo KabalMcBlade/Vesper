@@ -28,6 +28,7 @@ public:
 	virtual void WaitEvents() override;
 
 public:
+	VESPERENGINE_INLINE GLFWwindow* GetWindow() { return m_window; }
 	VESPERENGINE_INLINE bool ShouldClose() { return glfwWindowShouldClose(m_window); }
 
 private:

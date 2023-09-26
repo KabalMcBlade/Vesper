@@ -10,31 +10,31 @@
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
-#include <glm/ext.hpp>
 
 #include <vma/vk_mem_alloc.h>
 
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-struct RenderComponent
+struct VertexBufferComponent
 {
-	VkBuffer VertexBuffer {VK_NULL_HANDLE};
-	VkDeviceSize VertexOffset {0};
-	VmaAllocation VertexBufferMemory{ VK_NULL_HANDLE };
-	uint32 VertexCount{ 0 };
+	VkBuffer Buffer {VK_NULL_HANDLE};
+	VmaAllocation BufferMemory{ VK_NULL_HANDLE };
+	VkDeviceSize Offset{ 0 };
+	uint32 Count{ 0 };
 };
 
-struct TransformComponent
+struct IndexBufferComponent
 {
-	glm::vec4 Position { 0.0f, 0.0f, 0.0f, 1.0f };
-	glm::vec4 Scale { 1.f };
-	glm::quat Rotation {};
+	VkBuffer Buffer{ VK_NULL_HANDLE };
+	VmaAllocation BufferMemory{ VK_NULL_HANDLE };
+	VkDeviceSize Offset{ 0 };
+	uint32 Count{ 0 };
 };
 
 struct MaterialComponent
 {
-	glm::vec4 Color;
+	glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };	// opaque white
 };
 
 VESPERENGINE_NAMESPACE_END

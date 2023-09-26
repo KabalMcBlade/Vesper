@@ -437,14 +437,16 @@ VkPresentModeKHR SwapChain::SelectSwapPresentMode(const std::vector<VkPresentMod
 		}
 	}
 
-	// for (const auto &availablePresentMode : _availablePresentModes) {
-	//   if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
-	// #ifdef _DEBUG
-	//     std::cout << "Present mode: Immediate" << std::endl;
-	// #endif
-	//     return availablePresentMode;
-	//   }
-	// }
+	for (const auto &availablePresentMode : _availablePresentModes) 
+	{
+		if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR)
+		{
+#ifdef _DEBUG
+			std::cout << "Present mode: Immediate" << std::endl;
+#endif
+			return availablePresentMode;
+		}
+	}
 
 #ifdef _DEBUG
 	std::cout << "Present mode: V-Sync" << std::endl;
