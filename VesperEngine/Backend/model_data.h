@@ -20,11 +20,18 @@ VESPERENGINE_NAMESPACE_BEGIN
 
 struct Vertex
 {
-	glm::vec3 Position;
-	glm::vec3 Color;
+	glm::vec3 Position{};
+	glm::vec3 Color{};
+	glm::vec3 Normal{};
+	glm::vec2 UV{};
 
 	static std::vector<VkVertexInputBindingDescription> GetBindingDescriptions();
 	static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();
+
+	bool operator==(const Vertex& _other) const 
+	{
+		return Position == _other.Position && Color == _other.Color && Normal == _other.Normal && UV == _other.UV;
+	}
 };
 
 struct ModelData

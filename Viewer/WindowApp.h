@@ -42,6 +42,7 @@ private:
 	std::unique_ptr<SimpleRenderSystem> m_simpleRenderSystem;
 
 	std::unique_ptr<CameraSystem> m_cameraSystem;
+	std::unique_ptr<ObjLoader> m_objLoader;
 
 	// from game side
 	std::unique_ptr<KeyboardMovementCameraController> m_keyboardController;

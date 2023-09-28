@@ -30,7 +30,9 @@
 #include "Systems/simple_render_system.h"
 #include "Systems/camera_system.h"
 
+#include "Utility/hash.h"
 #include "Utility/primitive_factory.h"
+#include "Utility/obj_loader.h"
 
 #include "App/config.h"
 #include "App/window_handle.h"

@@ -25,8 +25,8 @@ VESPERENGINE_NAMESPACE_BEGIN
 
 struct SimplePushConstantData
 {
-	glm::mat4 Transform{ 1.0f };
-	glm::vec4 Color;
+	glm::mat4 ProjectionViewModelMatrix{ 1.0f };
+	glm::mat4 NormalModelMatrix{ 1.0f };
 };
 
 SimpleRenderSystem::SimpleRenderSystem(Device& _device, VkRenderPass _renderPass)
@@ -76,7 +76,7 @@ void SimpleRenderSystem::CreatePipeline(VkRenderPass _renderPass)
 	Pipeline::DefaultPipelineConfiguration(pipelineConfig);
 
 	// The render pass describes the structure and format of the frame buffer objects (FBOs) and their attachments
-	// Right noe we have in location 0 the color buffer and in location 1 the depth buffer, check SwapChain::CreateRenderPass() -> attachments
+	// Right now we have in location 0 the color buffer and in location 1 the depth buffer, check SwapChain::CreateRenderPass() -> attachments
 	// So we need to inform the shaders about these locations. If the render pass change, shaders must reflect it.
 	pipelineConfig.RenderPass = _renderPass;
 	pipelineConfig.PipelineLayout = m_pipelineLayout;
@@ -99,44 +99,28 @@ void SimpleRenderSystem::RenderGameEntities(VkCommandBuffer _commandBuffer)
 		
 		auto projectionView = cameraComponent.ProjectionMatrix * cameraComponent.ViewMatrix;
 
-		// First: update transform and push constants
 		// NOTE: the camera has a special transform CameraTransformComponent, so is not collected from here
-		for (auto gameEntity : ecs::IterateEntitiesWithAll<TransformComponent>())
+		for (auto gameEntity : ecs::IterateEntitiesWithAll<TransformComponent, VertexBufferComponent, IndexBufferComponent>())
 		{
 			TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(gameEntity);
 
-			auto transform = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
-			transform = transform * glm::toMat4(transformComponent.Rotation);
-			transform = glm::scale(transform, transformComponent.Scale);
-
+			auto modelMatrix = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
+			modelMatrix = modelMatrix * glm::toMat4(transformComponent.Rotation);
+			modelMatrix = glm::scale(modelMatrix, transformComponent.Scale);
+			
 			SimplePushConstantData push{};
-			push.Transform = projectionView * transform;
-			push.Color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+			push.ProjectionViewModelMatrix = projectionView * modelMatrix;
+			push.NormalModelMatrix = glm::transpose(glm::inverse(modelMatrix));
 
 			vkCmdPushConstants(_commandBuffer, m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData), &push);
+
+			VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
+			IndexBufferComponent& indexBufferComponent = ecs::ComponentManager::GetComponent<IndexBufferComponent>(gameEntity);
+			
+			Bind(vertexBufferComponent, indexBufferComponent, _commandBuffer);
+			Draw(indexBufferComponent, _commandBuffer);
 		}
 	}
-
-	// Second: render whatever has both VertexBufferComponent and IndexBufferComponent
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<VertexBufferComponent, IndexBufferComponent>())
-	{
-		VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
-		IndexBufferComponent& indexBufferComponent = ecs::ComponentManager::GetComponent<IndexBufferComponent>(gameEntity);
-
-		Bind(vertexBufferComponent, indexBufferComponent, _commandBuffer);
-		Draw(indexBufferComponent, _commandBuffer);
-	}
-
-	// honestly we should have only object with indices
-	// 
-// 	// Third: whatever has only VertexBufferComponent
-// 	for (auto gameEntity : ecs::IterateEntitiesWithAll<VertexBufferComponent>())
-// 	{
-// 		VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
-// 
-// 		Bind(vertexBufferComponent, _commandBuffer);
-// 		Draw(vertexBufferComponent, _commandBuffer);
-// 	}
 }
 
 VESPERENGINE_NAMESPACE_END

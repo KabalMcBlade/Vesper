@@ -57,7 +57,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\Include;$(VK_SDK_PATH)\Include\glm;$(VK_SDK_PATH)\Include\vma;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\Include;$(VK_SDK_PATH)\Include\glm;$(VK_SDK_PATH)\Include\vma;$(ProjectDir);$(ProjectDir)ThirdParty\TinyObjLoader;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -73,8 +73,8 @@
       <AdditionalLibraryDirectories>$(VK_SDK_PATH)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <PostBuildEvent>
-      <Command>call "$(ProjectDir)compile_shaders.bat"
-call "$(ProjectDir)copy_assets.bat" $(OutDir)</Command>
+      <Command>call "$(ProjectDir)compile_shaders.bat" $(ProjectDir)
+call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -87,7 +87,7 @@ call "$(ProjectDir)copy_assets.bat" $(OutDir)</Command>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\Include;$(VK_SDK_PATH)\Include\glm;$(VK_SDK_PATH)\Include\vma;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\Include;$(VK_SDK_PATH)\Include\glm;$(VK_SDK_PATH)\Include\vma;$(ProjectDir);$(ProjectDir)ThirdParty\TinyObjLoader;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -105,14 +105,18 @@ call "$(ProjectDir)copy_assets.bat" $(OutDir)</Command>
       <AdditionalLibraryDirectories>$(VK_SDK_PATH)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <PostBuildEvent>
-      <Command>call "$(ProjectDir)compile_shaders.bat"
-call "$(ProjectDir)copy_assets.bat" $(OutDir)</Command>
+      <Command>call "$(ProjectDir)compile_shaders.bat" $(ProjectDir)
+call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="App\config.h" />
     <ClInclude Include="Backend\model_data.h" />
+    <ClInclude Include="Utility\hash.h" />
+    <ClInclude Include="Utility\obj_loader.h" />
     <ClInclude Include="Systems\model_system.h" />
+    <ClInclude Include="ThirdParty\TinyObjLoader\mapbox\earcut.hpp" />
+    <ClInclude Include="ThirdParty\TinyObjLoader\tiny_obj_loader.h" />
     <ClInclude Include="Utility\primitive_factory.h" />
     <ClInclude Include="Systems\camera_system.h" />
     <ClInclude Include="Components\camera_components.h" />
@@ -146,6 +150,7 @@ call "$(ProjectDir)copy_assets.bat" $(OutDir)</Command>
   <ItemGroup>
     <ClCompile Include="Backend\renderer.cpp" />
     <ClCompile Include="Backend\model_data.cpp" />
+    <ClCompile Include="Utility\obj_loader.cpp" />
     <ClCompile Include="Systems\model_system.cpp" />
     <ClCompile Include="Utility\primitive_factory.cpp" />
     <ClCompile Include="Systems\camera_system.cpp" />

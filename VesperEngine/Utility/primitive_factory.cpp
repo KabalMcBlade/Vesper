@@ -127,7 +127,7 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateCube(glm::vec3 _offset, glm
 std::unique_ptr<ModelData> PrimitiveFactory::GenerateCube(glm::vec3 _offset, std::array<glm::vec3, 6> _facesColor, bool _isStatic)
 {
 	ModelData data{};
-
+	
 	data.Vertices =
 	{
 		// left face

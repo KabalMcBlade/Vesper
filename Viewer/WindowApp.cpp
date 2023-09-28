@@ -29,6 +29,7 @@ WindowApp::WindowApp(Config& _config)
 	m_modelSystem = std::make_unique<ModelSystem>(*m_device);
 	m_simpleRenderSystem = std::make_unique<SimpleRenderSystem>(*m_device, m_renderer->GetSwapChainRenderPass());
 	m_cameraSystem = std::make_unique<CameraSystem>();
+	m_objLoader = std::make_unique<ObjLoader>(*m_device);
 
 	m_keyboardController = std::make_unique<KeyboardMovementCameraController>();
 
@@ -104,7 +105,7 @@ void WindowApp::LoadCameraEntities()
 	m_cameraSystem->SetCurrentActiveCamera(camera);
 
 	CameraTransformComponent& transformComponent = ecs::ComponentManager::GetComponent<CameraTransformComponent>(camera);
-	transformComponent.Position = { 0.0f, 0.0f, 0.0f };//{ -1.0f, -2.0f, 2.0f };
+	transformComponent.Position = { 0.0f, 0.0f, 0.0f };
 	
 	CameraComponent& cameraComponent = ecs::ComponentManager::GetComponent<CameraComponent>(camera);
 
@@ -114,22 +115,56 @@ void WindowApp::LoadCameraEntities()
 
 void WindowApp::LoadGameEntities()
 {
-	std::unique_ptr<ModelData> cubeData = PrimitiveFactory::GenerateCube(
-		{ 0.0f, 0.0f, 0.0f },
-		{ glm::vec3(.9f, .9f, .9f), glm::vec3(.8f, .8f, .1f), glm::vec3(.9f, .6f, .1f), glm::vec3(.8f, .1f, .1f), glm::vec3(.1f, .1f, .8f), glm::vec3(.1f, .8f, .1f) }
-	);
+// 	std::unique_ptr<ModelData> cubeData = PrimitiveFactory::GenerateCube(
+// 		{ 0.0f, 0.0f, 0.0f },
+// 		{ glm::vec3(.9f, .9f, .9f), glm::vec3(.8f, .8f, .1f), glm::vec3(.9f, .6f, .1f), glm::vec3(.8f, .1f, .1f), glm::vec3(.1f, .1f, .8f), glm::vec3(.1f, .8f, .1f) }
+// 	);
 
-	ecs::Entity cube = m_gameEntitySystem->CreateGameEntity(EntityType::Object);
 
-	m_modelSystem->LoadModel(cube, std::move(cubeData));
+	//////////////////////////////////////////////////////////////////////////
+	// Flat Vase
+	{
+		std::unique_ptr<ModelData> flatVaseData = m_objLoader->LoadModel("Assets/Models/flat_vase.obj");
+		ecs::Entity flatVase = m_gameEntitySystem->CreateGameEntity(EntityType::Object);
 
-	TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(cube);
-	transformComponent.Position = { 0.0f, 0.0f, 2.5f };
-	transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
-	transformComponent.Rotation = glm::quat { 1.0f, 0.0f, 0.0f, 0.0f };
+		m_modelSystem->LoadModel(flatVase, std::move(flatVaseData));
 
-// 	MaterialComponent& materialComponent = ecs::ComponentManager::GetComponent<MaterialComponent>(cube);
-// 	materialComponent.Color = { 0.1f, 0.8f, 0.1f, 1.0f };
+		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(flatVase);
+		transformComponent.Position = { -1.5f, 0.5f, 3.0f };
+		transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
+		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
+	}
+	
+	//////////////////////////////////////////////////////////////////////////
+	// Cube
+	{
+		std::unique_ptr<ModelData> coloredCubeData = m_objLoader->LoadModel("Assets/Models/colored_cube.obj");
+		ecs::Entity coloredCube = m_gameEntitySystem->CreateGameEntity(EntityType::Object);
+
+		m_modelSystem->LoadModel(coloredCube, std::move(coloredCubeData));
+		
+		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(coloredCube);
+		transformComponent.Position = { 0.0f, 0.0f, 3.0f };
+		transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
+		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
+		
+		// 	MaterialComponent& materialComponent = ecs::ComponentManager::GetComponent<MaterialComponent>(coloredCube);
+		// 	materialComponent.Color = { 0.1f, 0.8f, 0.1f, 1.0f };
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Smooth Vase
+	{
+		std::unique_ptr<ModelData> smoothVaseData = m_objLoader->LoadModel("Assets/Models/smooth_vase.obj");
+		ecs::Entity smoothVase = m_gameEntitySystem->CreateGameEntity(EntityType::Object);
+
+		m_modelSystem->LoadModel(smoothVase, std::move(smoothVaseData));
+
+		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(smoothVase);
+		transformComponent.Position = { 1.5f, 0.5f, 3.0f };
+		transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
+		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
+	}
 }
 
 
