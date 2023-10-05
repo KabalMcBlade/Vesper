@@ -25,6 +25,7 @@ WindowHandle::WindowHandle(
 	ecs::ComponentManager::RegisterComponent<CameraActive>();
 	ecs::ComponentManager::RegisterComponent<CameraComponent>();
 	ecs::ComponentManager::RegisterComponent<CameraTransformComponent>();
+	ecs::ComponentManager::RegisterComponent<VertexAndIndexBufferComponent>();
 	ecs::ComponentManager::RegisterComponent<VertexBufferComponent>();
 	ecs::ComponentManager::RegisterComponent<IndexBufferComponent>();
 	ecs::ComponentManager::RegisterComponent<TransformComponent>();
@@ -39,6 +40,7 @@ WindowHandle::~WindowHandle()
 	ecs::ComponentManager::UnregisterComponent<TransformComponent>();
 	ecs::ComponentManager::UnregisterComponent<IndexBufferComponent>();
 	ecs::ComponentManager::UnregisterComponent<VertexBufferComponent>();
+	ecs::ComponentManager::UnregisterComponent<VertexAndIndexBufferComponent>();
 	ecs::ComponentManager::UnregisterComponent<CameraTransformComponent>();
 	ecs::ComponentManager::UnregisterComponent<CameraComponent>();
 	ecs::ComponentManager::UnregisterComponent<CameraActive>();

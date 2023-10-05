@@ -22,7 +22,26 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 		ecs::ComponentManager::AddComponent<StaticComponent>(_entity);
 	}
 
-	if (_data->Vertices.size() > 0)
+	// If has both vertex buffers and index buffer, we simple use the compound component
+	if (_data->Vertices.size() > 0 && _data->Indices.size() > 0)
+	{
+		ecs::ComponentManager::AddComponent<VertexAndIndexBufferComponent>(_entity);
+
+		VertexAndIndexBufferComponent& vertexAndIndexBuffer = ecs::ComponentManager::GetComponent<VertexAndIndexBufferComponent>(_entity);
+
+		if (_data->IsStatic)
+		{
+			CreateVertexBuffersWithStagingBuffer(vertexAndIndexBuffer.VertexBuffer, _data->Vertices);
+			CreateIndexBufferWithStagingBuffer(vertexAndIndexBuffer.IndexBuffer, _data->Indices);
+		}
+		else
+		{
+			CreateVertexBuffers(vertexAndIndexBuffer.VertexBuffer, _data->Vertices);
+			CreateIndexBuffer(vertexAndIndexBuffer.IndexBuffer, _data->Indices);
+		}
+	}
+	// otherwise just add the vertex buffer, which should be mandatory at least
+	else if (_data->Vertices.size() > 0)
 	{
 		ecs::ComponentManager::AddComponent<VertexBufferComponent>(_entity);
 
@@ -38,27 +57,20 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 		}
 	}
 
-	if (_data->Indices.size() > 0)
-	{
-		ecs::ComponentManager::AddComponent<IndexBufferComponent>(_entity);
-
-		IndexBufferComponent& indexBuffer = ecs::ComponentManager::GetComponent<IndexBufferComponent>(_entity);
-		
-		if (_data->IsStatic)
-		{
-			CreateIndexBufferWithStagingBuffer(indexBuffer, _data->Indices);
-		}
-		else
-		{
-			CreateIndexBuffer(indexBuffer, _data->Indices);
-		}
-	}
-
 	// material later
 }
 
 void ModelSystem::UnloadModel(ecs::Entity _entity) const
 {
+	if (ecs::ComponentManager::HasComponents<VertexAndIndexBufferComponent>(_entity))
+	{
+		VertexAndIndexBufferComponent& vertexAndIndexBuffer = ecs::ComponentManager::GetComponent<VertexAndIndexBufferComponent>(_entity);
+		vmaDestroyBuffer(m_device.GetAllocator(), vertexAndIndexBuffer.VertexBuffer.Buffer, vertexAndIndexBuffer.VertexBuffer.BufferMemory);
+		vmaDestroyBuffer(m_device.GetAllocator(), vertexAndIndexBuffer.IndexBuffer.Buffer, vertexAndIndexBuffer.IndexBuffer.BufferMemory);
+
+		ecs::ComponentManager::RemoveComponent<VertexAndIndexBufferComponent>(_entity);
+	}
+
 	if (ecs::ComponentManager::HasComponents<VertexBufferComponent>(_entity))
 	{
 		VertexBufferComponent& vertexBuffer = ecs::ComponentManager::GetComponent<VertexBufferComponent>(_entity);
@@ -67,13 +79,14 @@ void ModelSystem::UnloadModel(ecs::Entity _entity) const
 		ecs::ComponentManager::RemoveComponent<VertexBufferComponent>(_entity);
 	}
 
-	if (ecs::ComponentManager::HasComponents<IndexBufferComponent>(_entity))
-	{
-		IndexBufferComponent& indexBuffer = ecs::ComponentManager::GetComponent<IndexBufferComponent>(_entity);
-		vmaDestroyBuffer(m_device.GetAllocator(), indexBuffer.Buffer, indexBuffer.BufferMemory);
-
-		ecs::ComponentManager::RemoveComponent<IndexBufferComponent>(_entity);
-	}
+	// NO INDEX BUFFER ONLY!
+// 	if (ecs::ComponentManager::HasComponents<IndexBufferComponent>(_entity))
+// 	{
+// 		IndexBufferComponent& indexBuffer = ecs::ComponentManager::GetComponent<IndexBufferComponent>(_entity);
+// 		vmaDestroyBuffer(m_device.GetAllocator(), indexBuffer.Buffer, indexBuffer.BufferMemory);
+// 
+// 		ecs::ComponentManager::RemoveComponent<IndexBufferComponent>(_entity);
+// 	}
 
 	if (ecs::ComponentManager::HasComponents<StaticComponent>(_entity))
 	{
@@ -92,6 +105,11 @@ void ModelSystem::LoadModels(std::shared_ptr<ModelData> _data) const
 
 void ModelSystem::UnloadModels() const
 {
+	for (auto iterator : ecs::IterateEntitiesWithAll<VertexAndIndexBufferComponent>())
+	{
+		UnloadModel(iterator);
+	}
+
 	for (auto iterator : ecs::IterateEntitiesWithAll<VertexBufferComponent>())
 	{
 		UnloadModel(iterator);

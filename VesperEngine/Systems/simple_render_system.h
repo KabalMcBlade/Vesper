@@ -10,6 +10,8 @@
 
 #include <memory>
 
+#include "ECS/ecs.h"
+
 
 VESPERENGINE_NAMESPACE_BEGIN
 
@@ -28,6 +30,8 @@ public:
 private:
 	void CreatePipelineLayout();
 	void CreatePipeline(VkRenderPass _renderPass);
+
+	void TransformEntity(VkCommandBuffer _commandBuffer, ecs::Entity _entity, glm::mat4 _projectionView);
 
 private:
 	std::unique_ptr<Pipeline> m_pipeline;

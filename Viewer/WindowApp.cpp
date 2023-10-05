@@ -115,11 +115,23 @@ void WindowApp::LoadCameraEntities()
 
 void WindowApp::LoadGameEntities()
 {
-// 	std::unique_ptr<ModelData> cubeData = PrimitiveFactory::GenerateCube(
-// 		{ 0.0f, 0.0f, 0.0f },
-// 		{ glm::vec3(.9f, .9f, .9f), glm::vec3(.8f, .8f, .1f), glm::vec3(.9f, .6f, .1f), glm::vec3(.8f, .1f, .1f), glm::vec3(.1f, .1f, .8f), glm::vec3(.1f, .8f, .1f) }
-// 	);
+	std::unique_ptr<ModelData> cubeNoIndicesData = PrimitiveFactory::GenerateCubeNoIndices(
+		{ 0.0f, 0.0f, 0.0f },
+		{ glm::vec3(.9f, .9f, .9f), glm::vec3(.8f, .8f, .1f), glm::vec3(.9f, .6f, .1f), glm::vec3(.8f, .1f, .1f), glm::vec3(.1f, .1f, .8f), glm::vec3(.1f, .8f, .1f) }
+	);
 
+	//////////////////////////////////////////////////////////////////////////
+	// Cube no Indices
+	{
+		ecs::Entity cubeNoIndices = m_gameEntitySystem->CreateGameEntity(EntityType::Object);
+
+		m_modelSystem->LoadModel(cubeNoIndices, std::move(cubeNoIndicesData));
+
+		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(cubeNoIndices);
+		transformComponent.Position = { 0.0f, -1.0f, 3.0f };
+		transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
+		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
+	}
 
 	//////////////////////////////////////////////////////////////////////////
 	// Flat Vase
