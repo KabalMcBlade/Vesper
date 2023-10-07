@@ -17,6 +17,7 @@
 #include "Backend/model_data.h"
 #include "Backend/pipeline.h"
 #include "Backend/device.h"
+#include "Backend/buffer.h"
 #include "Backend/swap_chain.h"
 #include "Backend/renderer.h"
 

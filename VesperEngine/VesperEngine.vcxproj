@@ -111,6 +111,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="App\config.h" />
+    <ClInclude Include="Backend\buffer.h" />
     <ClInclude Include="Backend\model_data.h" />
     <ClInclude Include="Utility\hash.h" />
     <ClInclude Include="Utility\obj_loader.h" />
@@ -148,6 +149,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
     <ClInclude Include="App\window_handle.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Backend\buffer.cpp" />
     <ClCompile Include="Backend\renderer.cpp" />
     <ClCompile Include="Backend\model_data.cpp" />
     <ClCompile Include="Utility\obj_loader.cpp" />

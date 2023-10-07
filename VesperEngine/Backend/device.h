@@ -59,7 +59,18 @@ public:
 		VmaMemoryUsage _memoryUsage,
 		VmaAllocationCreateFlags flags,
 		VkBuffer& _buffer,
-		VmaAllocation& _allocation);
+		VmaAllocation& _allocation,
+		bool _isPersistent = false);	// if true, creates a dynamic memory, such the Uniform Buffer, to use in case of frequent write on CPU and frequent read on GPU.
+
+	void CreateBufferWithAlignment(
+		VkDeviceSize _size,
+		VkBufferUsageFlags _bufferUsage,
+		VmaMemoryUsage _memoryUsage,
+		VmaAllocationCreateFlags flags,
+		VkBuffer& _buffer,
+		VmaAllocation& _allocation,
+		VkDeviceSize _minAlignment = 1,	// vertex and index buffer does not need alignment, so is 1, uniform buffer instead, for instance, need it
+		bool _isPersistent = false);	// if true, creates a dynamic memory, such the Uniform Buffer, to use in case of frequent write on CPU and frequent read on GPU.
 
 	void CreateImageWithInfo(
 		const VkImageCreateInfo& _imageInfo,

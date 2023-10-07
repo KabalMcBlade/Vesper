@@ -5,6 +5,7 @@
 #include "Core/core_defines.h"
 
 #include "Backend/device.h"
+#include "Backend/buffer.h"
 #include "Backend/model_data.h"
 
 #include "Components/graphics_components.h"
@@ -40,6 +41,7 @@ private:
 
 private:
 	Device& m_device;
+	std::unique_ptr<Buffer> m_buffer;
 };
 
 VESPERENGINE_NAMESPACE_END

@@ -17,8 +17,12 @@ VESPERENGINE_NAMESPACE_BEGIN
 
 // Pure struct, means is not registered and MUST not be registered.
 // Used as base structures for buffers
+// Is also useful to move around or use as buffer containers, as long as is not directly used as component for entityt (ECS)
+// Could be added to the list, but this is pure for temporary usage
 struct BufferComponent
 {
+	VkDeviceSize Size{ 0 };								// size of the buffer, single element, this one (so the instance of this buffer)
+	VkDeviceSize AlignedSize{ 0 };						// the aligned size of size of the current buffer
 	VkBuffer Buffer{ VK_NULL_HANDLE };					// value used to bind and draw
 	VmaAllocation AllocationMemory{ VK_NULL_HANDLE };	// value storing the allocation to map/unmap							
 };
