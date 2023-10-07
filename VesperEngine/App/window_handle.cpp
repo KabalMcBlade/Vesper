@@ -25,9 +25,10 @@ WindowHandle::WindowHandle(
 	ecs::ComponentManager::RegisterComponent<CameraActive>();
 	ecs::ComponentManager::RegisterComponent<CameraComponent>();
 	ecs::ComponentManager::RegisterComponent<CameraTransformComponent>();
-	ecs::ComponentManager::RegisterComponent<VertexAndIndexBufferComponent>();
 	ecs::ComponentManager::RegisterComponent<VertexBufferComponent>();
 	ecs::ComponentManager::RegisterComponent<IndexBufferComponent>();
+	ecs::ComponentManager::RegisterComponent<NotVertexBufferComponent>();
+	ecs::ComponentManager::RegisterComponent<NotIndexBufferComponent>();
 	ecs::ComponentManager::RegisterComponent<TransformComponent>();
 	ecs::ComponentManager::RegisterComponent<MaterialComponent>();
 	ecs::ComponentManager::RegisterComponent<StaticComponent>();
@@ -38,9 +39,10 @@ WindowHandle::~WindowHandle()
 	ecs::ComponentManager::UnregisterComponent<StaticComponent>();
 	ecs::ComponentManager::UnregisterComponent<MaterialComponent>();
 	ecs::ComponentManager::UnregisterComponent<TransformComponent>();
+	ecs::ComponentManager::UnregisterComponent<NotVertexBufferComponent>();
+	ecs::ComponentManager::UnregisterComponent<NotIndexBufferComponent>();
 	ecs::ComponentManager::UnregisterComponent<IndexBufferComponent>();
 	ecs::ComponentManager::UnregisterComponent<VertexBufferComponent>();
-	ecs::ComponentManager::UnregisterComponent<VertexAndIndexBufferComponent>();
 	ecs::ComponentManager::UnregisterComponent<CameraTransformComponent>();
 	ecs::ComponentManager::UnregisterComponent<CameraComponent>();
 	ecs::ComponentManager::UnregisterComponent<CameraActive>();

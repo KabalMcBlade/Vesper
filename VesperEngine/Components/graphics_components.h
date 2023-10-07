@@ -2,7 +2,6 @@
 
 #include "Core/core_defines.h"
 
-
 #define GLM_FORCE_INTRINSICS
 //#define GLM_FORCE_SSE2		// or GLM_FORCE_SSE42 or else, but the above one use compiler to find out which one is enabled
 #define GLM_FORCE_ALIGNED
@@ -16,26 +15,41 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-struct VertexBufferComponent
+// Pure struct, means is not registered and MUST not be registered.
+// Used as base structures for buffers
+struct BufferComponent
 {
-	VkBuffer Buffer {VK_NULL_HANDLE};
-	VmaAllocation BufferMemory{ VK_NULL_HANDLE };
-	VkDeviceSize Offset{ 0 };
+	VkBuffer Buffer{ VK_NULL_HANDLE };					// value used to bind and draw
+	VmaAllocation AllocationMemory{ VK_NULL_HANDLE };	// value storing the allocation to map/unmap							
+};
+
+
+struct VertexBufferComponent : public BufferComponent
+{
 	uint32 Count{ 0 };
 };
 
-struct IndexBufferComponent
+// Special struct to set if we want to mark a render-able object having NOT a VB.
+// To be fair, does not make sense, but to be aligned with the IB, I added as well.
+// 
+// IMPORTANT!!!
+// This struct is a "toggle", NEED to be add IF AND ONLY IF VertexBufferComponent IS NOT PRESENT
+struct NotVertexBufferComponent
 {
-	VkBuffer Buffer{ VK_NULL_HANDLE };
-	VmaAllocation BufferMemory{ VK_NULL_HANDLE };
-	VkDeviceSize Offset{ 0 };
+
+};
+
+struct IndexBufferComponent : public BufferComponent
+{
 	uint32 Count{ 0 };
 };
 
-struct VertexAndIndexBufferComponent
+// 
+// IMPORTANT!!!
+// This struct is a "toggle", NEED to be add IF AND ONLY IF IndexBufferComponent IS NOT PRESENT
+struct NotIndexBufferComponent
 {
-	VertexBufferComponent VertexBuffer;
-	IndexBufferComponent IndexBuffer;
+
 };
 
 struct MaterialComponent

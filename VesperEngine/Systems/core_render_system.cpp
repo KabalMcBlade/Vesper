@@ -13,7 +13,7 @@ CoreRenderSystem::CoreRenderSystem(Device& _device)
 void CoreRenderSystem::Bind(VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer) const
 {
 	VkBuffer buffers[] = { _vertexBufferComponent.Buffer };
-	VkDeviceSize offsets[] = { _vertexBufferComponent.Offset };
+	VkDeviceSize offsets[] = { 0 };
 
 	vkCmdBindVertexBuffers(_commandBuffer, 0, 1, buffers, offsets);
 }
@@ -21,7 +21,7 @@ void CoreRenderSystem::Bind(VertexBufferComponent& _vertexBufferComponent, VkCom
 void CoreRenderSystem::Bind(VertexBufferComponent& _vertexBufferComponent, IndexBufferComponent& _indexBufferComponent, VkCommandBuffer _commandBuffer) const
 {
 	Bind(_vertexBufferComponent, _commandBuffer);
-	vkCmdBindIndexBuffer(_commandBuffer, _indexBufferComponent.Buffer, _indexBufferComponent.Offset, VK_INDEX_TYPE_UINT32);
+	vkCmdBindIndexBuffer(_commandBuffer, _indexBufferComponent.Buffer, 0, VK_INDEX_TYPE_UINT32);
 }
 
 void CoreRenderSystem::Draw(VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer) const

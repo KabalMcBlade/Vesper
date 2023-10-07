@@ -101,18 +101,19 @@ void SimpleRenderSystem::RenderGameEntities(VkCommandBuffer _commandBuffer)
 		auto projectionView = cameraComponent.ProjectionMatrix * cameraComponent.ViewMatrix;
 
 		// 1. Render whatever has vertex buffers and index buffer
-		for (auto gameEntity : ecs::IterateEntitiesWithAll<TransformComponent, VertexAndIndexBufferComponent>())
+		for (auto gameEntity : ecs::IterateEntitiesWithAll<TransformComponent, VertexBufferComponent, IndexBufferComponent>())
 		{
 			TransformEntity(_commandBuffer, gameEntity, projectionView);
 
-			VertexAndIndexBufferComponent& vertexAndBufferBufferComponent = ecs::ComponentManager::GetComponent<VertexAndIndexBufferComponent>(gameEntity);
+			VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
+			IndexBufferComponent& indexBufferComponent = ecs::ComponentManager::GetComponent<IndexBufferComponent>(gameEntity);
 			
-			Bind(vertexAndBufferBufferComponent.VertexBuffer, vertexAndBufferBufferComponent.IndexBuffer, _commandBuffer);
-			Draw(vertexAndBufferBufferComponent.IndexBuffer, _commandBuffer);
+			Bind(vertexBufferComponent, indexBufferComponent, _commandBuffer);
+			Draw(indexBufferComponent, _commandBuffer);
 		}
 
 		// 2. Render only entities having Vertex buffers only
-		for (auto gameEntity : ecs::IterateEntitiesWithAll<TransformComponent, VertexBufferComponent>())
+		for (auto gameEntity : ecs::IterateEntitiesWithAll<TransformComponent, VertexBufferComponent, NotIndexBufferComponent>())
 		{
 			TransformEntity(_commandBuffer, gameEntity, projectionView);
 

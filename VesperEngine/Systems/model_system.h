@@ -30,7 +30,6 @@ public:
 public:
 	void LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _data) const;
 	void UnloadModel(ecs::Entity _entity) const;
-	void LoadModels(std::shared_ptr<ModelData> _data) const;
 	void UnloadModels() const;
 
 private:
