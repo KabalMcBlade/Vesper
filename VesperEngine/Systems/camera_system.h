@@ -3,6 +3,7 @@
 #include "Core/core_defines.h"
 #include "Components/camera_components.h"
 #include "Components/object_components.h"
+#include "Components/graphics_components.h"
 
 #include "ECS/ecs.h"
 
@@ -23,7 +24,6 @@ public:
 
 	void SetOrthographicProjection(CameraComponent& _camera, float _left, float _right, float _top, float _bottom, float _near, float _far) const;
 	void SetPerspectiveProjection(CameraComponent& _camera, float _fovY, float _aspectRatio, float _near, float _far) const;
-
 
 	void SetViewDirection(CameraComponent& _camera, const glm::vec3& _position, glm::vec3 _direction, glm::vec3 _up = { 0.0f, -1.0f, 0.0f }) const;
 	void SetViewTarget(CameraComponent& _camera, const glm::vec3& _position, glm::vec3 _target, glm::vec3 _up = { 0.0f, -1.0f, 0.0f }) const;

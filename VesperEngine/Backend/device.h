@@ -40,14 +40,15 @@ public:
 	Device(Device&&) = delete;
 	Device& operator=(Device&&) = delete;
 
-	VESPERENGINE_INLINE VkCommandPool GetCommandPool() { return m_commandPool; }
-	VESPERENGINE_INLINE VkDevice GetDevice() { return m_device; }
-	VESPERENGINE_INLINE VkSurfaceKHR GetSurface() { return m_surface; }
-	VESPERENGINE_INLINE VkQueue GetGraphicsQueue() { return m_graphicsQueue; }
-	VESPERENGINE_INLINE VkQueue GetPresentQueue() { return m_presentQueue; }
-	VESPERENGINE_INLINE VmaAllocator GetAllocator() { return m_allocator; }
+	VESPERENGINE_INLINE const VkCommandPool GetCommandPool() const { return m_commandPool; }
+	VESPERENGINE_INLINE const VkDevice GetDevice() const { return m_device; }
+	VESPERENGINE_INLINE const VkSurfaceKHR GetSurface() const { return m_surface; }
+	VESPERENGINE_INLINE const VkQueue GetGraphicsQueue() const { return m_graphicsQueue; }
+	VESPERENGINE_INLINE const VkQueue GetPresentQueue() const { return m_presentQueue; }
+	VESPERENGINE_INLINE const VmaAllocator GetAllocator() const { return m_allocator; }
+	VESPERENGINE_INLINE const VkPhysicalDeviceProperties& GetProperties() const { return m_properties; }
 
-	SwapChainSupportDetails getSwapChainSupport() { return QuerySwapChainSupport(m_physicalDevice); }
+	SwapChainSupportDetails GetSwapChainSupport() { return QuerySwapChainSupport(m_physicalDevice); }
 	uint32 FindMemoryType(uint32 _typeFilter, VkMemoryPropertyFlags _properties);
 	QueueFamilyIndices FindPhysicalQueueFamilies() { return FindQueueFamilies(m_physicalDevice); }
 	VkFormat FindSupportedFormat(const std::vector<VkFormat>& _candidates, VkImageTiling _tiling, VkFormatFeatureFlags _features);
@@ -57,7 +58,7 @@ public:
 		VkDeviceSize _size,
 		VkBufferUsageFlags _bufferUsage,
 		VmaMemoryUsage _memoryUsage,
-		VmaAllocationCreateFlags flags,
+		VmaAllocationCreateFlags _flags,
 		VkBuffer& _buffer,
 		VmaAllocation& _allocation,
 		bool _isPersistent = false);	// if true, creates a dynamic memory, such the Uniform Buffer, to use in case of frequent write on CPU and frequent read on GPU.
@@ -66,7 +67,7 @@ public:
 		VkDeviceSize _size,
 		VkBufferUsageFlags _bufferUsage,
 		VmaMemoryUsage _memoryUsage,
-		VmaAllocationCreateFlags flags,
+		VmaAllocationCreateFlags _flags,
 		VkBuffer& _buffer,
 		VmaAllocation& _allocation,
 		VkDeviceSize _minAlignment = 1,	// vertex and index buffer does not need alignment, so is 1, uniform buffer instead, for instance, need it

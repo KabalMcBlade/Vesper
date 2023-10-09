@@ -88,39 +88,37 @@ void SimpleRenderSystem::CreatePipeline(VkRenderPass _renderPass)
 		);
 }
 
-void SimpleRenderSystem::RenderGameEntities(VkCommandBuffer _commandBuffer)
+void SimpleRenderSystem::RenderGameEntities(FrameInfo& _frameInfo)
 {
-	m_pipeline->Bind(_commandBuffer);
+	m_pipeline->Bind(_frameInfo.CommandBUffer);
 
 	// Iterate all the camera and update the objects transform based on projection view
-	for (auto camera : ecs::IterateEntitiesWithAll<CameraComponent>())
+	for (auto camera : ecs::IterateEntitiesWithAll<GlobalUBO>())
 	{
-		// NOTE: the camera has a special transform CameraTransformComponent, so is not collected from here
-		const CameraComponent& cameraComponent = ecs::ComponentManager::GetComponent<CameraComponent>(camera);
-		
-		auto projectionView = cameraComponent.ProjectionMatrix * cameraComponent.ViewMatrix;
+		// NOTE: We use the Global UBO to get from the camera, since we know it has
+		const GlobalUBO& globalUBO = ecs::ComponentManager::GetComponent<GlobalUBO>(camera);
 
 		// 1. Render whatever has vertex buffers and index buffer
 		for (auto gameEntity : ecs::IterateEntitiesWithAll<TransformComponent, VertexBufferComponent, IndexBufferComponent>())
 		{
-			TransformEntity(_commandBuffer, gameEntity, projectionView);
+			TransformEntity(_frameInfo.CommandBUffer, gameEntity, globalUBO.ProjectionView);
 
 			VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
 			IndexBufferComponent& indexBufferComponent = ecs::ComponentManager::GetComponent<IndexBufferComponent>(gameEntity);
 			
-			Bind(vertexBufferComponent, indexBufferComponent, _commandBuffer);
-			Draw(indexBufferComponent, _commandBuffer);
+			Bind(vertexBufferComponent, indexBufferComponent, _frameInfo.CommandBUffer);
+			Draw(indexBufferComponent, _frameInfo.CommandBUffer);
 		}
 
 		// 2. Render only entities having Vertex buffers only
 		for (auto gameEntity : ecs::IterateEntitiesWithAll<TransformComponent, VertexBufferComponent, NotIndexBufferComponent>())
 		{
-			TransformEntity(_commandBuffer, gameEntity, projectionView);
+			TransformEntity(_frameInfo.CommandBUffer, gameEntity, globalUBO.ProjectionView);
 
 			VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
 
-			Bind(vertexBufferComponent, _commandBuffer);
-			Draw(vertexBufferComponent, _commandBuffer);
+			Bind(vertexBufferComponent, _frameInfo.CommandBUffer);
+			Draw(vertexBufferComponent, _frameInfo.CommandBUffer);
 		}
 	}
 }

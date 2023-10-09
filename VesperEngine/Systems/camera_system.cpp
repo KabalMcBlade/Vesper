@@ -34,6 +34,10 @@ void CameraSystem::SetCurrentActiveCamera(ecs::Entity _activeCamera)
 	}
 
 	ecs::ComponentManager::AddComponent<CameraActive>(_activeCamera);
+
+	// for global uniform, buffer
+	// here we can discriminate which one using it, so to have different shader per different camera/scene, for instance
+	ecs::ComponentManager::AddComponent<GlobalUBO>(_activeCamera);
 }
 
 void CameraSystem::SetOrthographicProjection(CameraComponent& _camera, float _left, float _right, float _top, float _bottom, float _near, float _far) const

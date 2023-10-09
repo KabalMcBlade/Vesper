@@ -61,4 +61,11 @@ struct MaterialComponent
 	glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };	// opaque white
 };
 
+// Global Uniform Buffer Object
+struct GlobalUBO
+{
+	glm::mat4 ProjectionView{ 1.0f };
+	glm::vec3 Lig0htDirection = glm::normalize((glm::vec3(1.0f, -5.0f, -2.0f)));
+};
+
 VESPERENGINE_NAMESPACE_END

@@ -599,7 +599,7 @@ void Device::CreateBuffer(
 	VkDeviceSize _size,
 	VkBufferUsageFlags _bufferUsage,
 	VmaMemoryUsage _memoryUsage,
-	VmaAllocationCreateFlags flags,
+	VmaAllocationCreateFlags _flags,
 	VkBuffer& _buffer,
 	VmaAllocation& _allocation,
 	bool _isPersistent)
@@ -612,16 +612,17 @@ void Device::CreateBuffer(
 
 	VmaAllocationCreateInfo createInfo{};
 	createInfo.usage = _memoryUsage;	//VMA_MEMORY_USAGE_AUTO;//VMA_MEMORY_USAGE_AUTO_PREFER_HOST;//VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
-	createInfo.flags = flags;//VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT; //VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+	createInfo.flags = _flags;//VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT; //VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
 // 	createInfo.requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 // 	createInfo.preferredFlags = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
 // 	createInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
 	if (_isPersistent)
 	{
-		createInfo.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
-			VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT |
-			VMA_ALLOCATION_CREATE_MAPPED_BIT;
+		createInfo.flags |= VMA_ALLOCATION_CREATE_MAPPED_BIT;
+		// 		createInfo.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
+		// 			VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT |
+		// 			VMA_ALLOCATION_CREATE_MAPPED_BIT;
 	}
 	
 	if (vmaCreateBuffer(m_allocator, &bufferInfo, &createInfo, &_buffer, &_allocation, nullptr) != VK_SUCCESS)
@@ -656,7 +657,7 @@ void Device::CreateBufferWithAlignment(
 	VkDeviceSize _size,
 	VkBufferUsageFlags _bufferUsage,
 	VmaMemoryUsage _memoryUsage,
-	VmaAllocationCreateFlags flags,
+	VmaAllocationCreateFlags _flags,
 	VkBuffer& _buffer,
 	VmaAllocation& _allocation,
 	VkDeviceSize _minAlignment /*= 1*/,	// vertex and index buffer does not need alignment, so is 1, uniform buffer instead, for instance, need it
@@ -670,18 +671,18 @@ void Device::CreateBufferWithAlignment(
 
 	VmaAllocationCreateInfo createInfo{};
 	createInfo.usage = _memoryUsage;	//VMA_MEMORY_USAGE_AUTO;//VMA_MEMORY_USAGE_AUTO_PREFER_HOST;//VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
-	createInfo.flags = flags;//VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT; //VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+	createInfo.flags = _flags;//VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT; //VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
 // 	createInfo.requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 // 	createInfo.preferredFlags = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
 // 	createInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
 	if (_isPersistent)
 	{
-		createInfo.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
-			VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT |
-			VMA_ALLOCATION_CREATE_MAPPED_BIT;
+		createInfo.flags |= VMA_ALLOCATION_CREATE_MAPPED_BIT;
+// 		createInfo.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
+// 			VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT |
+// 			VMA_ALLOCATION_CREATE_MAPPED_BIT;
 	}
-
 	if (vmaCreateBufferWithAlignment(m_allocator, &bufferInfo, &createInfo, _minAlignment, &_buffer, &_allocation, nullptr) != VK_SUCCESS)
 	{
 		throw std::runtime_error("failed to create, allocate and bind buffer!");

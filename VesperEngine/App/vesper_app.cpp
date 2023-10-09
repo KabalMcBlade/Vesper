@@ -36,30 +36,42 @@ void VesperApp::ShutdownECS()
 
 void VesperApp::RegisterDefaultComponents()
 {
+	// CAMERA
 	ecs::ComponentManager::RegisterComponent<CameraActive>();
 	ecs::ComponentManager::RegisterComponent<CameraComponent>();
 	ecs::ComponentManager::RegisterComponent<CameraTransformComponent>();
+
+	// OBJECTS
+	ecs::ComponentManager::RegisterComponent<TransformComponent>();
+	ecs::ComponentManager::RegisterComponent<MaterialComponent>();
+	ecs::ComponentManager::RegisterComponent<StaticComponent>();
+
+	// BUFFERS
 	ecs::ComponentManager::RegisterComponent<VertexBufferComponent>();
 	ecs::ComponentManager::RegisterComponent<IndexBufferComponent>();
 	ecs::ComponentManager::RegisterComponent<NotVertexBufferComponent>();
 	ecs::ComponentManager::RegisterComponent<NotIndexBufferComponent>();
-	ecs::ComponentManager::RegisterComponent<TransformComponent>();
-	ecs::ComponentManager::RegisterComponent<MaterialComponent>();
-	ecs::ComponentManager::RegisterComponent<StaticComponent>();
+	ecs::ComponentManager::RegisterComponent<GlobalUBO>();
 }
 
 void VesperApp::UnregisterDefaultComponent()
 {
-	ecs::ComponentManager::UnregisterComponent<StaticComponent>();
-	ecs::ComponentManager::UnregisterComponent<MaterialComponent>();
+	// CAMERA
+	ecs::ComponentManager::UnregisterComponent<CameraActive>();
+	ecs::ComponentManager::UnregisterComponent<CameraComponent>();
+	ecs::ComponentManager::UnregisterComponent<CameraTransformComponent>();
+
+	// OBJECTS
 	ecs::ComponentManager::UnregisterComponent<TransformComponent>();
+	ecs::ComponentManager::UnregisterComponent<MaterialComponent>();
+	ecs::ComponentManager::UnregisterComponent<StaticComponent>();
+
+	// BUFFERS
+	ecs::ComponentManager::UnregisterComponent<VertexBufferComponent>();
+	ecs::ComponentManager::UnregisterComponent<IndexBufferComponent>();
 	ecs::ComponentManager::UnregisterComponent<NotVertexBufferComponent>();
 	ecs::ComponentManager::UnregisterComponent<NotIndexBufferComponent>();
-	ecs::ComponentManager::UnregisterComponent<IndexBufferComponent>();
-	ecs::ComponentManager::UnregisterComponent<VertexBufferComponent>();
-	ecs::ComponentManager::UnregisterComponent<CameraTransformComponent>();
-	ecs::ComponentManager::UnregisterComponent<CameraComponent>();
-	ecs::ComponentManager::UnregisterComponent<CameraActive>();
+	ecs::ComponentManager::UnregisterComponent<GlobalUBO>();
 }
 
 VESPERENGINE_NAMESPACE_END

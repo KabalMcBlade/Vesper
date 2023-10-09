@@ -14,6 +14,10 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
+#define VMA_IMPLEMENTATION
+#include <vma/vk_mem_alloc.h>
+
+
 VESPERENGINE_USING_NAMESPACE
 
 WindowApp::WindowApp(Config& _config) :
@@ -29,6 +33,7 @@ WindowApp::WindowApp(Config& _config) :
 	m_simpleRenderSystem = std::make_unique<SimpleRenderSystem>(*m_device, m_renderer->GetSwapChainRenderPass());
 	m_cameraSystem = std::make_unique<CameraSystem>();
 	m_objLoader = std::make_unique<ObjLoader>(*m_device);
+	m_buffer = std::make_unique<Buffer>(*m_device);
 
 	m_keyboardController = std::make_unique<KeyboardMovementCameraController>();
 
@@ -48,6 +53,34 @@ WindowApp::~WindowApp()
 
 void WindowApp::Run()
 {
+	// This should be in separated class which should manage the "actual" game in terms of what render
+// 	BufferComponent globalUBO;
+// 	m_buffer->Create(
+// 		globalUBO,
+// 		sizeof(GlobalUBO),
+// 		SwapChain::kMaxFramesInFlight,
+// 		VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, //| VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+// 		VMA_MEMORY_USAGE_AUTO, //VMA_MEMORY_USAGE_AUTO,//VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+// 		VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+// 		m_device->GetProperties().limits.minUniformBufferOffsetAlignment,
+// 		true
+// 	);
+
+	std::vector<BufferComponent> uboBuffers(SwapChain::kMaxFramesInFlight);
+	for (int i = 0; i < uboBuffers.size(); i++) 
+	{
+		m_buffer->Create(
+			uboBuffers[i],
+			sizeof(GlobalUBO),
+			1,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, //| VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+			VMA_MEMORY_USAGE_AUTO, //VMA_MEMORY_USAGE_AUTO,//VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+			VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+			1,
+			true
+		);
+	}
+
 	auto currentTime = std::chrono::high_resolution_clock::now();
 
 	while (!m_window->ShouldClose())
@@ -63,35 +96,51 @@ void WindowApp::Run()
 		m_keyboardController->MoveInPlaneXZ(m_window->GetWindow(), frameTime);
 		m_mouseController->Update(frameTime);
 
-		const float aspectRatio = m_renderer->GetAspectRatio();
-		for (auto camera : ecs::IterateEntitiesWithAll<CameraComponent, CameraTransformComponent>())
-		{
-			CameraTransformComponent& transformComponent = ecs::ComponentManager::GetComponent<CameraTransformComponent>(camera);
-			CameraComponent& cameraComponent = ecs::ComponentManager::GetComponent<CameraComponent>(camera);
-
-			m_cameraSystem->SetViewRotation(cameraComponent, transformComponent);
-			m_cameraSystem->SetPerspectiveProjection(cameraComponent, glm::radians(50.0f), aspectRatio, 0.1f, 10.0f);
-		}
-
 		auto commandBuffer = m_renderer->BeginFrame();
 		if (commandBuffer != VK_NULL_HANDLE)
 		{
+			const int32 frameIndex = m_renderer->GetFrameIndex();
+
+			FrameInfo frameInfo { frameIndex, frameTime, commandBuffer };
+		        
+			//camera
+			const float aspectRatio = m_renderer->GetAspectRatio();
+			for (auto camera : ecs::IterateEntitiesWithAll<CameraComponent, CameraTransformComponent, GlobalUBO>())
+			{
+				CameraTransformComponent& transformComponent = ecs::ComponentManager::GetComponent<CameraTransformComponent>(camera);
+				CameraComponent& cameraComponent = ecs::ComponentManager::GetComponent<CameraComponent>(camera);
+
+				m_cameraSystem->SetViewRotation(cameraComponent, transformComponent);
+				m_cameraSystem->SetPerspectiveProjection(cameraComponent, glm::radians(50.0f), aspectRatio, 0.1f, 10.0f);
+
+				GlobalUBO& ubo = ecs::ComponentManager::GetComponent<GlobalUBO>(camera);
+				ubo.ProjectionView = cameraComponent.ProjectionMatrix * cameraComponent.ViewMatrix;
+
+				m_buffer->WriteToIndex(uboBuffers[frameIndex], &ubo, frameIndex);
+				m_buffer->FlushIndex(uboBuffers[frameIndex], frameIndex);
+			}
+
+
 			// For instance, add here before the swap chain:
 			// begin off screen shadow pass
 			//	render shadow casting objects
 			// end off screen shadow pass
 
+
 			m_renderer->BeginSwapChainRenderPass(commandBuffer);
+			//m_rainbowSystem->Update(1.0f/6.0f);	// for fun
 
-			// for fun
-			//m_rainbowSystem->Update(1.0f/6.0f);
-
-			m_simpleRenderSystem->RenderGameEntities(commandBuffer);
+			m_simpleRenderSystem->RenderGameEntities(frameInfo);
 
 			m_renderer->EndSwapChainRenderPass(commandBuffer);
-
 			m_renderer->EndFrame();
 		}
+	}
+
+	//m_buffer->Destroy(globalUBO);
+	for (int i = 0; i < uboBuffers.size(); i++)
+	{
+		m_buffer->Destroy(uboBuffers[i]);
 	}
 
 	vkDeviceWaitIdle(m_device->GetDevice());
@@ -177,7 +226,6 @@ void WindowApp::LoadGameEntities()
 		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 	}
 }
-
 
 void WindowApp::UnloadGameEntities()
 {

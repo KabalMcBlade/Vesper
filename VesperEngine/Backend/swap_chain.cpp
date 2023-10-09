@@ -148,7 +148,7 @@ VkResult SwapChain::SubmitCommandBuffers(const VkCommandBuffer* _buffers, uint32
 
 void SwapChain::CreateSwapChain() 
 {
-	SwapChainSupportDetails swapChainSupport = m_device.getSwapChainSupport();
+	SwapChainSupportDetails swapChainSupport = m_device.GetSwapChainSupport();
 
 	VkSurfaceFormatKHR surfaceFormat = SelectSwapSurfaceFormat(swapChainSupport.Formats);
 	VkPresentModeKHR presentMode = SelectSwapPresentMode(swapChainSupport.PresentModes);

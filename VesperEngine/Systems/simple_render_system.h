@@ -4,6 +4,7 @@
 
 #include "Core/core_defines.h"
 #include "Backend/pipeline.h"
+#include "Backend/frame_info.h"
 #include "Components/camera_components.h"
 #include "Systems/core_render_system.h"
 #include "App/window_handle.h"
@@ -25,7 +26,7 @@ public:
 	SimpleRenderSystem& operator=(const SimpleRenderSystem&) = delete;
 
 public:
-	void RenderGameEntities(VkCommandBuffer _commandBuffer);
+	void RenderGameEntities(FrameInfo& _frameInfo);
 
 private:
 	void CreatePipelineLayout();

@@ -112,6 +112,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
   <ItemGroup>
     <ClInclude Include="App\config.h" />
     <ClInclude Include="Backend\buffer.h" />
+    <ClInclude Include="Backend\frame_info.h" />
     <ClInclude Include="Backend\model_data.h" />
     <ClInclude Include="Utility\hash.h" />
     <ClInclude Include="Utility\obj_loader.h" />

@@ -20,6 +20,7 @@
 #include "Backend/buffer.h"
 #include "Backend/swap_chain.h"
 #include "Backend/renderer.h"
+#include "Backend/frame_info.h"
 
 #include "Components/graphics_components.h"
 #include "Components/object_components.h"

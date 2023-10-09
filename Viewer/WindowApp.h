@@ -28,6 +28,7 @@ public:
 
 private:
 	void LoadCameraEntities();
+
 	void LoadGameEntities();
 	void UnloadGameEntities();
 
@@ -43,6 +44,7 @@ private:
 
 	std::unique_ptr<CameraSystem> m_cameraSystem;
 	std::unique_ptr<ObjLoader> m_objLoader;
+	std::unique_ptr<Buffer> m_buffer;
 
 	// from game side
 	std::unique_ptr<KeyboardMovementCameraController> m_keyboardController;

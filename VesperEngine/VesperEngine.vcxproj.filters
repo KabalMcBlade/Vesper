@@ -129,6 +129,9 @@
     <ClInclude Include="App\vesper_app.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Backend\frame_info.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

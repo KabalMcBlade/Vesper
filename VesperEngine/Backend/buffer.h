@@ -165,23 +165,10 @@ public:
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// NON-TEMPLATE INLINE FUNCTION
+	// NON-TEMPLATE FUNCTIONS
 
-	VESPERENGINE_INLINE void WriteToBuffer(void* _inMappedData, void* _outData, VkDeviceSize _size)
-	{
-		assertMsgReturnVoid(_inMappedData, "Cannot copy to unmapped buffer");
-
-		MemCpy(_inMappedData, _outData, _size);
-	}
-
-	VESPERENGINE_INLINE void WriteToBufferWithOffset(void* _inMappedData, void* _outData, VkDeviceSize _size, VkDeviceSize _offset)
-	{
-		assertMsgReturnVoid(_inMappedData, "Cannot copy to unmapped buffer");
-
-		uint8* memOffset = (uint8*)_inMappedData;
-		memOffset += _offset;
-		MemCpy(memOffset, _outData, _size);
-	}
+	void WriteToBuffer(void* _inMappedData, void* _outData, VkDeviceSize _size);
+	void WriteToBufferWithOffset(void* _inMappedData, void* _outData, VkDeviceSize _size, VkDeviceSize _offset);
 
 
 private:
