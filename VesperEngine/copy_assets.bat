@@ -25,17 +25,36 @@ if not exist %~2\Assets\Textures (
 echo:
 
 
-echo Copying shaders files:
-copy %~1\Assets\Shaders\*.spv %~2\Assets\Shaders
-echo:
 
-::echo Copying models files:
-::copy Assets\Models %~2\Assets\Models
-::echo:
+for %%f in (%~1\Assets\Shaders\*.spv) do (
 
-::echo Copying textures files:
-::copy Assets\Textures %~2\Assets\Textures
-::echo:
+    echo Copying shaders files:
+    copy %~1\Assets\Shaders\*.spv %~2\Assets\Shaders
+    echo:
+
+	goto :MODEL_FOLDER
+)
+
+:MODEL_FOLDER
+for %%f in (%~1\Assets\Models\*.*) do (
+
+    echo Copying models files:
+    copy %~1\Assets\Models\*.* %~2\Assets\Models
+    echo:
+
+	goto :TEXTURE_FOLDER
+)
+
+:TEXTURE_FOLDER
+for %%f in (%~1\Assets\Textures\*.*) do (
+
+    echo Copying models files:
+    copy %~1\Assets\Textures\*.* %~2\Assets\Textures
+    echo:
+
+	goto :END_OK
+)
+
 
 goto :END_OK
 
