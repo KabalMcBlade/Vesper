@@ -147,6 +147,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
     <ClInclude Include="Systems\simple_render_system.h" />
     <ClInclude Include="vesper.h" />
     <ClInclude Include="App\window_handle.h" />
+    <ClInclude Include="App\vesper_app.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Backend\buffer.cpp" />
@@ -170,6 +171,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
     <ClCompile Include="Systems\core_render_system.cpp" />
     <ClCompile Include="Systems\game_entity_system.cpp" />
     <ClCompile Include="Systems\simple_render_system.cpp" />
+    <ClCompile Include="App\vesper_app.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\simple_shader.frag" />

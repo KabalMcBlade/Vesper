@@ -14,7 +14,7 @@
 
 VESPERENGINE_USING_NAMESPACE
 
-class WindowApp final
+class WindowApp final : public VesperApp
 {
 public:
 	WindowApp(Config& _config);

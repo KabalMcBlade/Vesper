@@ -16,11 +16,10 @@
 
 VESPERENGINE_USING_NAMESPACE
 
-WindowApp::WindowApp(Config& _config)
+WindowApp::WindowApp(Config& _config) :
+	VesperApp(_config)
 {
-	m_window = std::make_unique<ViewerWindow>(
-		_config.WindowWidth, _config.WindowHeight, _config.WindowName,
-		_config.MaxEntities, _config.MaxComponentsPerEntity);
+	m_window = std::make_unique<ViewerWindow>(_config.WindowWidth, _config.WindowHeight, _config.WindowName);
 
 	m_device = std::make_unique<Device>(*m_window);
 	m_renderer = std::make_unique<Renderer>(*m_window, *m_device);
