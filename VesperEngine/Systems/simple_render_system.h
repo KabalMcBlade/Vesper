@@ -19,7 +19,7 @@ VESPERENGINE_NAMESPACE_BEGIN
 class VESPERENGINE_DLL SimpleRenderSystem final : public CoreRenderSystem
 {
 public:
-	SimpleRenderSystem(Device& _device, VkRenderPass _renderPass);
+	SimpleRenderSystem(Device& _device, VkRenderPass _renderPass, VkDescriptorSetLayout _globalDescriptorSetLayout);
 	~SimpleRenderSystem();
 
 	SimpleRenderSystem(const SimpleRenderSystem&) = delete;
@@ -29,7 +29,7 @@ public:
 	void RenderGameEntities(FrameInfo& _frameInfo);
 
 private:
-	void CreatePipelineLayout();
+	void CreatePipelineLayout(VkDescriptorSetLayout _globalDescriptorSetLayout);
 	void CreatePipeline(VkRenderPass _renderPass);
 
 	void TransformEntity(VkCommandBuffer _commandBuffer, ecs::Entity _entity, glm::mat4 _projectionView);

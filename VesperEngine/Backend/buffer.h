@@ -112,7 +112,7 @@ public:
 	}
 
 	template<typename BufferType>
-	VkResult Flush(BufferType& _buffer, VkDeviceSize _offset)
+	VkResult Flush(BufferType& _buffer, VkDeviceSize _offset = 0)
 	{
 		return vmaFlushAllocation(m_device.GetAllocator(), _buffer.AllocationMemory, _offset, _buffer.AlignedSize);
 	}

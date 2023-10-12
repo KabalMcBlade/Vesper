@@ -19,6 +19,7 @@
 #include "Backend/device.h"
 #include "Backend/buffer.h"
 #include "Backend/swap_chain.h"
+#include "Backend/descriptors.h"
 #include "Backend/renderer.h"
 #include "Backend/frame_info.h"
 

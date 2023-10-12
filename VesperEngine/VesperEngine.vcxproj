@@ -114,6 +114,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
     <ClInclude Include="Backend\buffer.h" />
     <ClInclude Include="Backend\frame_info.h" />
     <ClInclude Include="Backend\model_data.h" />
+    <ClInclude Include="Backend\descriptors.h" />
     <ClInclude Include="Utility\hash.h" />
     <ClInclude Include="Utility\obj_loader.h" />
     <ClInclude Include="Systems\model_system.h" />
@@ -154,6 +155,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
     <ClCompile Include="Backend\buffer.cpp" />
     <ClCompile Include="Backend\renderer.cpp" />
     <ClCompile Include="Backend\model_data.cpp" />
+    <ClCompile Include="Backend\descriptors.cpp" />
     <ClCompile Include="Utility\obj_loader.cpp" />
     <ClCompile Include="Systems\model_system.cpp" />
     <ClCompile Include="Utility\primitive_factory.cpp" />

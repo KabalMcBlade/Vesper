@@ -25,14 +25,14 @@ VESPERENGINE_NAMESPACE_BEGIN
 
 struct SimplePushConstantData
 {
-	glm::mat4 ProjectionViewModelMatrix{ 1.0f };
+	glm::mat4 ModelMatrix{ 1.0f };
 	glm::mat4 NormalModelMatrix{ 1.0f };
 };
 
-SimpleRenderSystem::SimpleRenderSystem(Device& _device, VkRenderPass _renderPass)
+SimpleRenderSystem::SimpleRenderSystem(Device& _device, VkRenderPass _renderPass, VkDescriptorSetLayout _globalDescriptorSetLayout)
 	: CoreRenderSystem {_device }
 {
-	CreatePipelineLayout();
+	CreatePipelineLayout(_globalDescriptorSetLayout);
 	CreatePipeline(_renderPass);
 }
 
@@ -41,7 +41,7 @@ SimpleRenderSystem::~SimpleRenderSystem()
 	vkDestroyPipelineLayout(m_device.GetDevice(), m_pipelineLayout, nullptr);
 }
 
-void SimpleRenderSystem::CreatePipelineLayout()
+void SimpleRenderSystem::CreatePipelineLayout(VkDescriptorSetLayout _globalDescriptorSetLayout)
 {
 	// TEST: Push Constant
 	VkPushConstantRange pushConstantRange{};
@@ -49,14 +49,15 @@ void SimpleRenderSystem::CreatePipelineLayout()
 	pushConstantRange.offset = 0;
 	pushConstantRange.size = sizeof(SimplePushConstantData);
 
+	std::vector<VkDescriptorSetLayout> descriptorSetLayouts{ _globalDescriptorSetLayout };
 
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
 	// This is used to pass other than vertex data to the vertex and fragment shaders.
 	// This can include textures and uniform buffer objects (UBO)
-	pipelineLayoutInfo.setLayoutCount = 0;
-	pipelineLayoutInfo.pSetLayouts = nullptr;
+	pipelineLayoutInfo.setLayoutCount = static_cast<uint32>(descriptorSetLayouts.size());
+	pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
 
 	// Push constants are a efficient way to send a small amount of data to the shader programs
 	pipelineLayoutInfo.pushConstantRangeCount = 1;
@@ -91,6 +92,17 @@ void SimpleRenderSystem::CreatePipeline(VkRenderPass _renderPass)
 void SimpleRenderSystem::RenderGameEntities(FrameInfo& _frameInfo)
 {
 	m_pipeline->Bind(_frameInfo.CommandBUffer);
+
+	vkCmdBindDescriptorSets(
+		_frameInfo.CommandBUffer,
+		VK_PIPELINE_BIND_POINT_GRAPHICS,
+		m_pipelineLayout,
+		0,
+		1,
+		&_frameInfo.GlobalDescriptorSet,
+		0,
+		nullptr
+	);
 
 	// Iterate all the camera and update the objects transform based on projection view
 	for (auto camera : ecs::IterateEntitiesWithAll<GlobalUBO>())
@@ -132,7 +144,7 @@ void SimpleRenderSystem::TransformEntity(VkCommandBuffer _commandBuffer, ecs::En
 	modelMatrix = glm::scale(modelMatrix, transformComponent.Scale);
 
 	SimplePushConstantData push{};
-	push.ProjectionViewModelMatrix = _projectionView * modelMatrix;
+	push.ModelMatrix = modelMatrix;
 	push.NormalModelMatrix = glm::transpose(glm::inverse(modelMatrix));
 
 	vkCmdPushConstants(_commandBuffer, m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData), &push);

@@ -38,6 +38,11 @@ private:
 	std::unique_ptr<Device> m_device;
 	std::unique_ptr<Renderer> m_renderer;
 
+	// this goes AFTER the device, or will crash at shutdown time.
+	// also, a DescriptorPool could be x system, instead one global.
+	std::unique_ptr<DescriptorPool> m_globalPool;	
+	std::unique_ptr<DescriptorSetLayout> m_globalSetLayout;
+
 	std::unique_ptr<GameEntitySystem> m_gameEntitySystem;
 	std::unique_ptr<ModelSystem> m_modelSystem;
 	std::unique_ptr<SimpleRenderSystem> m_simpleRenderSystem;

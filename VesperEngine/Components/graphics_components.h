@@ -65,7 +65,7 @@ struct MaterialComponent
 struct GlobalUBO
 {
 	glm::mat4 ProjectionView{ 1.0f };
-	glm::vec3 Lig0htDirection = glm::normalize((glm::vec3(1.0f, -5.0f, -2.0f)));
+	glm::vec3 LightDirection = glm::normalize((glm::vec3(1.0f, -5.0f, -2.0f)));
 };
 
 VESPERENGINE_NAMESPACE_END

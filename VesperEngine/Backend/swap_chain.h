@@ -24,14 +24,14 @@ public:
 	SwapChain(const SwapChain&) = delete;
 	SwapChain& operator=(const SwapChain&) = delete;
 
-	VESPERENGINE_INLINE VkFramebuffer GetFrameBuffer(int32 _index) { return m_swapChainFramebuffers[_index]; }
-	VESPERENGINE_INLINE VkRenderPass GetRenderPass() { return m_renderPass; }
-	VESPERENGINE_INLINE VkImageView GetImageView(int32 _index) { return m_swapChainImageViews[_index]; }
-	VESPERENGINE_INLINE std::size_t GetImageCount() { return m_swapChainImages.size(); }
-	VESPERENGINE_INLINE VkFormat GetSwapChainImageFormat() { return m_swapChainImageFormat; }
-	VESPERENGINE_INLINE VkExtent2D GetSwapChainExtent() { return m_swapChainExtent; }
-	VESPERENGINE_INLINE uint32 GetWidth() { return m_swapChainExtent.width; }
-	VESPERENGINE_INLINE uint32 GetHeight() { return m_swapChainExtent.height; }
+	VESPERENGINE_INLINE const VkFramebuffer GetFrameBuffer(int32 _index) const { return m_swapChainFramebuffers[_index]; }
+	VESPERENGINE_INLINE const VkRenderPass GetRenderPass() const { return m_renderPass; }
+	VESPERENGINE_INLINE const VkImageView GetImageView(int32 _index) const { return m_swapChainImageViews[_index]; }
+	VESPERENGINE_INLINE const std::size_t GetImageCount() const { return m_swapChainImages.size(); }
+	VESPERENGINE_INLINE const VkFormat GetSwapChainImageFormat() const { return m_swapChainImageFormat; }
+	VESPERENGINE_INLINE const VkExtent2D GetSwapChainExtent() const { return m_swapChainExtent; }
+	VESPERENGINE_INLINE const uint32 GetWidth() const { return m_swapChainExtent.width; }
+	VESPERENGINE_INLINE const uint32 GetHeight() const { return m_swapChainExtent.height; }
 
 	VESPERENGINE_INLINE float GetExtentAspectRatio() 
 	{

@@ -28,9 +28,20 @@ WindowApp::WindowApp(Config& _config) :
 	m_device = std::make_unique<Device>(*m_window);
 	m_renderer = std::make_unique<Renderer>(*m_window, *m_device);
 
+	// This should be managed as global pool per render system
+	m_globalPool = DescriptorPool::Builder(*m_device)
+		.SetMaxSets(SwapChain::kMaxFramesInFlight)
+		.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::kMaxFramesInFlight)
+		.Build();
+
+	// This should be part of the highest render system, which is shared among all the possible shaders and so all the possible Render systems
+	m_globalSetLayout = DescriptorSetLayout::Builder(*m_device)
+		.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+		.Build();
+
 	m_gameEntitySystem = std::make_unique<GameEntitySystem>();
 	m_modelSystem = std::make_unique<ModelSystem>(*m_device);
-	m_simpleRenderSystem = std::make_unique<SimpleRenderSystem>(*m_device, m_renderer->GetSwapChainRenderPass());
+	m_simpleRenderSystem = std::make_unique<SimpleRenderSystem>(*m_device, m_renderer->GetSwapChainRenderPass(), m_globalSetLayout->GetDescriptorSetLayout());
 	m_cameraSystem = std::make_unique<CameraSystem>();
 	m_objLoader = std::make_unique<ObjLoader>(*m_device);
 	m_buffer = std::make_unique<Buffer>(*m_device);
@@ -74,11 +85,24 @@ void WindowApp::Run()
 			sizeof(GlobalUBO),
 			1,
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, //| VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-			VMA_MEMORY_USAGE_AUTO, //VMA_MEMORY_USAGE_AUTO,//VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
-			VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+			VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, //VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, //VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO,
+			VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
 			1,
 			true
 		);
+	}
+
+// 	auto globalSetLayout = DescriptorSetLayout::Builder(*m_device)
+// 		.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+// 		.Build();
+
+	std::vector<VkDescriptorSet> globalDescriptorSets(SwapChain::kMaxFramesInFlight);
+	for (int i = 0; i < globalDescriptorSets.size(); ++i)
+	{
+		auto bufferInfo = m_buffer->GetDescriptorInfo(uboBuffers[i]);
+		DescriptorWriter(*m_globalSetLayout, *m_globalPool)
+			.WriteBuffer(0, &bufferInfo)
+			.Build(globalDescriptorSets[i]);
 	}
 
 	auto currentTime = std::chrono::high_resolution_clock::now();
@@ -101,7 +125,7 @@ void WindowApp::Run()
 		{
 			const int32 frameIndex = m_renderer->GetFrameIndex();
 
-			FrameInfo frameInfo { frameIndex, frameTime, commandBuffer };
+			FrameInfo frameInfo { frameIndex, frameTime, commandBuffer, globalDescriptorSets[frameIndex] };
 		        
 			//camera
 			const float aspectRatio = m_renderer->GetAspectRatio();
@@ -116,8 +140,10 @@ void WindowApp::Run()
 				GlobalUBO& ubo = ecs::ComponentManager::GetComponent<GlobalUBO>(camera);
 				ubo.ProjectionView = cameraComponent.ProjectionMatrix * cameraComponent.ViewMatrix;
 
-				m_buffer->WriteToIndex(uboBuffers[frameIndex], &ubo, frameIndex);
-				m_buffer->FlushIndex(uboBuffers[frameIndex], frameIndex);
+				//m_buffer->WriteToIndex(uboBuffers[frameIndex], &ubo, frameIndex);
+				//m_buffer->FlushIndex(uboBuffers[frameIndex], frameIndex);
+				m_buffer->WriteToBuffer(uboBuffers[frameIndex], &ubo);
+				m_buffer->Flush(uboBuffers[frameIndex]);
 			}
 
 
@@ -137,13 +163,14 @@ void WindowApp::Run()
 		}
 	}
 
+	vkDeviceWaitIdle(m_device->GetDevice());
+
+
 	//m_buffer->Destroy(globalUBO);
 	for (int i = 0; i < uboBuffers.size(); i++)
 	{
 		m_buffer->Destroy(uboBuffers[i]);
 	}
-
-	vkDeviceWaitIdle(m_device->GetDevice());
 }
 
 void WindowApp::LoadCameraEntities()
