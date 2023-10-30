@@ -14,8 +14,9 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
-#define VMA_IMPLEMENTATION
-#include <vma/vk_mem_alloc.h>
+// ONLY IF USING VESPER ENGINE AS DLL, IF USING AS STATIC LIB, DON'T ADD!
+//#define VMA_IMPLEMENTATION
+//#include <vma/vk_mem_alloc.h>
 
 
 VESPERENGINE_USING_NAMESPACE
@@ -32,11 +33,12 @@ WindowApp::WindowApp(Config& _config) :
 	m_globalPool = DescriptorPool::Builder(*m_device)
 		.SetMaxSets(SwapChain::kMaxFramesInFlight)
 		.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::kMaxFramesInFlight)
+		//.AddPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, SwapChain::kMaxFramesInFlight)
 		.Build();
 
 	// This should be part of the highest render system, which is shared among all the possible shaders and so all the possible Render systems
 	m_globalSetLayout = DescriptorSetLayout::Builder(*m_device)
-		.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+		.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
 		.Build();
 
 	m_gameEntitySystem = std::make_unique<GameEntitySystem>();
@@ -135,7 +137,7 @@ void WindowApp::Run()
 				CameraComponent& cameraComponent = ecs::ComponentManager::GetComponent<CameraComponent>(camera);
 
 				m_cameraSystem->SetViewRotation(cameraComponent, transformComponent);
-				m_cameraSystem->SetPerspectiveProjection(cameraComponent, glm::radians(50.0f), aspectRatio, 0.1f, 10.0f);
+				m_cameraSystem->SetPerspectiveProjection(cameraComponent, glm::radians(50.0f), aspectRatio, 0.1f, 100.0f);
 
 				GlobalUBO& ubo = ecs::ComponentManager::GetComponent<GlobalUBO>(camera);
 				ubo.ProjectionView = cameraComponent.ProjectionMatrix * cameraComponent.ViewMatrix;
@@ -180,12 +182,12 @@ void WindowApp::LoadCameraEntities()
 	m_cameraSystem->SetCurrentActiveCamera(camera);
 
 	CameraTransformComponent& transformComponent = ecs::ComponentManager::GetComponent<CameraTransformComponent>(camera);
-	transformComponent.Position = { 0.0f, 0.0f, 0.0f };
+	transformComponent.Position = { 0.0f, 0.0f, -3.0f };
 	
 	CameraComponent& cameraComponent = ecs::ComponentManager::GetComponent<CameraComponent>(camera);
 
 	m_cameraSystem->SetViewRotation(cameraComponent, transformComponent);
-	m_cameraSystem->SetPerspectiveProjection(cameraComponent, glm::radians(50.0f), 1.0f, 0.1f, 10.0f);
+	m_cameraSystem->SetPerspectiveProjection(cameraComponent, glm::radians(50.0f), 1.0f, 0.1f, 100.0f);
 }
 
 void WindowApp::LoadGameEntities()
@@ -203,7 +205,7 @@ void WindowApp::LoadGameEntities()
 		m_modelSystem->LoadModel(cubeNoIndices, std::move(cubeNoIndicesData));
 
 		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(cubeNoIndices);
-		transformComponent.Position = { 0.0f, -1.0f, 3.0f };
+		transformComponent.Position = { 0.0f, -1.0f, 0.0f };
 		transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
 		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 	}
@@ -217,7 +219,7 @@ void WindowApp::LoadGameEntities()
 		m_modelSystem->LoadModel(flatVase, std::move(flatVaseData));
 
 		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(flatVase);
-		transformComponent.Position = { -1.5f, 0.5f, 3.0f };
+		transformComponent.Position = { -1.5f, 0.5f, 0.0f };
 		transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
 		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 	}
@@ -231,7 +233,7 @@ void WindowApp::LoadGameEntities()
 		m_modelSystem->LoadModel(coloredCube, std::move(coloredCubeData));
 		
 		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(coloredCube);
-		transformComponent.Position = { 0.0f, 0.0f, 3.0f };
+		transformComponent.Position = { 0.0f, 0.0f, 0.0f };
 		transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
 		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 		
@@ -248,8 +250,22 @@ void WindowApp::LoadGameEntities()
 		m_modelSystem->LoadModel(smoothVase, std::move(smoothVaseData));
 
 		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(smoothVase);
-		transformComponent.Position = { 1.5f, 0.5f, 3.0f };
+		transformComponent.Position = { 1.5f, 0.5f, 0.0f };
 		transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
+		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Plane / Quad
+	{
+		std::unique_ptr<ModelData> quadData = m_objLoader->LoadModel("Assets/Models/quad.obj");
+		ecs::Entity quad = m_gameEntitySystem->CreateGameEntity(EntityType::Object);
+
+		m_modelSystem->LoadModel(quad, std::move(quadData));
+
+		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(quad);
+		transformComponent.Position = { 0.0f, 1.0f, 0.0f };
+		transformComponent.Scale = { 3.0f, 1.0f, 3.0f };
 		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 	}
 }

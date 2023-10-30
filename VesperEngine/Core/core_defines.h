@@ -6,13 +6,25 @@
 // PREPROCESSORS
 //////////////////////////////////////////////////////////////////////////
 
+// If VESPERENGINE_DYNAMIC_LIB is defined, then the export/import symbols are generated
+//#define VESPERENGINE_DYNAMIC_LIB
+
+#ifdef VESPERENGINE_DYNAMIC_LIB
+
 #ifdef VESPERENGINE_EXPORTS
 #define VESPERENGINE_DLL __declspec(dllexport)
-#define VESPERENGINE_TEMPLATE
 #else
 #define VESPERENGINE_DLL __declspec(dllimport)
-#define VESPERENGINE_TEMPLATE extern
 #endif 
+
+#else
+
+#define VESPERENGINE_DLL 
+
+#endif // VESPERENGINE_DYNAMIC_LIB
+
+
+
 
 // defines for easy namespace
 #define VESPERENGINE_NAMESPACE_BEGIN namespace vesper {
