@@ -81,7 +81,7 @@
     <ClInclude Include="ECS\utility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Systems\core_render_system.h">
+    <ClInclude Include="Systems\base_render_system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Systems\game_entity_system.h">
@@ -164,7 +164,7 @@
     <ClCompile Include="ECS\entity_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Systems\core_render_system.cpp">
+    <ClCompile Include="Systems\base_render_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Systems\game_entity_system.cpp">

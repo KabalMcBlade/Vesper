@@ -9,7 +9,7 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-struct VESPERENGINE_DLL PipelineConfigInfo
+struct PipelineConfigInfo
 {
 	PipelineConfigInfo() = default;
 	PipelineConfigInfo(const PipelineConfigInfo&) = delete;
@@ -31,13 +31,34 @@ struct VESPERENGINE_DLL PipelineConfigInfo
 	uint32 Subpass = 0u;
 };
 
+enum class ShaderType : uint8
+{
+	Vertex = 0,
+	TessellationEvaluation,
+	TessellationControl,
+	Geometry,
+	Fragment
+};
+
+struct ShaderInfo
+{
+	ShaderInfo(const std::string& _filepath, const ShaderType _type) : Filepath(_filepath), Type(_type){}
+
+	ShaderInfo() = default;
+	ShaderInfo(const PipelineConfigInfo&) = delete;
+	ShaderInfo& operator=(const PipelineConfigInfo&) = delete;
+
+	std::string Filepath;
+	ShaderType Type;
+};
+
 class VESPERENGINE_DLL Pipeline final
 {
 public:
 	static void DefaultPipelineConfiguration(PipelineConfigInfo& _outConfigInfo);
 
 public:
-	Pipeline(Device& _device, const std::string& _filepath_vert, const std::string& _filepath_frag, const PipelineConfigInfo& _configInfo);
+	Pipeline(Device& _device, const std::vector<ShaderInfo>& _shadersInfo, const PipelineConfigInfo& _configInfo);
 	~Pipeline();
 
 	Pipeline(const Pipeline&) = delete;
@@ -50,16 +71,15 @@ private:
 	static std::vector<int8> ReadFile(const std::string& _filepath);
 
 private:
-	void CreateGraphicsPipeline(const std::string& _filepath_vert, const std::string& _filepath_frag, const PipelineConfigInfo& _configInfo);
-
+	VkShaderStageFlagBits ConvertShaderTypeToShaderFlag(ShaderType _type) const;
+	void CreateGraphicsPipeline(const std::vector<ShaderInfo>& _shadersInfo, const PipelineConfigInfo& _configInfo);
 	void CreateShaderModule(const std::vector<int8>& _buffer, VkShaderModule* _shaderModule);
 
 private:
 	Device& m_device;
 
 	VkPipeline m_graphicPipeline;
-	VkShaderModule m_vertexShaderModule;
-	VkShaderModule m_fragmentShaderModule;
+	std::vector<VkShaderModule> m_shaderModules;
 };
 
 VESPERENGINE_NAMESPACE_END

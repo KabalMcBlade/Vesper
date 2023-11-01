@@ -121,16 +121,18 @@ void Pipeline::DefaultPipelineConfiguration(PipelineConfigInfo& _outConfigInfo)
 	_outConfigInfo.DynamicStateInfo.flags = 0;
 }
 
-Pipeline::Pipeline(Device& _device, const std::string& _filepath_vert, const std::string& _filepath_frag, const PipelineConfigInfo& _configInfo)
+Pipeline::Pipeline(Device& _device, const std::vector<ShaderInfo>& _shadersInfo, const PipelineConfigInfo& _configInfo)
  : m_device{_device}
 {
-	CreateGraphicsPipeline(_filepath_vert, _filepath_frag, _configInfo);
+	CreateGraphicsPipeline(_shadersInfo, _configInfo);
 }
 
 Pipeline::~Pipeline()
 {
-	vkDestroyShaderModule(m_device.GetDevice(), m_vertexShaderModule, nullptr);
-	vkDestroyShaderModule(m_device.GetDevice(), m_fragmentShaderModule, nullptr);
+	for (const VkShaderModule& shaderModule : m_shaderModules)
+	{
+		vkDestroyShaderModule(m_device.GetDevice(), shaderModule, nullptr);
+	}
 	vkDestroyPipeline(m_device.GetDevice(), m_graphicPipeline, nullptr);
 }
 
@@ -160,40 +162,47 @@ std::vector<int8> Pipeline::ReadFile(const std::string& _filepath)
 	return buffer;
 }
 
-void Pipeline::CreateGraphicsPipeline(const std::string& _filepath_vert, const std::string& _filepath_frag, const PipelineConfigInfo& _configInfo)
+VkShaderStageFlagBits Pipeline::ConvertShaderTypeToShaderFlag(ShaderType _type) const
+{
+	switch (_type)
+	{
+	case vesper::ShaderType::Vertex:					return VK_SHADER_STAGE_VERTEX_BIT;
+	case vesper::ShaderType::TessellationEvaluation:	return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+	case vesper::ShaderType::TessellationControl:		return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+	case vesper::ShaderType::Geometry:					return VK_SHADER_STAGE_GEOMETRY_BIT;
+	case vesper::ShaderType::Fragment:					return VK_SHADER_STAGE_FRAGMENT_BIT;
+	}
+}
+
+
+void Pipeline::CreateGraphicsPipeline(const std::vector<ShaderInfo>& _shadersInfo, const PipelineConfigInfo& _configInfo)
 {
 	assertMsgReturnVoid(_configInfo.PipelineLayout != VK_NULL_HANDLE, "Cannot create graphic pipeline: No PipelineLayout passed in _configInfo");
 	assertMsgReturnVoid(_configInfo.RenderPass != VK_NULL_HANDLE, "Cannot create graphic pipeline: No RenderPass passed in _configInfo");
 
-	auto vertex = ReadFile(_filepath_vert);
-	auto fragment = ReadFile(_filepath_frag);
+	const int8 count = static_cast<int8>(_shadersInfo.size());
 
-#ifdef _DEBUG
-	std::cout << "Vertex Shader Code Size = " << vertex.size() << std::endl;
-	std::cout << "Fragment Shader Code Size = " << fragment.size() << std::endl;
-#endif
+	m_shaderModules.resize(count);
 
-	CreateShaderModule(vertex, &m_vertexShaderModule);
-	CreateShaderModule(fragment, &m_fragmentShaderModule);
+	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+	shaderStages.resize(count);
 
-	VkPipelineShaderStageCreateInfo shaderStages[2];
+	for (int8 i = 0; i < count; ++i)
+	{
+		const ShaderInfo& shaderInfo = _shadersInfo[i];
 
-	shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
-	shaderStages[0].module = m_vertexShaderModule;
-	shaderStages[0].pName = "main";
-	shaderStages[0].flags = 0;
-	shaderStages[0].pNext = nullptr;
-	shaderStages[0].pSpecializationInfo = nullptr;
+		auto shader = ReadFile(shaderInfo.Filepath);
 
-	shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-	shaderStages[1].module = m_fragmentShaderModule;
-	shaderStages[1].pName = "main";
-	shaderStages[1].flags = 0;
-	shaderStages[1].pNext = nullptr;
-	shaderStages[1].pSpecializationInfo = nullptr;
+		CreateShaderModule(shader, &m_shaderModules[i]);
 
+		shaderStages[i].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		shaderStages[i].stage = ConvertShaderTypeToShaderFlag(shaderInfo.Type);
+		shaderStages[i].module = m_shaderModules[i];
+		shaderStages[i].pName = "main";
+		shaderStages[i].flags = 0;
+		shaderStages[i].pNext = nullptr;
+		shaderStages[i].pSpecializationInfo = nullptr;
+	}
 	
 	auto attributeDescription = Vertex::GetAttributeDescriptions();
 	auto bindingDescription = Vertex::GetBindingDescriptions();
@@ -207,8 +216,8 @@ void Pipeline::CreateGraphicsPipeline(const std::string& _filepath_vert, const s
 
 	VkGraphicsPipelineCreateInfo pipelineInfo{};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-	pipelineInfo.stageCount = 2; // we have only vertex and fragment shader for now, so 2
-	pipelineInfo.pStages = shaderStages;
+	pipelineInfo.stageCount = static_cast<uint32>(shaderStages.size());
+	pipelineInfo.pStages = shaderStages.data();
 	pipelineInfo.pVertexInputState = &vertexInputInfo;
 	pipelineInfo.pInputAssemblyState = &_configInfo.InputAssemblyInfo;
 	pipelineInfo.pViewportState = &_configInfo.ViewportInfo;

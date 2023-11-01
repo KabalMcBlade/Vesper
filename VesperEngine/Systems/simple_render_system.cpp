@@ -30,9 +30,17 @@ struct SimplePushConstantData
 };
 
 SimpleRenderSystem::SimpleRenderSystem(Device& _device, VkRenderPass _renderPass, VkDescriptorSetLayout _globalDescriptorSetLayout)
-	: CoreRenderSystem {_device }
+	: BaseRenderSystem {_device }
 {
-	CreatePipelineLayout(_globalDescriptorSetLayout);
+	// TEST: Push Constant
+	VkPushConstantRange pushConstantRange{};
+	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstantRange.offset = 0;
+	pushConstantRange.size = sizeof(SimplePushConstantData);
+
+	m_pushConstants.push_back(pushConstantRange);
+
+	CreatePipelineLayout(std::vector<VkDescriptorSetLayout>{ _globalDescriptorSetLayout });
 	CreatePipeline(_renderPass);
 }
 
@@ -41,69 +49,8 @@ SimpleRenderSystem::~SimpleRenderSystem()
 	vkDestroyPipelineLayout(m_device.GetDevice(), m_pipelineLayout, nullptr);
 }
 
-void SimpleRenderSystem::CreatePipelineLayout(VkDescriptorSetLayout _globalDescriptorSetLayout)
+void SimpleRenderSystem::RenderFrame(FrameInfo& _frameInfo)
 {
-	// TEST: Push Constant
-	VkPushConstantRange pushConstantRange{};
-	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-	pushConstantRange.offset = 0;
-	pushConstantRange.size = sizeof(SimplePushConstantData);
-
-	std::vector<VkDescriptorSetLayout> descriptorSetLayouts{ _globalDescriptorSetLayout };
-
-	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-
-	// This is used to pass other than vertex data to the vertex and fragment shaders.
-	// This can include textures and uniform buffer objects (UBO)
-	pipelineLayoutInfo.setLayoutCount = static_cast<uint32>(descriptorSetLayouts.size());
-	pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
-
-	// Push constants are a efficient way to send a small amount of data to the shader programs
-	pipelineLayoutInfo.pushConstantRangeCount = 1;
-	pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-
-	if (vkCreatePipelineLayout(m_device.GetDevice(), &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
-	{
-		throw std::runtime_error("failed to create pipeline layout!");
-	}
-}
-
-void SimpleRenderSystem::CreatePipeline(VkRenderPass _renderPass)
-{
-	assertMsgReturnVoid(m_pipelineLayout != nullptr, "Cannot create pipeline before pipeline layout");
-
-	PipelineConfigInfo pipelineConfig{};
-	Pipeline::DefaultPipelineConfiguration(pipelineConfig);
-
-	// The render pass describes the structure and format of the frame buffer objects (FBOs) and their attachments
-	// Right now we have in location 0 the color buffer and in location 1 the depth buffer, check SwapChain::CreateRenderPass() -> attachments
-	// So we need to inform the shaders about these locations. If the render pass change, shaders must reflect it.
-	pipelineConfig.RenderPass = _renderPass;
-	pipelineConfig.PipelineLayout = m_pipelineLayout;
-	m_pipeline = std::make_unique<Pipeline>(
-		m_device,
-		"Assets/Shaders/simple_shader.vert.spv",
-		"Assets/Shaders/simple_shader.frag.spv",
-		pipelineConfig
-		);
-}
-
-void SimpleRenderSystem::RenderGameEntities(FrameInfo& _frameInfo)
-{
-	m_pipeline->Bind(_frameInfo.CommandBUffer);
-
-	vkCmdBindDescriptorSets(
-		_frameInfo.CommandBUffer,
-		VK_PIPELINE_BIND_POINT_GRAPHICS,
-		m_pipelineLayout,
-		0,
-		1,
-		&_frameInfo.GlobalDescriptorSet,
-		0,
-		nullptr
-	);
-
 	// Iterate all the camera and update the objects transform based on projection view
 	for (auto camera : ecs::IterateEntitiesWithAll<GlobalUBO>())
 	{
@@ -117,7 +64,7 @@ void SimpleRenderSystem::RenderGameEntities(FrameInfo& _frameInfo)
 
 			VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
 			IndexBufferComponent& indexBufferComponent = ecs::ComponentManager::GetComponent<IndexBufferComponent>(gameEntity);
-			
+
 			Bind(vertexBufferComponent, indexBufferComponent, _frameInfo.CommandBUffer);
 			Draw(indexBufferComponent, _frameInfo.CommandBUffer);
 		}
@@ -133,6 +80,15 @@ void SimpleRenderSystem::RenderGameEntities(FrameInfo& _frameInfo)
 			Draw(vertexBufferComponent, _frameInfo.CommandBUffer);
 		}
 	}
+}
+
+void SimpleRenderSystem::SetupePipeline(PipelineConfigInfo& _pipelineConfig)
+{
+	m_pipeline = std::make_unique<Pipeline>(
+		m_device,
+		std::vector{ ShaderInfo{"Assets/Shaders/simple_shader.vert.spv", ShaderType::Vertex}, ShaderInfo{"Assets/Shaders/simple_shader.frag.spv", ShaderType::Fragment}, },
+		_pipelineConfig
+		);
 }
 
 void SimpleRenderSystem::TransformEntity(VkCommandBuffer _commandBuffer, ecs::Entity _entity, glm::mat4 _projectionView)

@@ -158,7 +158,7 @@ void WindowApp::Run()
 			m_renderer->BeginSwapChainRenderPass(commandBuffer);
 			//m_rainbowSystem->Update(1.0f/6.0f);	// for fun
 
-			m_simpleRenderSystem->RenderGameEntities(frameInfo);
+			m_simpleRenderSystem->Render(frameInfo);
 
 			m_renderer->EndSwapChainRenderPass(commandBuffer);
 			m_renderer->EndFrame();
