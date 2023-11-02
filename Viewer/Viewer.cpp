@@ -5,7 +5,7 @@
 
 #include "vesper.h"
 
-#include "WindowApp.h"
+#include "ViewerApp.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -29,7 +29,7 @@ int main()
     cfg.MaxEntities = 1000;
     cfg.MaxComponentsPerEntity = 32;
     
-    WindowApp app(cfg);
+    ViewerApp app(cfg);
 
     try
     {

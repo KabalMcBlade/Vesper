@@ -5,23 +5,20 @@
 #include "KeyboardMovementCameraController.h"
 #include "MouseLookCameraController.h"
 
-// test for fun:
-#include "RainbowSystem.h"
-
 #include <memory>
 #include <vector>
 
 
 VESPERENGINE_USING_NAMESPACE
 
-class WindowApp final : public VesperApp
+class ViewerApp final : public VesperApp
 {
 public:
-	WindowApp(Config& _config);
-	~WindowApp();
+	ViewerApp(Config& _config);
+	~ViewerApp();
 
-	WindowApp(const WindowApp&) = delete;
-	WindowApp& operator=(const WindowApp&) = delete;
+	ViewerApp(const ViewerApp&) = delete;
+	ViewerApp& operator=(const ViewerApp&) = delete;
 
 public:
 	void Run();
@@ -54,8 +51,5 @@ private:
 	// from game side
 	std::unique_ptr<KeyboardMovementCameraController> m_keyboardController;
 	std::unique_ptr<MouseLookCameraController> m_mouseController;
-
-	// for fun
-	std::unique_ptr<RainbowSystem> m_rainbowSystem;
 };
 

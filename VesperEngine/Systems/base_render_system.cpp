@@ -10,12 +10,22 @@ BaseRenderSystem::BaseRenderSystem(Device& _device)
 {
 }
 
+BaseRenderSystem::~BaseRenderSystem()
+{
+	vkDestroyPipelineLayout(m_device.GetDevice(), m_pipelineLayout, nullptr);
+}
+
+void BaseRenderSystem::Update(FrameInfo& _frameInfo)
+{
+	UpdateFrame(_frameInfo);
+}
+
 void BaseRenderSystem::Render(FrameInfo& _frameInfo)
 {
-	m_pipeline->Bind(_frameInfo.CommandBUffer);
+	m_pipeline->Bind(_frameInfo.CommandBuffer);
 
 	vkCmdBindDescriptorSets(
-		_frameInfo.CommandBUffer,
+		_frameInfo.CommandBuffer,
 		VK_PIPELINE_BIND_POINT_GRAPHICS,	// for now is only graphics, in future we want also the compute version
 		m_pipelineLayout,
 		0,
@@ -62,6 +72,28 @@ void BaseRenderSystem::CreatePipeline(VkRenderPass _renderPass)
 	pipelineConfig.PipelineLayout = m_pipelineLayout;
 
 	SetupePipeline(pipelineConfig);
+}
+
+void BaseRenderSystem::PushConstants(VkCommandBuffer _commandBuffer, const uint32 _pushConstantIndex, const void* _pushConstantValue) const
+{
+	assertMsgReturnVoid(_pushConstantIndex >= 0 && _pushConstantIndex < m_pushConstants.size(), "_pushConstantIndex out of range!");
+	
+	vkCmdPushConstants(_commandBuffer, m_pipelineLayout,
+		m_pushConstants[_pushConstantIndex].stageFlags, 
+		m_pushConstants[_pushConstantIndex].offset, 
+		m_pushConstants[_pushConstantIndex].size, 
+		_pushConstantValue);
+}
+
+void BaseRenderSystem::PushConstants(VkCommandBuffer _commandBuffer, std::vector<const void*> _pushConstantValues) const
+{
+	assertMsgReturnVoid(_pushConstantValues.size() == m_pushConstants.size(), "_pushConstantValues size mismatch!");
+
+	const int32 size = static_cast<int32>(_pushConstantValues.size());
+	for (int32 i = 0; i < size; ++i)
+	{
+		PushConstants(_commandBuffer, i, _pushConstantValues[i]);
+	}
 }
 
 void BaseRenderSystem::Bind(VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer) const

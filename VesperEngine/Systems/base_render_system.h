@@ -27,21 +27,26 @@ class VESPERENGINE_DLL BaseRenderSystem
 {
 public:
 	BaseRenderSystem(Device& _device);
-	virtual ~BaseRenderSystem() = default;
+	virtual ~BaseRenderSystem();
 
 	BaseRenderSystem(const BaseRenderSystem&) = delete;
 	BaseRenderSystem& operator=(const BaseRenderSystem&) = delete;
 	
 public:
+	void Update(FrameInfo& _frameInfo);
 	void Render(FrameInfo& _frameInfo);
 	void CreatePipelineLayout(const std::vector<VkDescriptorSetLayout>& _descriptorSetLayouts);
 	void CreatePipeline(VkRenderPass _renderPass);
 
 protected:
+	virtual void UpdateFrame(FrameInfo& _frameInfo) {}
 	virtual void RenderFrame(FrameInfo& _frameInfo) {}
 	virtual void SetupePipeline(PipelineConfigInfo& _pipelineConfig) {};
 
 protected:
+	void PushConstants(VkCommandBuffer _commandBuffer, const uint32 _pushConstantIndex, const void* _pushConstantValue) const;
+	void PushConstants(VkCommandBuffer _commandBuffer, std::vector<const void*> _pushConstantValues) const;
+
 	void Bind(VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer) const;
 	void Bind(VertexBufferComponent& _vertexBufferComponent, IndexBufferComponent& _indexBufferComponent, VkCommandBuffer _commandBuffer) const;
 

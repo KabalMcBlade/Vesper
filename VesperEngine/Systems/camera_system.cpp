@@ -26,18 +26,63 @@ void CameraSystem::SetCurrentActiveCamera(ecs::Entity _activeCamera)
 	{
 		return;
 	}
-
+	
 	// TODO: maybe use collect here? Might alter current iterator, double check when having more than 1 camera
 	for (auto camera : ecs::IterateEntitiesWithAll<CameraComponent, CameraActive>())
 	{
 		ecs::ComponentManager::RemoveComponent<CameraActive>(camera);
 	}
-
+	
 	ecs::ComponentManager::AddComponent<CameraActive>(_activeCamera);
+}
 
-	// for global uniform, buffer
-	// here we can discriminate which one using it, so to have different shader per different camera/scene, for instance
-	ecs::ComponentManager::AddComponent<GlobalUBO>(_activeCamera);
+void CameraSystem::SwitchActiveCamera()
+{
+	std::vector<ecs::Entity> cameras;
+	ecs::EntityCollector::CollectEntitiesWithAll<CameraTransformComponent>(cameras);
+
+	const int32 cameraCount = static_cast<int32>(cameras.size());
+	for (int32 i = 0; i < cameraCount; ++i)
+	{
+		ecs::Entity entity = cameras[i];
+
+		if (ecs::ComponentManager::HasComponents<CameraActive>(entity))
+		{
+			m_lastCameraActiveIndex = i;
+			break;
+		}
+	}
+
+	const int32 cameraIndexToActive = (m_lastCameraActiveIndex + 1) % cameraCount;
+
+	SetCurrentActiveCamera(cameras[cameraIndexToActive]);
+
+	cameras.clear();
+}
+
+void CameraSystem::Update(const float _aspectRatio)
+{
+	for (auto camera : ecs::IterateEntitiesWithAll<CameraComponent, CameraTransformComponent>())
+	{
+		CameraTransformComponent& transformComponent = ecs::ComponentManager::GetComponent<CameraTransformComponent>(camera);
+		CameraComponent& cameraComponent = ecs::ComponentManager::GetComponent<CameraComponent>(camera);
+
+		SetViewRotation(cameraComponent, transformComponent);
+		SetPerspectiveProjection(cameraComponent, glm::radians(50.0f), _aspectRatio, 0.1f, 100.0f);
+	}
+}
+
+void CameraSystem::GetCameraComponentFromActiveCamera(const uint32 _activeCameraIndex, CameraComponent& _outCameraComponent)
+{
+	std::vector<ecs::Entity> cameras;
+	ecs::EntityCollector::CollectEntitiesWithAny<CameraActive, CameraComponent, CameraTransformComponent>(cameras);
+
+	assertMsgReturnVoid(cameras.size() > 0, "There is no active camera!");
+	assertMsgReturnVoid(_activeCameraIndex >= 0 && _activeCameraIndex < cameras.size(), "Active camera index is out of bound!");
+
+	_outCameraComponent = ecs::ComponentManager::GetComponent<CameraComponent>(cameras[_activeCameraIndex]);
+
+	cameras.clear();
 }
 
 void CameraSystem::SetOrthographicProjection(CameraComponent& _camera, float _left, float _right, float _top, float _bottom, float _near, float _far) const

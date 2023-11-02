@@ -32,7 +32,8 @@ struct SimplePushConstantData
 SimpleRenderSystem::SimpleRenderSystem(Device& _device, VkRenderPass _renderPass, VkDescriptorSetLayout _globalDescriptorSetLayout)
 	: BaseRenderSystem {_device }
 {
-	// TEST: Push Constant
+	ecs::ComponentManager::RegisterComponent<SimplePushConstantData>();
+
 	VkPushConstantRange pushConstantRange{};
 	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 	pushConstantRange.offset = 0;
@@ -46,39 +47,69 @@ SimpleRenderSystem::SimpleRenderSystem(Device& _device, VkRenderPass _renderPass
 
 SimpleRenderSystem::~SimpleRenderSystem()
 {
-	vkDestroyPipelineLayout(m_device.GetDevice(), m_pipelineLayout, nullptr);
+	ecs::ComponentManager::UnregisterComponent<SimplePushConstantData>();
+}
+
+void SimpleRenderSystem::RegisterEntity(ecs::Entity _entity) const
+{
+	ecs::ComponentManager::AddComponent<SimplePushConstantData>(_entity);
+}
+
+void SimpleRenderSystem::UnregisterEntity(ecs::Entity _entity) const
+{
+	if (ecs::ComponentManager::HasComponents<SimplePushConstantData>(_entity))
+	{
+		ecs::ComponentManager::RemoveComponent<SimplePushConstantData>(_entity);
+	}
+}
+
+void SimpleRenderSystem::UnregisterEntities() const
+{
+	for (auto entity : ecs::IterateEntitiesWithAll<SimplePushConstantData>())
+	{
+		UnregisterEntity(entity);
+	}
+}
+
+void SimpleRenderSystem::UpdateFrame(FrameInfo& _frameInfo)
+{
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<TransformComponent, SimplePushConstantData>())
+	{
+		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(gameEntity);
+
+		auto modelMatrix = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
+		modelMatrix = modelMatrix * glm::toMat4(transformComponent.Rotation);
+		modelMatrix = glm::scale(modelMatrix, transformComponent.Scale);
+
+		SimplePushConstantData& push = ecs::ComponentManager::GetComponent<SimplePushConstantData>(gameEntity);
+		push.ModelMatrix = modelMatrix;
+		push.NormalModelMatrix = glm::inverseTranspose(glm::mat3(modelMatrix));//glm::inverse(glm::transpose(modelMatrix));
+	}
 }
 
 void SimpleRenderSystem::RenderFrame(FrameInfo& _frameInfo)
 {
-	// Iterate all the camera and update the objects transform based on projection view
-	for (auto camera : ecs::IterateEntitiesWithAll<GlobalUBO>())
+	// 1. Render whatever has vertex buffers and index buffer
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<VertexBufferComponent, IndexBufferComponent, SimplePushConstantData>())
 	{
-		// NOTE: We use the Global UBO to get from the camera, since we know it has
-		const GlobalUBO& globalUBO = ecs::ComponentManager::GetComponent<GlobalUBO>(camera);
+		VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
+		IndexBufferComponent& indexBufferComponent = ecs::ComponentManager::GetComponent<IndexBufferComponent>(gameEntity);
+		SimplePushConstantData& push = ecs::ComponentManager::GetComponent<SimplePushConstantData>(gameEntity);
 
-		// 1. Render whatever has vertex buffers and index buffer
-		for (auto gameEntity : ecs::IterateEntitiesWithAll<TransformComponent, VertexBufferComponent, IndexBufferComponent>())
-		{
-			TransformEntity(_frameInfo.CommandBUffer, gameEntity, globalUBO.ProjectionView);
+		PushConstants(_frameInfo.CommandBuffer, 0, &push);
+		Bind(vertexBufferComponent, indexBufferComponent, _frameInfo.CommandBuffer);
+		Draw(indexBufferComponent, _frameInfo.CommandBuffer);
+	}
 
-			VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
-			IndexBufferComponent& indexBufferComponent = ecs::ComponentManager::GetComponent<IndexBufferComponent>(gameEntity);
+	// 2. Render only entities having Vertex buffers only
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<VertexBufferComponent, SimplePushConstantData, NotIndexBufferComponent>())
+	{
+		VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
+		SimplePushConstantData& push = ecs::ComponentManager::GetComponent<SimplePushConstantData>(gameEntity);
 
-			Bind(vertexBufferComponent, indexBufferComponent, _frameInfo.CommandBUffer);
-			Draw(indexBufferComponent, _frameInfo.CommandBUffer);
-		}
-
-		// 2. Render only entities having Vertex buffers only
-		for (auto gameEntity : ecs::IterateEntitiesWithAll<TransformComponent, VertexBufferComponent, NotIndexBufferComponent>())
-		{
-			TransformEntity(_frameInfo.CommandBUffer, gameEntity, globalUBO.ProjectionView);
-
-			VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
-
-			Bind(vertexBufferComponent, _frameInfo.CommandBUffer);
-			Draw(vertexBufferComponent, _frameInfo.CommandBUffer);
-		}
+		PushConstants(_frameInfo.CommandBuffer, 0, &push);
+		Bind(vertexBufferComponent, _frameInfo.CommandBuffer);
+		Draw(vertexBufferComponent, _frameInfo.CommandBuffer);
 	}
 }
 
@@ -89,21 +120,6 @@ void SimpleRenderSystem::SetupePipeline(PipelineConfigInfo& _pipelineConfig)
 		std::vector{ ShaderInfo{"Assets/Shaders/simple_shader.vert.spv", ShaderType::Vertex}, ShaderInfo{"Assets/Shaders/simple_shader.frag.spv", ShaderType::Fragment}, },
 		_pipelineConfig
 		);
-}
-
-void SimpleRenderSystem::TransformEntity(VkCommandBuffer _commandBuffer, ecs::Entity _entity, glm::mat4 _projectionView)
-{
-	TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(_entity);
-
-	auto modelMatrix = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
-	modelMatrix = modelMatrix * glm::toMat4(transformComponent.Rotation);
-	modelMatrix = glm::scale(modelMatrix, transformComponent.Scale);
-
-	SimplePushConstantData push{};
-	push.ModelMatrix = modelMatrix;
-	push.NormalModelMatrix = glm::transpose(glm::inverse(modelMatrix));
-
-	vkCmdPushConstants(_commandBuffer, m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(SimplePushConstantData), &push);
 }
 
 VESPERENGINE_NAMESPACE_END

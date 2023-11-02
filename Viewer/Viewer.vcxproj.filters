@@ -21,7 +21,7 @@
     <ClCompile Include="WindowHandle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WindowApp.cpp">
+    <ClCompile Include="ViewerApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="KeyboardMovementCameraController.cpp">
@@ -41,10 +41,7 @@
     <ClInclude Include="WindowHandle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WindowApp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RainbowSystem.h">
+    <ClInclude Include="ViewerApp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="KeyboardMovementCameraController.h">

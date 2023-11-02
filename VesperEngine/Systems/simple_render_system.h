@@ -25,11 +25,15 @@ public:
 	SimpleRenderSystem(const SimpleRenderSystem&) = delete;
 	SimpleRenderSystem& operator=(const SimpleRenderSystem&) = delete;
 
+public:
+	void RegisterEntity(ecs::Entity _entity) const;
+	void UnregisterEntity(ecs::Entity _entity) const;
+	void UnregisterEntities() const;
+
 protected:
+	virtual void UpdateFrame(FrameInfo& _frameInfo) override;
 	virtual void RenderFrame(FrameInfo& _frameInfo) override;
 	virtual void SetupePipeline(PipelineConfigInfo& _pipelineConfig) override;
-
-	void TransformEntity(VkCommandBuffer _commandBuffer, ecs::Entity _entity, glm::mat4 _projectionView);
 };
 
 VESPERENGINE_NAMESPACE_END

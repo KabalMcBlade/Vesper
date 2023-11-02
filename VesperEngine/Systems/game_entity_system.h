@@ -20,7 +20,7 @@ enum EntityType : uint32
 	Object = 2		// transform only
 };
 
-class VESPERENGINE_DLL GameEntitySystem
+class VESPERENGINE_DLL GameEntitySystem final
 {
 public:
 	GameEntitySystem() = default;

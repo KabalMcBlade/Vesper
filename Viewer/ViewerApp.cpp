@@ -1,4 +1,4 @@
-#include "WindowApp.h"
+#include "ViewerApp.h"
 
 #include <array>
 #include <stdexcept>
@@ -21,7 +21,21 @@
 
 VESPERENGINE_USING_NAMESPACE
 
-WindowApp::WindowApp(Config& _config) :
+
+
+// Global Uniform Buffer Object
+struct GlobalUBO
+{
+	glm::mat4 ProjectionView{ 1.0f };
+
+	glm::vec4 AmbientLightColor{ 1.0f, 1.0f, 1.0f, 0.5f };	// w is intensity
+
+	glm::vec4 PointLightPosition{ 0.0f, 0.0f, 0.0f, 0.0f };
+	glm::vec4 PointLightColor{ 1.0f, 1.0f, 1.0f, 1.0f };		// w is intensity
+};
+
+
+ViewerApp::ViewerApp(Config& _config) :
 	VesperApp(_config)
 {
 	m_window = std::make_unique<ViewerWindow>(_config.WindowWidth, _config.WindowHeight, _config.WindowName);
@@ -53,18 +67,16 @@ WindowApp::WindowApp(Config& _config) :
 	m_mouseController = std::make_unique<MouseLookCameraController>();
 	m_mouseController->SetMouseCallback(m_window->GetWindow());
 
-	m_rainbowSystem = std::make_unique<RainbowSystem>(60.0f);
-
 	LoadCameraEntities();
 	LoadGameEntities();
 }
 
-WindowApp::~WindowApp()
+ViewerApp::~ViewerApp()
 {
 	UnloadGameEntities();
 }
 
-void WindowApp::Run()
+void ViewerApp::Run()
 {
 	// This should be in separated class which should manage the "actual" game in terms of what render
 // 	BufferComponent globalUBO;
@@ -109,6 +121,9 @@ void WindowApp::Run()
 
 	auto currentTime = std::chrono::high_resolution_clock::now();
 
+	GlobalUBO ubo;
+	CameraComponent activeCameraComponent;
+
 	while (!m_window->ShouldClose())
 	{
 		glfwPollEvents();
@@ -128,25 +143,19 @@ void WindowApp::Run()
 			const int32 frameIndex = m_renderer->GetFrameIndex();
 
 			FrameInfo frameInfo { frameIndex, frameTime, commandBuffer, globalDescriptorSets[frameIndex] };
-		        
-			//camera
+			
 			const float aspectRatio = m_renderer->GetAspectRatio();
-			for (auto camera : ecs::IterateEntitiesWithAll<CameraComponent, CameraTransformComponent, GlobalUBO>())
-			{
-				CameraTransformComponent& transformComponent = ecs::ComponentManager::GetComponent<CameraTransformComponent>(camera);
-				CameraComponent& cameraComponent = ecs::ComponentManager::GetComponent<CameraComponent>(camera);
 
-				m_cameraSystem->SetViewRotation(cameraComponent, transformComponent);
-				m_cameraSystem->SetPerspectiveProjection(cameraComponent, glm::radians(50.0f), aspectRatio, 0.1f, 100.0f);
+			m_simpleRenderSystem->Update(frameInfo);
 
-				GlobalUBO& ubo = ecs::ComponentManager::GetComponent<GlobalUBO>(camera);
-				ubo.ProjectionView = cameraComponent.ProjectionMatrix * cameraComponent.ViewMatrix;
+			m_cameraSystem->Update(aspectRatio);
+			m_cameraSystem->GetCameraComponentFromActiveCamera(0, activeCameraComponent);
+			ubo.ProjectionView = activeCameraComponent.ProjectionMatrix * activeCameraComponent.ViewMatrix;
 
-				//m_buffer->WriteToIndex(uboBuffers[frameIndex], &ubo, frameIndex);
-				//m_buffer->FlushIndex(uboBuffers[frameIndex], frameIndex);
-				m_buffer->WriteToBuffer(uboBuffers[frameIndex], &ubo);
-				m_buffer->Flush(uboBuffers[frameIndex]);
-			}
+			//m_buffer->WriteToIndex(uboBuffers[frameIndex], &ubo, frameIndex);
+			//m_buffer->FlushIndex(uboBuffers[frameIndex], frameIndex);
+			m_buffer->WriteToBuffer(uboBuffers[frameIndex], &ubo);
+			m_buffer->Flush(uboBuffers[frameIndex]);
 
 
 			// For instance, add here before the swap chain:
@@ -154,9 +163,7 @@ void WindowApp::Run()
 			//	render shadow casting objects
 			// end off screen shadow pass
 
-
 			m_renderer->BeginSwapChainRenderPass(commandBuffer);
-			//m_rainbowSystem->Update(1.0f/6.0f);	// for fun
 
 			m_simpleRenderSystem->Render(frameInfo);
 
@@ -175,31 +182,35 @@ void WindowApp::Run()
 	}
 }
 
-void WindowApp::LoadCameraEntities()
+void ViewerApp::LoadCameraEntities()
 {
-	ecs::Entity camera = m_gameEntitySystem->CreateGameEntity(EntityType::Camera);
+	{
+		ecs::Entity camera = m_gameEntitySystem->CreateGameEntity(EntityType::Camera);
 
-	m_cameraSystem->SetCurrentActiveCamera(camera);
+		CameraTransformComponent& transformComponent = ecs::ComponentManager::GetComponent<CameraTransformComponent>(camera);
+		transformComponent.Position = { 0.0f, 0.0f, -3.0f };
 
-	CameraTransformComponent& transformComponent = ecs::ComponentManager::GetComponent<CameraTransformComponent>(camera);
-	transformComponent.Position = { 0.0f, 0.0f, -3.0f };
-	
-	CameraComponent& cameraComponent = ecs::ComponentManager::GetComponent<CameraComponent>(camera);
+		CameraComponent& cameraComponent = ecs::ComponentManager::GetComponent<CameraComponent>(camera);
 
-	m_cameraSystem->SetViewRotation(cameraComponent, transformComponent);
-	m_cameraSystem->SetPerspectiveProjection(cameraComponent, glm::radians(50.0f), 1.0f, 0.1f, 100.0f);
+		m_cameraSystem->SetViewRotation(cameraComponent, transformComponent);
+		m_cameraSystem->SetPerspectiveProjection(cameraComponent, glm::radians(50.0f), 1.0f, 0.1f, 100.0f);
+
+		// Active this one by default
+		m_cameraSystem->SetCurrentActiveCamera(camera);
+	}
 }
 
-void WindowApp::LoadGameEntities()
+void ViewerApp::LoadGameEntities()
 {
-	std::unique_ptr<ModelData> cubeNoIndicesData = PrimitiveFactory::GenerateCubeNoIndices(
-		{ 0.0f, 0.0f, 0.0f },
-		{ glm::vec3(.9f, .9f, .9f), glm::vec3(.8f, .8f, .1f), glm::vec3(.9f, .6f, .1f), glm::vec3(.8f, .1f, .1f), glm::vec3(.1f, .1f, .8f), glm::vec3(.1f, .8f, .1f) }
-	);
-
+	/*
 	//////////////////////////////////////////////////////////////////////////
 	// Cube no Indices
 	{
+		std::unique_ptr<ModelData> cubeNoIndicesData = PrimitiveFactory::GenerateCubeNoIndices(
+			{ 0.0f, 0.0f, 0.0f },
+			{ glm::vec3(.9f, .9f, .9f), glm::vec3(.8f, .8f, .1f), glm::vec3(.9f, .6f, .1f), glm::vec3(.8f, .1f, .1f), glm::vec3(.1f, .1f, .8f), glm::vec3(.1f, .8f, .1f) }
+		);
+
 		ecs::Entity cubeNoIndices = m_gameEntitySystem->CreateGameEntity(EntityType::Object);
 
 		m_modelSystem->LoadModel(cubeNoIndices, std::move(cubeNoIndicesData));
@@ -208,8 +219,31 @@ void WindowApp::LoadGameEntities()
 		transformComponent.Position = { 0.0f, -1.0f, 0.0f };
 		transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
 		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
+
+		m_simpleRenderSystem->RegisterEntity(cubeNoIndices);
 	}
 
+
+	//////////////////////////////////////////////////////////////////////////
+	// Cube
+	{
+		std::unique_ptr<ModelData> coloredCubeData = m_objLoader->LoadModel("Assets/Models/colored_cube.obj");
+		ecs::Entity coloredCube = m_gameEntitySystem->CreateGameEntity(EntityType::Object);
+
+		m_modelSystem->LoadModel(coloredCube, std::move(coloredCubeData));
+
+		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(coloredCube);
+		transformComponent.Position = { 0.0f, 0.0f, 0.0f };
+		transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
+		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
+
+		m_simpleRenderSystem->RegisterEntity(coloredCube);
+
+		// 	MaterialComponent& materialComponent = ecs::ComponentManager::GetComponent<MaterialComponent>(coloredCube);
+		// 	materialComponent.Color = { 0.1f, 0.8f, 0.1f, 1.0f };
+	}
+	*/
+	
 	//////////////////////////////////////////////////////////////////////////
 	// Flat Vase
 	{
@@ -219,26 +253,11 @@ void WindowApp::LoadGameEntities()
 		m_modelSystem->LoadModel(flatVase, std::move(flatVaseData));
 
 		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(flatVase);
-		transformComponent.Position = { -1.5f, 0.5f, 0.0f };
+		transformComponent.Position = { -1.0f, 0.5f, 0.0f };
 		transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
 		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
-	}
-	
-	//////////////////////////////////////////////////////////////////////////
-	// Cube
-	{
-		std::unique_ptr<ModelData> coloredCubeData = m_objLoader->LoadModel("Assets/Models/colored_cube.obj");
-		ecs::Entity coloredCube = m_gameEntitySystem->CreateGameEntity(EntityType::Object);
 
-		m_modelSystem->LoadModel(coloredCube, std::move(coloredCubeData));
-		
-		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(coloredCube);
-		transformComponent.Position = { 0.0f, 0.0f, 0.0f };
-		transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
-		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
-		
-		// 	MaterialComponent& materialComponent = ecs::ComponentManager::GetComponent<MaterialComponent>(coloredCube);
-		// 	materialComponent.Color = { 0.1f, 0.8f, 0.1f, 1.0f };
+		m_simpleRenderSystem->RegisterEntity(flatVase);
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -250,9 +269,11 @@ void WindowApp::LoadGameEntities()
 		m_modelSystem->LoadModel(smoothVase, std::move(smoothVaseData));
 
 		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(smoothVase);
-		transformComponent.Position = { 1.5f, 0.5f, 0.0f };
+		transformComponent.Position = { 1.0f, 0.5f, 0.0f };
 		transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
 		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
+
+		m_simpleRenderSystem->RegisterEntity(smoothVase);
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -267,11 +288,14 @@ void WindowApp::LoadGameEntities()
 		transformComponent.Position = { 0.0f, 1.0f, 0.0f };
 		transformComponent.Scale = { 3.0f, 1.0f, 3.0f };
 		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
+
+		m_simpleRenderSystem->RegisterEntity(quad);
 	}
 }
 
-void WindowApp::UnloadGameEntities()
+void ViewerApp::UnloadGameEntities()
 {
 	m_modelSystem->UnloadModels();
+	m_simpleRenderSystem->UnregisterEntities();
 	m_gameEntitySystem->DestroyGameEntities();
 }

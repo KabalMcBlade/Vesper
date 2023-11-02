@@ -10,7 +10,7 @@ struct FrameInfo
 {
 	int32 FrameIndex{ 0 };
 	float FrameTime{ 0.0f };
-	VkCommandBuffer CommandBUffer{ VK_NULL_HANDLE };
+	VkCommandBuffer CommandBuffer{ VK_NULL_HANDLE };
 	VkDescriptorSet GlobalDescriptorSet{ VK_NULL_HANDLE };
 };
 
