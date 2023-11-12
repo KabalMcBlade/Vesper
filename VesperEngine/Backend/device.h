@@ -47,6 +47,7 @@ public:
 	VESPERENGINE_INLINE const VkQueue GetPresentQueue() const { return m_presentQueue; }
 	VESPERENGINE_INLINE const VmaAllocator GetAllocator() const { return m_allocator; }
 	VESPERENGINE_INLINE const VkPhysicalDeviceProperties& GetProperties() const { return m_properties; }
+	VESPERENGINE_INLINE const VkPhysicalDeviceLimits& GetLimits() const { return m_properties.limits; }
 
 	SwapChainSupportDetails GetSwapChainSupport() { return QuerySwapChainSupport(m_physicalDevice); }
 	uint32 FindMemoryType(uint32 _typeFilter, VkMemoryPropertyFlags _properties);
