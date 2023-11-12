@@ -26,7 +26,6 @@ VESPERENGINE_NAMESPACE_BEGIN
 struct SimplePushConstantData
 {
 	glm::mat4 ModelMatrix{ 1.0f };
-	glm::mat4 NormalModelMatrix{ 1.0f };
 };
 
 SimpleRenderSystem::SimpleRenderSystem(Device& _device, VkRenderPass _renderPass, VkDescriptorSetLayout _globalDescriptorSetLayout)
@@ -73,17 +72,17 @@ void SimpleRenderSystem::UnregisterEntities() const
 
 void SimpleRenderSystem::UpdateFrame(FrameInfo& _frameInfo)
 {
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<TransformComponent, SimplePushConstantData>())
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent, TransformComponent, SimplePushConstantData>())
 	{
 		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(gameEntity);
+		RenderComponent& renderComponent = ecs::ComponentManager::GetComponent<RenderComponent>(gameEntity);
 
-		auto modelMatrix = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
-		modelMatrix = modelMatrix * glm::toMat4(transformComponent.Rotation);
-		modelMatrix = glm::scale(modelMatrix, transformComponent.Scale);
+		renderComponent.ModelMatrix = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
+		renderComponent.ModelMatrix = renderComponent.ModelMatrix * glm::toMat4(transformComponent.Rotation);
+		renderComponent.ModelMatrix = glm::scale(renderComponent.ModelMatrix, transformComponent.Scale);
 
 		SimplePushConstantData& push = ecs::ComponentManager::GetComponent<SimplePushConstantData>(gameEntity);
-		push.ModelMatrix = modelMatrix;
-		push.NormalModelMatrix = glm::inverseTranspose(glm::mat3(modelMatrix));//glm::inverse(glm::transpose(modelMatrix));
+		push.ModelMatrix = renderComponent.ModelMatrix;
 	}
 }
 
@@ -102,7 +101,7 @@ void SimpleRenderSystem::RenderFrame(FrameInfo& _frameInfo)
 	}
 
 	// 2. Render only entities having Vertex buffers only
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<VertexBufferComponent, SimplePushConstantData, NotIndexBufferComponent>())
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<VertexBufferComponent, NotIndexBufferComponent, SimplePushConstantData>())
 	{
 		VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
 		SimplePushConstantData& push = ecs::ComponentManager::GetComponent<SimplePushConstantData>(gameEntity);

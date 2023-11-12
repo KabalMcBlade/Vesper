@@ -24,7 +24,7 @@ public:
 	void SwitchActiveCamera();
 
 	void Update(const float _aspectRatio);
-	void GetCameraComponentFromActiveCamera(const uint32 _activeCameraIndex, CameraComponent& _outCameraComponent);
+	void GetActiveCameraData(const uint32 _activeCameraIndex, CameraComponent& _outCameraComponent, CameraTransformComponent& _outCameraTransform);
 
 	void SetOrthographicProjection(CameraComponent& _camera, float _left, float _right, float _top, float _bottom, float _near, float _far) const;
 	void SetPerspectiveProjection(CameraComponent& _camera, float _fovY, float _aspectRatio, float _near, float _far) const;

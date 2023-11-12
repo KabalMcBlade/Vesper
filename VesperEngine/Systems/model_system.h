@@ -34,10 +34,10 @@ public:
 	void UnloadModels() const;
 
 private:
-	void CreateVertexBuffers(VertexBufferComponent& _vertexBufferComponent, const std::vector<Vertex>& _vertices) const;
-	void CreateIndexBuffer(IndexBufferComponent& _indexBufferComponent, const std::vector<uint32>& _indices) const;
-	void CreateVertexBuffersWithStagingBuffer(VertexBufferComponent& _vertexBufferComponent, const std::vector<Vertex>& _vertices) const;
-	void CreateIndexBufferWithStagingBuffer(IndexBufferComponent& _indexBufferComponent, const std::vector<uint32>& _indices) const;
+	VertexBufferComponent CreateVertexBuffers(const std::vector<Vertex>& _vertices) const;
+	IndexBufferComponent CreateIndexBuffer(const std::vector<uint32>& _indices) const;
+	VertexBufferComponent CreateVertexBuffersWithStagingBuffer(const std::vector<Vertex>& _vertices) const;
+	IndexBufferComponent CreateIndexBufferWithStagingBuffer(const std::vector<uint32>& _indices) const;
 
 private:
 	Device& m_device;

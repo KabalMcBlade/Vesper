@@ -17,20 +17,19 @@ VESPERENGINE_NAMESPACE_BEGIN
 
 // Pure struct, means is not registered and MUST not be registered.
 // Used as base structures for buffers
-// Is also useful to move around or use as buffer containers, as long as is not directly used as component for entityt (ECS)
+// Is also useful to move around or use as buffer containers, as long as is not directly used as component for entity (ECS)
 // Could be added to the list, but this is pure for temporary usage
 struct BufferComponent
 {
-	VkDeviceSize Size{ 0 };								// size of the buffer, single element, this one (so the instance of this buffer)
-	VkDeviceSize AlignedSize{ 0 };						// the aligned size of size of the current buffer
+	VmaAllocation AllocationMemory{ VK_NULL_HANDLE };	// value storing the allocation to map/unmap	
 	VkBuffer Buffer{ VK_NULL_HANDLE };					// value used to bind and draw
-	VmaAllocation AllocationMemory{ VK_NULL_HANDLE };	// value storing the allocation to map/unmap							
+	VkDeviceSize Offset{ 0 };							// the byte offsets to start reading vertex data from, but using vma is always 0, since the block of allocated buffer starts from 0
+	VkDeviceSize Size{ 0 };								// the size (aligned or not) of the current buffer
+	uint32 Count{ 0 };									// instance count
 };
-
 
 struct VertexBufferComponent : public BufferComponent
 {
-	uint32 Count{ 0 };
 };
 
 // Special struct to set if we want to mark a render-able object having NOT a VB.
@@ -45,7 +44,6 @@ struct NotVertexBufferComponent
 
 struct IndexBufferComponent : public BufferComponent
 {
-	uint32 Count{ 0 };
 };
 
 // 
@@ -59,6 +57,12 @@ struct NotIndexBufferComponent
 struct MaterialComponent
 {
 	glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };	// opaque white
+};
+
+// define the struct which each instance has at least to have, if needs to be visible/rendered
+struct RenderComponent
+{
+	glm::mat4 ModelMatrix;
 };
 
 VESPERENGINE_NAMESPACE_END

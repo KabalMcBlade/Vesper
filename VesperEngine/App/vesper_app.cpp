@@ -51,6 +51,9 @@ void VesperApp::RegisterDefaultComponents()
 	ecs::ComponentManager::RegisterComponent<IndexBufferComponent>();
 	ecs::ComponentManager::RegisterComponent<NotVertexBufferComponent>();
 	ecs::ComponentManager::RegisterComponent<NotIndexBufferComponent>();
+
+	// RENDER
+	ecs::ComponentManager::RegisterComponent<RenderComponent>();
 }
 
 void VesperApp::UnregisterDefaultComponent()
@@ -70,6 +73,9 @@ void VesperApp::UnregisterDefaultComponent()
 	ecs::ComponentManager::UnregisterComponent<IndexBufferComponent>();
 	ecs::ComponentManager::UnregisterComponent<NotVertexBufferComponent>();
 	ecs::ComponentManager::UnregisterComponent<NotIndexBufferComponent>();
+
+	// RENDER
+	ecs::ComponentManager::UnregisterComponent<RenderComponent>();
 }
 
 VESPERENGINE_NAMESPACE_END

@@ -29,13 +29,13 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 
 		VertexBufferComponent& vertexBuffer = ecs::ComponentManager::GetComponent<VertexBufferComponent>(_entity);
 
-		if(_data->IsStatic)
+		if (ecs::ComponentManager::HasComponents<StaticComponent>(_entity))
 		{
-			CreateVertexBuffersWithStagingBuffer(vertexBuffer, _data->Vertices);
+			vertexBuffer = CreateVertexBuffersWithStagingBuffer(_data->Vertices);
 		}
 		else
 		{
-			CreateVertexBuffers(vertexBuffer, _data->Vertices);
+			vertexBuffer = CreateVertexBuffers(_data->Vertices);
 		}
 	}
 	else
@@ -51,11 +51,11 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 
 		if (_data->IsStatic)
 		{
-			CreateIndexBufferWithStagingBuffer(indexBuffer, _data->Indices);
+			indexBuffer = CreateIndexBufferWithStagingBuffer(_data->Indices);
 		}
 		else
 		{
-			CreateIndexBuffer(indexBuffer, _data->Indices);
+			indexBuffer = CreateIndexBuffer(_data->Indices);
 		}
 	}
 	else
@@ -112,67 +112,67 @@ void ModelSystem::UnloadModels() const
 	}
 }
 
-void ModelSystem::CreateVertexBuffers(VertexBufferComponent& _vertexBufferComponent, const std::vector<Vertex>& _vertices) const
+VertexBufferComponent ModelSystem::CreateVertexBuffers(const std::vector<Vertex>& _vertices) const
 {
-	_vertexBufferComponent.Count = static_cast<uint32>(_vertices.size());
+	const uint32 vertexCount = static_cast<uint32>(_vertices.size());
 
-	assertMsgReturnVoid(_vertexBufferComponent.Count >= 3, "Vertex count must be at least 3");
+	assertMsgReturnValue(vertexCount >= 3, "Vertex count must be at least 3", VertexBufferComponent());
 
-	VkDeviceSize bufferSize = sizeof(_vertices[0]) * _vertexBufferComponent.Count;
-	uint32 vertexSize = sizeof(_vertices[0]);
+	const VkDeviceSize bufferSize = sizeof(_vertices[0]) * vertexCount;
+	const uint32 vertexSize = sizeof(_vertices[0]);
 
-	m_buffer->Create(
-		_vertexBufferComponent,
+	VertexBufferComponent vertexBufferComponent = m_buffer->Create<VertexBufferComponent>(
 		vertexSize,
-		_vertexBufferComponent.Count,
+		vertexCount,
 		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
 		VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
 		VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
 	);
 
 	void* data;
-	m_buffer->Map(_vertexBufferComponent, &data);
+	m_buffer->Map(vertexBufferComponent, &data);
 	m_buffer->WriteToBuffer(data, (void*)_vertices.data(), static_cast<std::size_t>(bufferSize));
-	m_buffer->Unmap(_vertexBufferComponent);
+	m_buffer->Unmap(vertexBufferComponent);
+
+	return vertexBufferComponent;
 }
 
-void ModelSystem::CreateIndexBuffer(IndexBufferComponent& _indexBufferComponent, const std::vector<uint32>& _indices) const
+IndexBufferComponent ModelSystem::CreateIndexBuffer(const std::vector<uint32>& _indices) const
 {
-	_indexBufferComponent.Count = static_cast<uint32>(_indices.size());
+	const uint32 indexCount = static_cast<uint32>(_indices.size());
 
-	VkDeviceSize bufferSize = sizeof(_indices[0]) * _indexBufferComponent.Count;
-	uint32 indexSize = sizeof(_indices[0]);
+	const VkDeviceSize bufferSize = sizeof(_indices[0]) * indexCount;
+	const uint32 indexSize = sizeof(_indices[0]);
 
-	m_buffer->Create(
-		_indexBufferComponent,
+	IndexBufferComponent indexBufferComponent = m_buffer->Create<IndexBufferComponent>(
 		indexSize,
-		_indexBufferComponent.Count,
+		indexCount,
 		VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
 		VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
 		VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
 	);
 
 	void* data;
-	m_buffer->Map(_indexBufferComponent, &data);
+	m_buffer->Map(indexBufferComponent, &data);
 	m_buffer->WriteToBuffer(data, (void*)_indices.data(), static_cast<std::size_t>(bufferSize));
-	m_buffer->Unmap(_indexBufferComponent);
+	m_buffer->Unmap(indexBufferComponent);
+
+	return indexBufferComponent;
 }
 
 
-void ModelSystem::CreateVertexBuffersWithStagingBuffer(VertexBufferComponent& _vertexBufferComponent, const std::vector<Vertex>& _vertices) const
+VertexBufferComponent ModelSystem::CreateVertexBuffersWithStagingBuffer(const std::vector<Vertex>& _vertices) const
 {
-	_vertexBufferComponent.Count = static_cast<uint32>(_vertices.size());
+	const uint32 vertexCount = static_cast<uint32>(_vertices.size());
 
-	assertMsgReturnVoid(_vertexBufferComponent.Count >= 3, "Vertex count must be at least 3");
+	assertMsgReturnValue(vertexCount >= 3, "Vertex count must be at least 3", VertexBufferComponent());
 
-	VkDeviceSize bufferSize = sizeof(_vertices[0]) * _vertexBufferComponent.Count;
-	uint32 vertexSize = sizeof(_vertices[0]);
+	const VkDeviceSize bufferSize = sizeof(_vertices[0]) * vertexCount;
+	const uint32 vertexSize = sizeof(_vertices[0]);
 
-	BufferComponent stagingBuffer;
-	m_buffer->Create(
-		stagingBuffer,
+	BufferComponent stagingBuffer = m_buffer->Create<BufferComponent>(
 		vertexSize,
-		_vertexBufferComponent.Count,
+		vertexCount,
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
 		VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
@@ -183,32 +183,31 @@ void ModelSystem::CreateVertexBuffersWithStagingBuffer(VertexBufferComponent& _v
 	m_buffer->WriteToBuffer(data, (void*)_vertices.data(), static_cast<std::size_t>(bufferSize));
 	m_buffer->Unmap(stagingBuffer);
 	
-	m_buffer->Create(
-		_vertexBufferComponent,
+	VertexBufferComponent vertexBufferComponent = m_buffer->Create<VertexBufferComponent>(
 		vertexSize,
-		_vertexBufferComponent.Count,
+		vertexCount,
 		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 		VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
 		VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
 	);
 
-	m_buffer->Copy(stagingBuffer, _vertexBufferComponent, bufferSize);
+	m_buffer->Copy(stagingBuffer, vertexBufferComponent, bufferSize);
 
 	m_buffer->Destroy(stagingBuffer);
+
+	return vertexBufferComponent;
 }
 
-void ModelSystem::CreateIndexBufferWithStagingBuffer(IndexBufferComponent& _indexBufferComponent, const std::vector<uint32>& _indices) const
+IndexBufferComponent ModelSystem::CreateIndexBufferWithStagingBuffer(const std::vector<uint32>& _indices) const
 {
-	_indexBufferComponent.Count = static_cast<uint32>(_indices.size());
+	const uint32 indexCount = static_cast<uint32>(_indices.size());
 
-	VkDeviceSize bufferSize = sizeof(_indices[0]) * _indexBufferComponent.Count;
+	VkDeviceSize bufferSize = sizeof(_indices[0]) * indexCount;
 	uint32 indexSize = sizeof(_indices[0]);
 
-	BufferComponent stagingBuffer;
-	m_buffer->Create(
-		stagingBuffer,
+	BufferComponent stagingBuffer = m_buffer->Create<BufferComponent>(
 		indexSize,
-		_indexBufferComponent.Count,
+		indexCount,
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
 		VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
@@ -219,18 +218,19 @@ void ModelSystem::CreateIndexBufferWithStagingBuffer(IndexBufferComponent& _inde
 	m_buffer->WriteToBuffer(data, (void*)_indices.data(), static_cast<std::size_t>(bufferSize));
 	m_buffer->Unmap(stagingBuffer);
 
-	m_buffer->Create(
-		_indexBufferComponent,
+	IndexBufferComponent indexBufferComponent = m_buffer->Create<IndexBufferComponent>(
 		indexSize,
-		_indexBufferComponent.Count,
+		indexCount,
 		VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 		VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
 		VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
 	);
 
-	m_buffer->Copy(stagingBuffer, _indexBufferComponent, bufferSize);
+	m_buffer->Copy(stagingBuffer, indexBufferComponent, bufferSize);
 
 	m_buffer->Destroy(stagingBuffer);
+
+	return indexBufferComponent;
 }
 
 VESPERENGINE_NAMESPACE_END

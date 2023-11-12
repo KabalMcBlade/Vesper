@@ -17,6 +17,10 @@ ecs::Entity GameEntitySystem::CreateGameEntity(EntityType _type) const
     case EntityType::Object:
 		ecs::ComponentManager::AddComponent<TransformComponent>(entity);
 		break;
+	case EntityType::Renderable:
+		ecs::ComponentManager::AddComponent<TransformComponent>(entity);
+		ecs::ComponentManager::AddComponent<RenderComponent>(entity);
+		break;
 	default:
 		// Pure
 		break;
@@ -40,6 +44,11 @@ void GameEntitySystem::DestroyGameEntity(const ecs::Entity _entity) const
 	if (ecs::ComponentManager::HasComponents<TransformComponent>(_entity))
 	{
 		ecs::ComponentManager::RemoveComponent<TransformComponent>(_entity);
+	}
+
+	if (ecs::ComponentManager::HasComponents<RenderComponent>(_entity))
+	{
+		ecs::ComponentManager::RemoveComponent<RenderComponent>(_entity);
 	}
 
 	ecs::EntityManager::DestroyEntity(_entity);

@@ -99,7 +99,7 @@ void BaseRenderSystem::PushConstants(VkCommandBuffer _commandBuffer, std::vector
 void BaseRenderSystem::Bind(VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer) const
 {
 	VkBuffer buffers[] = { _vertexBufferComponent.Buffer };
-	VkDeviceSize offsets[] = { 0 };
+	VkDeviceSize offsets[] = { _vertexBufferComponent.Offset };
 
 	vkCmdBindVertexBuffers(_commandBuffer, 0, 1, buffers, offsets);
 }
@@ -107,7 +107,7 @@ void BaseRenderSystem::Bind(VertexBufferComponent& _vertexBufferComponent, VkCom
 void BaseRenderSystem::Bind(VertexBufferComponent& _vertexBufferComponent, IndexBufferComponent& _indexBufferComponent, VkCommandBuffer _commandBuffer) const
 {
 	Bind(_vertexBufferComponent, _commandBuffer);
-	vkCmdBindIndexBuffer(_commandBuffer, _indexBufferComponent.Buffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindIndexBuffer(_commandBuffer, _indexBufferComponent.Buffer, _vertexBufferComponent.Offset, VK_INDEX_TYPE_UINT32);
 }
 
 void BaseRenderSystem::Draw(VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer) const

@@ -26,8 +26,7 @@ public:
 	// TEMPLATE FUNCTIONS
 
 	template<typename BufferType>
-	void Create(
-		BufferType& _outBufferObject,
+	BufferType Create(
 		VkDeviceSize _instanceSize,					// size of how many instance we want
 		uint32 _instanceCount,						// count of the instance we want
 		VkBufferUsageFlags _usageFlags,				// vertex, index, transfer, various bits, etc..., such VK_BUFFER_USAGE_VERTEX_BUFFER_BIT or VK_BUFFER_USAGE_TRANSFER_DST_BIT
@@ -36,36 +35,40 @@ public:
 		VkDeviceSize _minOffsetAlignment = 1,		// min alignment is not required for vertex and index buffer
 		bool _isPersistent = false)					// if true, creates a dynamic memory, such the Uniform Buffer, to use in case of frequent write on CPU and frequent read on GPU.
 	{
-		_outBufferObject.Size = _instanceSize;
+		BufferType bufferObject;
+
+		bufferObject.Count = _instanceCount;
+
 		if (_minOffsetAlignment > 1)
 		{
-			_outBufferObject.AlignedSize = GetAlignment(_outBufferObject.Size, _minOffsetAlignment);
-			const VkDeviceSize bufferSize = _outBufferObject.AlignedSize * _instanceCount;
+			bufferObject.Size = GetAlignment(_instanceSize, _minOffsetAlignment);
+			const VkDeviceSize bufferSize = bufferObject.Size * _instanceCount;
 			m_device.CreateBufferWithAlignment(
 				bufferSize,
 				_usageFlags,
 				_memoryUsage,
 				_allocationFlags,
-				_outBufferObject.Buffer,
-				_outBufferObject.AllocationMemory,
-				_outBufferObject.AlignedSize,
+				bufferObject.Buffer,
+				bufferObject.AllocationMemory,
+				bufferObject.Size,
 				_isPersistent
 			);
 		}
 		else
 		{
-			_outBufferObject.AlignedSize = _outBufferObject.Size;
-			const VkDeviceSize bufferSize = _outBufferObject.Size * _instanceCount;
+			bufferObject.Size = _instanceSize;
+			const VkDeviceSize bufferSize = _instanceSize * _instanceCount;
 			m_device.CreateBuffer(
 				bufferSize,
 				_usageFlags,
 				_memoryUsage,
 				_allocationFlags,
-				_outBufferObject.Buffer,
-				_outBufferObject.AllocationMemory,
+				bufferObject.Buffer,
+				bufferObject.AllocationMemory,
 				_isPersistent
 			);
 		}
+		return bufferObject;
 	}
 
 	template<typename BufferType>
@@ -82,7 +85,7 @@ public:
 		assertMsgReturnValue(_buffer.Buffer && _buffer.AllocationMemory, "Called map on buffer before create", VK_ERROR_UNKNOWN);
 		return vmaMapMemory(m_device.GetAllocator(), _buffer.AllocationMemory, _outMappedData);
 	}
-
+	
 	// NOT NEED IT FOR PERSISTENT BUFFER!
 	template<typename BufferType>
 	void Unmap(BufferType& _buffer)
@@ -90,7 +93,7 @@ public:
 		assertMsgReturnVoid(_buffer.Buffer && _buffer.AllocationMemory, "Called unmap on buffer before create");
 		vmaUnmapMemory(m_device.GetAllocator(), _buffer.AllocationMemory);
 	}
-
+	
 	// PERSISTEN BUFFER VERSION
 	template<typename BufferType>
 	void WriteToBuffer(BufferType& _buffer, void* _outData)
@@ -98,7 +101,7 @@ public:
 		VmaAllocationInfo allocationInfo;
 		vmaGetAllocationInfo(m_device.GetAllocator(), _buffer.AllocationMemory, &allocationInfo);
 
-		WriteToBuffer(allocationInfo.pMappedData, _outData, _buffer.AlignedSize);
+		WriteToBuffer(allocationInfo.pMappedData, _outData, _buffer.Size);
 	}
 
 	// PERSISTEN BUFFER VERSION
@@ -108,19 +111,19 @@ public:
 		VmaAllocationInfo allocationInfo;
 		vmaGetAllocationInfo(m_device.GetAllocator(), _buffer.AllocationMemory, &allocationInfo);
 
-		WriteToBufferWithOffset(allocationInfo.pMappedData, _outData, _buffer.AlignedSize, _offset);
-	}
+		WriteToBufferWithOffset(allocationInfo.pMappedData, _outData, _buffer.Size, _offset);
+	} 
 
 	template<typename BufferType>
 	VkResult Flush(BufferType& _buffer, VkDeviceSize _offset = 0)
 	{
-		return vmaFlushAllocation(m_device.GetAllocator(), _buffer.AllocationMemory, _offset, _buffer.AlignedSize);
+		return vmaFlushAllocation(m_device.GetAllocator(), _buffer.AllocationMemory, _offset, _buffer.Size);
 	}
 
 	template<typename BufferType>
 	VkResult Invalidate(BufferType& _buffer, VkDeviceSize _offset)
 	{
-		return vmaInvalidateAllocation(m_device.GetAllocator(), _buffer.AllocationMemory, _offset, _buffer.AlignedSize);
+		return vmaInvalidateAllocation(m_device.GetAllocator(), _buffer.AllocationMemory, _offset, _buffer.Size);
 	}
 
 	template<typename BufferType>
@@ -128,34 +131,34 @@ public:
 	{
 		return VkDescriptorBufferInfo
 		{
-			_buffer.Buffer,
-			_offset,
-			_buffer.AlignedSize,
+			_buffer.Buffer,		// buffer
+			_offset,			// offset
+			_buffer.Size,		// range
 		};
 	}
 
 	template<typename BufferType>
 	void WriteToIndex(BufferType& _buffer, void* _outData, int32 _index)
 	{
-		WriteToBufferWithOffset(_buffer, _outData, _index * _buffer.AlignedSize);
+		WriteToBufferWithOffset(_buffer, _outData, _index * _buffer.Size);
 	}
 
 	template<typename BufferType>
 	VkResult FlushIndex(BufferType& _buffer, int32 _index)
 	{
-		return Flush(_buffer, _index * _buffer.AlignedSize);
+		return Flush(_buffer, _index * _buffer.Size);
 	}
 
 	template<typename BufferType>
 	VkDescriptorBufferInfo GetDescriptorInfoForIndex(BufferType& _buffer, int32 _index)
 	{
-		return GetDescriptorInfo(_buffer, _index * _buffer.AlignedSize);
+		return GetDescriptorInfo(_buffer, _index * _buffer.Size);
 	}
 
 	template<typename BufferType>
 	VkResult InvalidateIndex(BufferType& _buffer, int32 _index)
 	{
-		return Invalidate(_buffer, _index * _buffer.AlignedSize);
+		return Invalidate(_buffer, _index * _buffer.Size);
 	}
 	
 	template<typename BufferTypeFrom, typename BufferTypeTo>

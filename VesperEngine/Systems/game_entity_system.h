@@ -17,7 +17,8 @@ enum EntityType : uint32
 {
 	Pure = 0,		// empty entity, logical purpose only
 	Camera = 1,		// camera, has projection and special transform
-	Object = 2		// transform only
+	Object = 2,		// transform only
+	Renderable = 3	// Object can be rendered
 };
 
 class VESPERENGINE_DLL GameEntitySystem final

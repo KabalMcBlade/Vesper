@@ -72,7 +72,7 @@ void CameraSystem::Update(const float _aspectRatio)
 	}
 }
 
-void CameraSystem::GetCameraComponentFromActiveCamera(const uint32 _activeCameraIndex, CameraComponent& _outCameraComponent)
+void CameraSystem::GetActiveCameraData(const uint32 _activeCameraIndex, CameraComponent& _outCameraComponent, CameraTransformComponent& _outCameraTransform)
 {
 	std::vector<ecs::Entity> cameras;
 	ecs::EntityCollector::CollectEntitiesWithAny<CameraActive, CameraComponent, CameraTransformComponent>(cameras);
@@ -80,7 +80,10 @@ void CameraSystem::GetCameraComponentFromActiveCamera(const uint32 _activeCamera
 	assertMsgReturnVoid(cameras.size() > 0, "There is no active camera!");
 	assertMsgReturnVoid(_activeCameraIndex >= 0 && _activeCameraIndex < cameras.size(), "Active camera index is out of bound!");
 
-	_outCameraComponent = ecs::ComponentManager::GetComponent<CameraComponent>(cameras[_activeCameraIndex]);
+	const ecs::Entity activeCamera = cameras[_activeCameraIndex];
+
+	_outCameraComponent = ecs::ComponentManager::GetComponent<CameraComponent>(activeCamera);
+	_outCameraTransform = ecs::ComponentManager::GetComponent<CameraTransformComponent>(activeCamera);
 
 	cameras.clear();
 }
