@@ -89,19 +89,6 @@ ViewerApp::~ViewerApp()
 
 void ViewerApp::Run()
 {
-	// This should be in separated class which should manage the "actual" game in terms of what render
-// 	BufferComponent sceneUBO;
-// 	m_buffer->Create(
-// 		sceneUBO,
-// 		sizeof(SceneUBO),
-// 		SwapChain::kMaxFramesInFlight,
-// 		VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, //| VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-// 		VMA_MEMORY_USAGE_AUTO, //VMA_MEMORY_USAGE_AUTO,//VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
-// 		VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
-// 		m_device->GetProperties().limits.minUniformBufferOffsetAlignment,
-// 		true
-// 	);
-
 	std::vector<BufferComponent> sceneUboBuffers(SwapChain::kMaxFramesInFlight);
 	for (int i = 0; i < sceneUboBuffers.size(); i++) 
 	{
@@ -109,16 +96,12 @@ void ViewerApp::Run()
 			sizeof(SceneUBO),
 			1,
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, //| VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-			VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, //VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, //VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO,
-			VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+			VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, //VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO,
+			VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
 			1,
 			true
 		);
 	}
-
-// 	auto globalSetLayout = DescriptorSetLayout::Builder(*m_device)
-// 		.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
-// 		.Build();
 
 	std::vector<VkDescriptorSet> globalDescriptorSets(SwapChain::kMaxFramesInFlight);
 	for (int i = 0; i < globalDescriptorSets.size(); ++i)
@@ -157,11 +140,8 @@ void ViewerApp::Run()
 			
 			const float aspectRatio = m_renderer->GetAspectRatio();
 
-			m_simpleRenderSystem->Update(frameInfo);
-
 			//////////////////////////////////////////////////////////////////////////
-			// test
-
+			// ROTATION TEST
 			for (auto gameEntity : ecs::IterateEntitiesWithAll<TransformComponent, RotationComponent>())
 			{
 				RotationComponent& rotateComponent = ecs::ComponentManager::GetComponent<RotationComponent>(gameEntity);
@@ -172,10 +152,9 @@ void ViewerApp::Run()
 				glm::quat currRot = glm::angleAxis(rotateComponent.RadiantPerFrame, rotateComponent.RotationAxis);
 				transformComponent.Rotation = prevRot * currRot;
 			}
-
-
 			//////////////////////////////////////////////////////////////////////////
 
+			m_simpleRenderSystem->Update(frameInfo);
 
 			m_cameraSystem->Update(aspectRatio);
 			m_cameraSystem->GetActiveCameraData(0, activeCameraComponent, activeCameraTransformComponent);
@@ -206,8 +185,6 @@ void ViewerApp::Run()
 
 	vkDeviceWaitIdle(m_device->GetDevice());
 
-
-	//m_buffer->Destroy(globalUBO);
 	for (int i = 0; i < sceneUboBuffers.size(); i++)
 	{
 		m_buffer->Destroy(sceneUboBuffers[i]);
