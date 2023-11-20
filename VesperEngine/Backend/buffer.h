@@ -22,6 +22,19 @@ public:
 	Buffer& operator=(const Buffer&) = delete;
 
 public:
+	template<typename SizeType = VkDeviceSize>
+	static SizeType GetAlignment(SizeType _instanceSize, SizeType _minOffsetAlignment)
+	{
+		if (_minOffsetAlignment > 0)
+		{
+			return (_instanceSize + _minOffsetAlignment - 1) & ~(_minOffsetAlignment - 1);
+		}
+
+		return _instanceSize;
+	}
+
+
+public:
 	//////////////////////////////////////////////////////////////////////////
 	// TEMPLATE FUNCTIONS
 
@@ -175,8 +188,6 @@ public:
 
 
 private:
-	static VkDeviceSize GetAlignment(VkDeviceSize _instanceSize, VkDeviceSize _minOffsetAlignment);
-
 	Device& m_device;
 };
 
