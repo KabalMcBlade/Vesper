@@ -12,13 +12,13 @@ if "%~1"=="" goto :END_1
 set VK_PLATFORM=Bin
 
 echo Compiling vertex shader files:
-for %%f in (%~1\Assets\Shaders\*.vert) do (
+for %%f in (%~1Assets\Shaders\*.vert) do (
 	%VK_SDK_PATH%\%VK_PLATFORM%\glslangValidator.exe -V -o %%f.spv %%f
 )
 echo:
 
 echo Compiling fragment shader files:
-for %%f in (%~1\Assets\Shaders\*.frag) do (
+for %%f in (%~1Assets\Shaders\*.frag) do (
 	%VK_SDK_PATH%\%VK_PLATFORM%\glslangValidator.exe -V -o %%f.spv %%f"
 )
 

@@ -171,6 +171,7 @@ VkShaderStageFlagBits Pipeline::ConvertShaderTypeToShaderFlag(ShaderType _type) 
 	case vesper::ShaderType::TessellationControl:		return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
 	case vesper::ShaderType::Geometry:					return VK_SHADER_STAGE_GEOMETRY_BIT;
 	case vesper::ShaderType::Fragment:					return VK_SHADER_STAGE_FRAGMENT_BIT;
+	default:											return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
 	}
 }
 

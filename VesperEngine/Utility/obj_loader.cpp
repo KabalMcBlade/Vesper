@@ -110,10 +110,12 @@ std::unique_ptr<ModelData> ObjLoader::LoadModel(const std::string& _filePath, bo
 	}
 
 	model.IsStatic = _isStatic;
-
+	
+#ifdef _DEBUG
 	std::cout << "Vertices count: " << model.Vertices.size() << std::endl;
 	std::cout << "Indices count: " << model.Indices.size() << std::endl;
-	
+#endif
+
 	return std::make_unique<ModelData>(model);
 }
 

@@ -21,6 +21,11 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateTriangleNoIndices(glm::vec3
 
 	data.IsStatic = _isStatic;
 
+#ifdef _DEBUG
+	std::cout << "Vertices count: " << data.Vertices.size() << std::endl;
+	std::cout << "Indices count: " << data.Indices.size() << std::endl;
+#endif
+
 	return std::make_unique<ModelData>(data);
 }
 
@@ -43,6 +48,11 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateTriangle(glm::vec3 _offset,
 	data.Indices = { 0,  1,  2 };
 
 	data.IsStatic = _isStatic;
+
+#ifdef _DEBUG
+	std::cout << "Vertices count: " << data.Vertices.size() << std::endl;
+	std::cout << "Indices count: " << data.Indices.size() << std::endl;
+#endif
 
 	return std::make_unique<ModelData>(data);
 }
@@ -115,6 +125,11 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateCubeNoIndices(glm::vec3 _of
 
 	data.IsStatic = _isStatic;
 
+#ifdef _DEBUG
+	std::cout << "Vertices count: " << data.Vertices.size() << std::endl;
+	std::cout << "Indices count: " << data.Indices.size() << std::endl;
+#endif
+
 	return std::make_unique<ModelData>(data);
 }
 
@@ -177,6 +192,11 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateCube(glm::vec3 _offset, std
 					12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21 };
 
 	data.IsStatic = _isStatic;
+
+#ifdef _DEBUG
+	std::cout << "Vertices count: " << data.Vertices.size() << std::endl;
+	std::cout << "Indices count: " << data.Indices.size() << std::endl;
+#endif
 
 	return std::make_unique<ModelData>(data);
 }
