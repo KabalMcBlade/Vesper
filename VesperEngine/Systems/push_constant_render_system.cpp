@@ -70,7 +70,7 @@ void PushConstantRenderSystem::UnregisterEntities() const
 	}
 }
 
-void PushConstantRenderSystem::UpdateFrame(FrameInfo& _frameInfo)
+void PushConstantRenderSystem::UpdateFrame(const FrameInfo& _frameInfo)
 {
 	for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent, TransformComponent, SimplePushConstantData>())
 	{
@@ -86,7 +86,7 @@ void PushConstantRenderSystem::UpdateFrame(FrameInfo& _frameInfo)
 	}
 }
 
-void PushConstantRenderSystem::RenderFrame(FrameInfo& _frameInfo)
+void PushConstantRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 {
 	// 1. Render whatever has vertex buffers and index buffer
 	for (auto gameEntity : ecs::IterateEntitiesWithAll<VertexBufferComponent, IndexBufferComponent, SimplePushConstantData>())

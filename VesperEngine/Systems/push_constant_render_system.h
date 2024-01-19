@@ -31,8 +31,8 @@ public:
 	void UnregisterEntities() const;
 
 protected:
-	virtual void UpdateFrame(FrameInfo& _frameInfo) override;
-	virtual void RenderFrame(FrameInfo& _frameInfo) override;
+	virtual void UpdateFrame(const FrameInfo& _frameInfo) override;
+	virtual void RenderFrame(const FrameInfo& _frameInfo) override;
 	virtual void SetupePipeline(PipelineConfigInfo& _pipelineConfig) override;
 };
 

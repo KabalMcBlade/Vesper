@@ -33,14 +33,14 @@ public:
 	BaseRenderSystem& operator=(const BaseRenderSystem&) = delete;
 	
 public:
-	void Update(FrameInfo& _frameInfo);
-	void Render(FrameInfo& _frameInfo);
+	void Update(const FrameInfo& _frameInfo);
+	void Render(const FrameInfo& _frameInfo);
 	void CreatePipelineLayout(const std::vector<VkDescriptorSetLayout>& _descriptorSetLayouts);
 	void CreatePipeline(VkRenderPass _renderPass);
 
 protected:
-	virtual void UpdateFrame(FrameInfo& _frameInfo) {}
-	virtual void RenderFrame(FrameInfo& _frameInfo) {}
+	virtual void UpdateFrame(const FrameInfo& _frameInfo) {}
+	virtual void RenderFrame(const FrameInfo& _frameInfo) {}
 	virtual void SetupePipeline(PipelineConfigInfo& _pipelineConfig) {};
 
 protected:
@@ -55,8 +55,6 @@ protected:
 
 protected:
 	Device& m_device;
-
-protected:
 	VkPipelineLayout m_pipelineLayout;
 	std::unique_ptr<Pipeline> m_pipeline;
 	std::vector<VkPushConstantRange> m_pushConstants;

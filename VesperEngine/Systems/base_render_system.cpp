@@ -15,12 +15,12 @@ BaseRenderSystem::~BaseRenderSystem()
 	vkDestroyPipelineLayout(m_device.GetDevice(), m_pipelineLayout, nullptr);
 }
 
-void BaseRenderSystem::Update(FrameInfo& _frameInfo)
+void BaseRenderSystem::Update(const FrameInfo& _frameInfo)
 {
 	UpdateFrame(_frameInfo);
 }
 
-void BaseRenderSystem::Render(FrameInfo& _frameInfo)
+void BaseRenderSystem::Render(const FrameInfo& _frameInfo)
 {
 	m_pipeline->Bind(_frameInfo.CommandBuffer);
 

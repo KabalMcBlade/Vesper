@@ -70,7 +70,7 @@ void SimpleRenderSystem::UnregisterEntities() const
 	}
 }
 
-void SimpleRenderSystem::UpdateFrame(FrameInfo& _frameInfo)
+void SimpleRenderSystem::UpdateFrame(const FrameInfo& _frameInfo)
 {
 	for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent, TransformComponent>())
 	{
@@ -83,7 +83,7 @@ void SimpleRenderSystem::UpdateFrame(FrameInfo& _frameInfo)
 	}
 }
 
-void SimpleRenderSystem::RenderFrame(FrameInfo& _frameInfo)
+void SimpleRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 {
 	// 1. Render whatever has vertex buffers and index buffer
 	for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent, VertexBufferComponent, IndexBufferComponent>())
