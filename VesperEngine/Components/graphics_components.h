@@ -23,7 +23,6 @@ struct BufferComponent
 {
 	VmaAllocation AllocationMemory{ VK_NULL_HANDLE };	// value storing the allocation to map/unmap	
 	VkBuffer Buffer{ VK_NULL_HANDLE };					// value used to bind and draw
-	VkDeviceSize Offset{ 0 };							// the byte offsets to start reading vertex data from, but using vma is always 0, since the block of allocated buffer starts from 0
 	VkDeviceSize Size{ 0 };								// the size (aligned or not) of the current buffer
 	uint32 Count{ 0 };									// instance count
 };
@@ -62,7 +61,9 @@ struct MaterialComponent
 // define the struct which each instance has at least to have, if needs to be visible/rendered
 struct RenderComponent
 {
-	glm::mat4 ModelMatrix;
+	glm::mat4 ModelMatrix{ 1 };
+	uint32 DynamicOffsetIndex { 0 };
+	uint32 DynamicOffset { 0 };		// future, we should have a different struct, and having the DynamicOffsetCount and this one as ptr
 };
 
 VESPERENGINE_NAMESPACE_END

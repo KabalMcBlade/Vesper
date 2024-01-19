@@ -47,11 +47,11 @@ protected:
 	void PushConstants(VkCommandBuffer _commandBuffer, const uint32 _pushConstantIndex, const void* _pushConstantValue) const;
 	void PushConstants(VkCommandBuffer _commandBuffer, std::vector<const void*> _pushConstantValues) const;
 
-	void Bind(VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer) const;
-	void Bind(VertexBufferComponent& _vertexBufferComponent, IndexBufferComponent& _indexBufferComponent, VkCommandBuffer _commandBuffer) const;
+	void Bind(const VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer) const;
+	void Bind(const VertexBufferComponent& _vertexBufferComponent, const IndexBufferComponent& _indexBufferComponent, VkCommandBuffer _commandBuffer) const;
 
-	void Draw(VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer) const;
-	void Draw(IndexBufferComponent& _indexBufferComponent, VkCommandBuffer _commandBuffer) const;
+	void Draw(const VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer) const;
+	void Draw(const IndexBufferComponent& _indexBufferComponent, VkCommandBuffer _commandBuffer) const;
 
 protected:
 	Device& m_device;

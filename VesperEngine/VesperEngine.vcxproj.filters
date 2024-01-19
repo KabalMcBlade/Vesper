@@ -135,6 +135,9 @@
     <ClInclude Include="Backend\descriptors.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Systems\push_constant_render_system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -197,6 +200,9 @@
     <ClCompile Include="Backend\descriptors.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Systems\push_constant_render_system.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\simple_shader.vert" />
@@ -207,5 +213,7 @@
     <None Include="copy_assets.bat">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="Assets\Shaders\push_constant_shader.vert" />
+    <None Include="Assets\Shaders\push_constant_shader.frag" />
   </ItemGroup>
 </Project>

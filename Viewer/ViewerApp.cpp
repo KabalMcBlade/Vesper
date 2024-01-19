@@ -34,9 +34,20 @@ struct SceneUBO
 {
 	glm::mat4 ProjectionMatrix{ 1.0f };
 	glm::mat4 ViewMatrix{ 1.0f };
+};
+
+// Light Uniform Buffer Object
+struct LightUBO
+{
 	glm::vec4 AmbientColor{ 1.0f, 1.0f, 1.0f, 0.5f };	// w is intensity
-	glm::vec4 LightPos { 0.0f, -0.25f, 0.0f, 0.0f };
+	glm::vec4 LightPos{ 0.0f, -0.25f, 0.0f, 0.0f };
 	glm::vec4 LightColor{ 1.0f, 1.0f, 1.0f, 1.0f };
+};
+
+// Object Uniform Buffer Object
+struct ObjectUBO
+{
+	glm::mat4 ModelMatrix{ 1.0f };
 };
 
 
@@ -52,17 +63,30 @@ ViewerApp::ViewerApp(Config& _config) :
 	m_globalPool = DescriptorPool::Builder(*m_device)
 		.SetMaxSets(SwapChain::kMaxFramesInFlight)
 		.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::kMaxFramesInFlight)
+		.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, SwapChain::kMaxFramesInFlight)
 		//.AddPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, SwapChain::kMaxFramesInFlight)
 		.Build();
 
 	// This should be part of the highest render system, which is shared among all the possible shaders and so all the possible Render systems
+	// 
+	// I will create 3 uniform buffers:
+	// 1. present in vertex, containing { mat4 projectionMatrix, mat4 viewMatrix; } - we can call this "Scene"
+	// 2. present in fragment, containing { vec4 ambientLightColor; vec4 pointLightPosition; vec4 pointLightColor; } - we can call this "Light"
+	// 3. present in vertex, containg { mat4 modelMatrix; } - we can call this "Object"
+	// 
+	// I could have grouped in 2 only (scene and object), but I wanted to test in this way to check if I get a bit more GPU/CPU optimization
+	//
+	// Maybe I will add a common header file having a macro containing the indices of the descriptor set included both in code and shaders.
+
 	m_globalSetLayout = DescriptorSetLayout::Builder(*m_device)
-		.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
+		.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT )
+		.AddBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.AddBinding(2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT)
 		.Build();
 
 	m_gameEntitySystem = std::make_unique<GameEntitySystem>();
 	m_modelSystem = std::make_unique<ModelSystem>(*m_device);
-	m_simpleRenderSystem = std::make_unique<SimpleRenderSystem>(*m_device, m_renderer->GetSwapChainRenderPass(), m_globalSetLayout->GetDescriptorSetLayout());
+	m_simpleRenderSystem = std::make_unique<SimpleRenderSystem>(*m_device, m_renderer->GetSwapChainRenderPass(), m_globalSetLayout->GetDescriptorSetLayout(), static_cast<uint32>(sizeof(ObjectUBO)));
 	m_cameraSystem = std::make_unique<CameraSystem>();
 	m_objLoader = std::make_unique<ObjLoader>(*m_device);
 	m_buffer = std::make_unique<Buffer>(*m_device);
@@ -90,7 +114,10 @@ ViewerApp::~ViewerApp()
 void ViewerApp::Run()
 {
 	std::vector<BufferComponent> sceneUboBuffers(SwapChain::kMaxFramesInFlight);
-	for (int i = 0; i < sceneUboBuffers.size(); i++) 
+	std::vector<BufferComponent> lightUboBuffers(SwapChain::kMaxFramesInFlight);
+	std::vector<BufferComponent> objectUboBuffers(SwapChain::kMaxFramesInFlight);
+
+	for (int32 i = 0; i < SwapChain::kMaxFramesInFlight; ++i)
 	{
 		sceneUboBuffers[i] = m_buffer->Create<BufferComponent>(
 			sizeof(SceneUBO),
@@ -101,20 +128,48 @@ void ViewerApp::Run()
 			1,
 			true
 		);
+
+		lightUboBuffers[i] = m_buffer->Create<BufferComponent>(
+			sizeof(LightUBO),
+			1,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, //| VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+			VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, //VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO,
+			VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+			1,
+			true
+		);
+
+		objectUboBuffers[i] = m_buffer->Create<BufferComponent>(
+			sizeof(ObjectUBO),
+			m_simpleRenderSystem->GetObjectCount(),
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, //| VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+			VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, //VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO,
+			VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+			m_simpleRenderSystem->GetDynamicAlignmentObjectUBO(),
+			true
+		);
 	}
 
 	std::vector<VkDescriptorSet> globalDescriptorSets(SwapChain::kMaxFramesInFlight);
-	for (int i = 0; i < globalDescriptorSets.size(); ++i)
+	for (int32 i = 0; i < SwapChain::kMaxFramesInFlight; ++i)
 	{
-		auto bufferInfo = m_buffer->GetDescriptorInfo(sceneUboBuffers[i]);
+		auto sceneBufferInfo = m_buffer->GetDescriptorInfo(sceneUboBuffers[i]);
+		auto lightBufferInfo = m_buffer->GetDescriptorInfo(lightUboBuffers[i]);
+		auto objectBufferInfo = m_buffer->GetDescriptorInfo(objectUboBuffers[i]);
+
 		DescriptorWriter(*m_globalSetLayout, *m_globalPool)
-			.WriteBuffer(0, &bufferInfo)
+			.WriteBuffer(0, &sceneBufferInfo)
+			.WriteBuffer(1, &lightBufferInfo)
+			.WriteBuffer(2, &objectBufferInfo)
 			.Build(globalDescriptorSets[i]);
 	}
 
 	auto currentTime = std::chrono::high_resolution_clock::now();
 
 	SceneUBO sceneUBO;
+	LightUBO lightUBO;
+	ObjectUBO objectUBO;
+
 	CameraComponent activeCameraComponent;
 	CameraTransformComponent activeCameraTransformComponent;
 
@@ -155,19 +210,18 @@ void ViewerApp::Run()
 			//////////////////////////////////////////////////////////////////////////
 
 			m_simpleRenderSystem->Update(frameInfo);
-
+			 
 			m_cameraSystem->Update(aspectRatio);
 			m_cameraSystem->GetActiveCameraData(0, activeCameraComponent, activeCameraTransformComponent);
 
 			sceneUBO.ProjectionMatrix = activeCameraComponent.ProjectionMatrix;
 			sceneUBO.ViewMatrix = activeCameraComponent.ViewMatrix;
-
-
-			//m_buffer->WriteToIndex(uboBuffers[frameIndex], &ubo, frameIndex);
-			//m_buffer->FlushIndex(uboBuffers[frameIndex], frameIndex);
+			
 			m_buffer->WriteToBuffer(sceneUboBuffers[frameIndex], &sceneUBO);
 			m_buffer->Flush(sceneUboBuffers[frameIndex]);
 
+			m_buffer->WriteToBuffer(lightUboBuffers[frameIndex], &lightUBO);
+			m_buffer->Flush(lightUboBuffers[frameIndex]);
 
 			// For instance, add here before the swap chain:
 			// begin off screen shadow pass
@@ -175,6 +229,17 @@ void ViewerApp::Run()
 			// end off screen shadow pass
 
 			m_renderer->BeginSwapChainRenderPass(commandBuffer);
+
+			for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent>())
+			{
+				const RenderComponent& renderComponent = ecs::ComponentManager::GetComponent<RenderComponent>(gameEntity);
+
+				objectUBO.ModelMatrix = renderComponent.ModelMatrix;
+
+				//m_buffer->WriteToBufferWithOffset(objectUboBuffers[frameIndex], &objectUBO, renderComponent.DynamicOffset);
+				m_buffer->WriteToIndex(objectUboBuffers[frameIndex], &objectUBO, renderComponent.DynamicOffsetIndex);
+				m_buffer->FlushIndex(objectUboBuffers[frameIndex], renderComponent.DynamicOffsetIndex);
+			}
 
 			m_simpleRenderSystem->Render(frameInfo);
 
@@ -185,9 +250,11 @@ void ViewerApp::Run()
 
 	vkDeviceWaitIdle(m_device->GetDevice());
 
-	for (int i = 0; i < sceneUboBuffers.size(); i++)
+	for (int32 i = 0; i < SwapChain::kMaxFramesInFlight; ++i)
 	{
 		m_buffer->Destroy(sceneUboBuffers[i]);
+		m_buffer->Destroy(lightUboBuffers[i]);
+		m_buffer->Destroy(objectUboBuffers[i]);
 	}
 }
 
@@ -266,7 +333,7 @@ void ViewerApp::LoadGameEntities()
 		rotateComponent.RotationAxis = glm::vec3(0.0f, 0.0f, 1.0f);
 		rotateComponent.RadiantPerFrame = radPerFrame;
 	}
-	
+
 	//////////////////////////////////////////////////////////////////////////
 	// Flat Vase
 	{

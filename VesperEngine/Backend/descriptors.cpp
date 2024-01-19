@@ -116,8 +116,7 @@ bool DescriptorPool::AllocateDescriptorSet(const VkDescriptorSetLayout _descript
 	allocInfo.pSetLayouts = &_descriptorSetLayout;
 	allocInfo.descriptorSetCount = 1;
 
-	// Might want to create a "DescriptorPoolManager" class that handles this case, and builds
-	// a new pool whenever an old pool fills up. But this is beyond our current scope
+	// Might want to create a "DescriptorPoolManager" class that handles this case, and builds a new pool whenever an old pool fills up.
 	if (vkAllocateDescriptorSets(m_device.GetDevice(), &allocInfo, &_descriptor) != VK_SUCCESS)
 	{
 		return false;

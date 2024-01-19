@@ -24,17 +24,6 @@ void BaseRenderSystem::Render(FrameInfo& _frameInfo)
 {
 	m_pipeline->Bind(_frameInfo.CommandBuffer);
 
-	vkCmdBindDescriptorSets(
-		_frameInfo.CommandBuffer,
-		VK_PIPELINE_BIND_POINT_GRAPHICS,	// for now is only graphics, in future we want also the compute version
-		m_pipelineLayout,
-		0,
-		1,
-		&_frameInfo.GlobalDescriptorSet,
-		0,
-		nullptr
-	);
-
 	RenderFrame(_frameInfo);
 }
 
@@ -96,26 +85,26 @@ void BaseRenderSystem::PushConstants(VkCommandBuffer _commandBuffer, std::vector
 	}
 }
 
-void BaseRenderSystem::Bind(VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer) const
+void BaseRenderSystem::Bind(const VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer) const
 {
 	VkBuffer buffers[] = { _vertexBufferComponent.Buffer };
-	VkDeviceSize offsets[] = { _vertexBufferComponent.Offset };
+	VkDeviceSize offsets[] = { 0 };
 
 	vkCmdBindVertexBuffers(_commandBuffer, 0, 1, buffers, offsets);
 }
 
-void BaseRenderSystem::Bind(VertexBufferComponent& _vertexBufferComponent, IndexBufferComponent& _indexBufferComponent, VkCommandBuffer _commandBuffer) const
+void BaseRenderSystem::Bind(const VertexBufferComponent& _vertexBufferComponent, const IndexBufferComponent& _indexBufferComponent, VkCommandBuffer _commandBuffer) const
 {
 	Bind(_vertexBufferComponent, _commandBuffer);
-	vkCmdBindIndexBuffer(_commandBuffer, _indexBufferComponent.Buffer, _vertexBufferComponent.Offset, VK_INDEX_TYPE_UINT32);
+	vkCmdBindIndexBuffer(_commandBuffer, _indexBufferComponent.Buffer, 0, VK_INDEX_TYPE_UINT32);
 }
 
-void BaseRenderSystem::Draw(VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer) const
+void BaseRenderSystem::Draw(const VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer) const
 {
 	vkCmdDraw(_commandBuffer, _vertexBufferComponent.Count, 1, 0, 0);
 }
 
-void BaseRenderSystem::Draw(IndexBufferComponent& _indexBufferComponent, VkCommandBuffer _commandBuffer) const
+void BaseRenderSystem::Draw(const IndexBufferComponent& _indexBufferComponent, VkCommandBuffer _commandBuffer) const
 {
 	vkCmdDrawIndexed(_commandBuffer, _indexBufferComponent.Count, 1, 0, 0, 0);
 }

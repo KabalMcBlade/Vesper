@@ -30,6 +30,7 @@
 #include "Systems/game_entity_system.h"
 #include "Systems/model_system.h"
 #include "Systems/base_render_system.h"
+#include "Systems/push_constant_render_system.h"
 #include "Systems/simple_render_system.h"
 #include "Systems/camera_system.h"
 

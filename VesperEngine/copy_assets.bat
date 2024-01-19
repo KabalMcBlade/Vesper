@@ -28,7 +28,7 @@ echo:
 
 for %%f in (%~1Assets\Shaders\*.spv) do (
 
-    echo Copying shaders files:
+    echo Copying shaders files from %~1Assets\Shaders\ to %~2Assets\Shaders\:
     copy %~1Assets\Shaders\*.spv %~2Assets\Shaders
     echo:
 
@@ -38,7 +38,7 @@ for %%f in (%~1Assets\Shaders\*.spv) do (
 :MODEL_FOLDER
 for %%f in (%~1Assets\Models\*.*) do (
 
-    echo Copying models files:
+    echo Copying models files from %~1Assets\Models\ to %~2Assets\Models\:
     copy %~1Assets\Models\*.* %~2Assets\Models
     echo:
 
@@ -48,7 +48,7 @@ for %%f in (%~1Assets\Models\*.*) do (
 :TEXTURE_FOLDER
 for %%f in (%~1Assets\Textures\*.*) do (
 
-    echo Copying models files:
+    echo Copying models files from %~1Assets\Textures\ to %~2Assets\Textures\:
     copy %~1Assets\Textures\*.* %~2Assets\Textures
     echo:
 

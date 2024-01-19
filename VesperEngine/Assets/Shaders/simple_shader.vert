@@ -11,25 +11,23 @@ layout(location = 2) out vec3 outNormalWorld;
 
 layout(set = 0, binding = 0) uniform SceneUBO
 {
-	mat4 projectionMatrix;
-	mat4 viewMatrix;
-	vec4 ambientLightColor;		// w is intensity
-	vec4 pointLightPosition;
-	vec4 pointLightColor;		// w is intensity
+	mat4 ProjectionMatrix;
+	mat4 ViewMatrix;
 } sceneUBO;
 
-layout(push_constant) uniform Push
-{
-	mat4 modelMatrix;
-} push;
+// set 0 and binding 1 is on fragment shader only
 
+layout(set = 0, binding = 2) uniform ObjectUBO
+{
+	mat4 ModelMatrix;
+} objectUBO;
 
 void main()
 {
-	vec4 positionWorld = push.modelMatrix * vec4(inPosition, 1.0);
-	gl_Position = sceneUBO.projectionMatrix * sceneUBO.viewMatrix * positionWorld;
+	vec4 positionWorld = objectUBO.ModelMatrix * vec4(inPosition, 1.0);
+	gl_Position = sceneUBO.ProjectionMatrix * sceneUBO.ViewMatrix * positionWorld;
 	
 	outColor = inColor;
 	outPositionWorld = positionWorld.xyz;
-	outNormalWorld = normalize(mat3(transpose(inverse(push.modelMatrix))) * inNormal);
+	outNormalWorld = normalize(mat3(transpose(inverse(objectUBO.ModelMatrix))) * inNormal);
 }
