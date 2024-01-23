@@ -235,8 +235,7 @@ void ViewerApp::Run()
 				const RenderComponent& renderComponent = ecs::ComponentManager::GetComponent<RenderComponent>(gameEntity);
 
 				objectUBO.ModelMatrix = renderComponent.ModelMatrix;
-
-				//m_buffer->WriteToBufferWithOffset(objectUboBuffers[frameIndex], &objectUBO, renderComponent.DynamicOffset);
+				 
 				m_buffer->WriteToIndex(objectUboBuffers[frameIndex], &objectUBO, renderComponent.DynamicOffsetIndex);
 				m_buffer->FlushIndex(objectUboBuffers[frameIndex], renderComponent.DynamicOffsetIndex);
 			}
