@@ -119,6 +119,9 @@ void Pipeline::DefaultPipelineConfiguration(PipelineConfigInfo& _outConfigInfo)
 	_outConfigInfo.DynamicStateInfo.pDynamicStates = _outConfigInfo.DynamicStateEnables.data();
 	_outConfigInfo.DynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(_outConfigInfo.DynamicStateEnables.size());
 	_outConfigInfo.DynamicStateInfo.flags = 0;
+
+	_outConfigInfo.BindingDescriptions = Vertex::GetBindingDescriptions();
+	_outConfigInfo.AttributeDescriptions = Vertex::GetAttributeDescriptions();
 }
 
 Pipeline::Pipeline(Device& _device, const std::vector<ShaderInfo>& _shadersInfo, const PipelineConfigInfo& _configInfo)
@@ -205,15 +208,15 @@ void Pipeline::CreateGraphicsPipeline(const std::vector<ShaderInfo>& _shadersInf
 		shaderStages[i].pSpecializationInfo = nullptr;
 	}
 	
-	auto attributeDescription = Vertex::GetAttributeDescriptions();
-	auto bindingDescription = Vertex::GetBindingDescriptions();
+	auto& bindingDescriptions = _configInfo.BindingDescriptions;
+	auto& attributeDescriptions = _configInfo.AttributeDescriptions;
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32>(attributeDescription.size());
-	vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32>(bindingDescription.size());
-	vertexInputInfo.pVertexAttributeDescriptions = attributeDescription.data();
-	vertexInputInfo.pVertexBindingDescriptions = bindingDescription.data();
+	vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32>(attributeDescriptions.size());
+	vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32>(bindingDescriptions.size());
+	vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+	vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
 
 	VkGraphicsPipelineCreateInfo pipelineInfo{};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;

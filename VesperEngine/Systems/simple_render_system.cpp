@@ -104,7 +104,6 @@ void SimpleRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 			&renderComponent.DynamicOffset
 		);
 
-
 		Bind(vertexBufferComponent, indexBufferComponent, _frameInfo.CommandBuffer);
 		Draw(indexBufferComponent, _frameInfo.CommandBuffer);
 	}
@@ -114,7 +113,7 @@ void SimpleRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 	{
 		const RenderComponent& renderComponent = ecs::ComponentManager::GetComponent<RenderComponent>(gameEntity);
 
-		VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
+		const VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
 
 		vkCmdBindDescriptorSets(
 			_frameInfo.CommandBuffer,

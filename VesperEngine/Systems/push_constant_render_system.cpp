@@ -94,7 +94,7 @@ void PushConstantRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 		const VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
 		const IndexBufferComponent& indexBufferComponent = ecs::ComponentManager::GetComponent<IndexBufferComponent>(gameEntity);
 		const SimplePushConstantData& push = ecs::ComponentManager::GetComponent<SimplePushConstantData>(gameEntity);
-
+		
 		const RenderComponent& renderComponent = ecs::ComponentManager::GetComponent<RenderComponent>(gameEntity);
 
 		vkCmdBindDescriptorSets(
@@ -104,8 +104,8 @@ void PushConstantRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 			0,
 			1,
 			&_frameInfo.GlobalDescriptorSet,
-			1,
-			0
+			0,
+			nullptr
 		);
 
 		PushConstants(_frameInfo.CommandBuffer, 0, &push);
