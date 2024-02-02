@@ -19,7 +19,10 @@ VESPERENGINE_NAMESPACE_BEGIN
 class VESPERENGINE_DLL SimpleRenderSystem final : public BaseRenderSystem
 {
 public:
-	SimpleRenderSystem(Device& _device, VkRenderPass _renderPass, VkDescriptorSetLayout _globalDescriptorSetLayout, uint32 _sizePerObjectUBO);
+	SimpleRenderSystem(Device& _device, VkRenderPass _renderPass, 
+		VkDescriptorSetLayout _globalDescriptorSetLayout,
+		VkDescriptorSetLayout _groupDescriptorSetLayout,
+		uint32 _alignedSizeUBO);
 	~SimpleRenderSystem();
 
 	SimpleRenderSystem(const SimpleRenderSystem&) = delete;
@@ -27,7 +30,7 @@ public:
 
 public:
 	VESPERENGINE_INLINE uint32 GetObjectCount() const { return m_internalCounter; }
-	VESPERENGINE_INLINE uint32 GetDynamicAlignmentObjectUBO() const { return m_dynamicAlignmentObjectUBO; }
+	VESPERENGINE_INLINE uint32 GetAlignedSizeUBO() const { return m_alignedSizeUBO; }
 
 public:
 	void RegisterEntity(ecs::Entity _entity) const;
@@ -40,7 +43,7 @@ protected:
 	virtual void SetupePipeline(PipelineConfigInfo& _pipelineConfig) override;
 
 private:
-	uint32 m_dynamicAlignmentObjectUBO {0};
+	uint32 m_alignedSizeUBO {0};
 	mutable uint32 m_internalCounter {0};
 };
 

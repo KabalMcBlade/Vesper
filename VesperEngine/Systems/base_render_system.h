@@ -50,8 +50,8 @@ protected:
 	void Bind(const VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer) const;
 	void Bind(const VertexBufferComponent& _vertexBufferComponent, const IndexBufferComponent& _indexBufferComponent, VkCommandBuffer _commandBuffer) const;
 
-	void Draw(const VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer) const;
-	void Draw(const IndexBufferComponent& _indexBufferComponent, VkCommandBuffer _commandBuffer) const;
+	void Draw(const VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer, uint32 _instanceCount = 1) const;
+	void Draw(const IndexBufferComponent& _indexBufferComponent, VkCommandBuffer _commandBuffer, uint32 _instanceCount = 1) const;
 
 protected:
 	Device& m_device;

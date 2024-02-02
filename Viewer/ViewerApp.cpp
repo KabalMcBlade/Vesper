@@ -18,6 +18,13 @@
 //#define VMA_IMPLEMENTATION
 //#include <vma/vk_mem_alloc.h>
 
+#define DESCRIPTOR_SET_COUNT 2
+
+#define GLOBAL_BINDING_SCENE 0
+#define GLOBAL_BINDING_LIGHT 1
+
+#define GROUP_BINDING_OBJECT 0
+
 
 VESPERENGINE_USING_NAMESPACE
 
@@ -59,34 +66,55 @@ ViewerApp::ViewerApp(Config& _config) :
 	m_device = std::make_unique<Device>(*m_window);
 	m_renderer = std::make_unique<Renderer>(*m_window, *m_device);
 
-	// This should be managed as global pool per render system
+	const uint32 minUboAlignment = static_cast<uint32>(m_device->GetLimits().minUniformBufferOffsetAlignment);
+	const uint32 minSboAlignment = static_cast<uint32>(m_device->GetLimits().minStorageBufferOffsetAlignment);
+
+	const uint32 uboAlignedSize = m_buffer->GetAlignment<uint32>(sizeof(ObjectUBO), minUboAlignment);
+
+
 	m_globalPool = DescriptorPool::Builder(*m_device)
-		.SetMaxSets(SwapChain::kMaxFramesInFlight)
-		.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::kMaxFramesInFlight)
-		.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, SwapChain::kMaxFramesInFlight)
+		.SetMaxSets(SwapChain::kMaxFramesInFlight * DESCRIPTOR_SET_COUNT)
+		.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::kMaxFramesInFlight * DESCRIPTOR_SET_COUNT)
+		.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, SwapChain::kMaxFramesInFlight * DESCRIPTOR_SET_COUNT)
 		//.AddPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, SwapChain::kMaxFramesInFlight)
 		.Build();
 
-	// This should be part of the highest render system, which is shared among all the possible shaders and so all the possible Render systems
-	// 
-	// I will create 3 uniform buffers:
-	// 1. present in vertex & fragment , containing { mat4 projectionMatrix, mat4 viewMatrix; vec4 ambientLightColor; } - we can call this "Scene"
-	// 2. present in fragment, containing { vec4 pointLightPosition; vec4 pointLightColor; } - we can call this "Light"
-	// 3. present in vertex, containg { mat4 modelMatrix; } - we can call this "Object"
-	// 
-	// I could have grouped in 2 only (scene and object), but I wanted to test in this way to check if I get a bit more GPU/CPU optimization
 	//
-	// Maybe I will add a common header file having a macro containing the indices of the descriptor set included both in code and shaders.
+	// I create 2 set layout for now:
+	// 
+	// 1. Global, where draws once per frame, which is the view projection + ambient color
+	// 2. Group, which draws once per group, for now object matrices, using dynamic buffer
+	// 
+	// 
+	// The first is Global (m_globalSetLayout) and has 2 bindings uniform buffers
+	// 
+	// 0. present in vertex & fragment , containing { mat4 projectionMatrix, mat4 viewMatrix; vec4 ambientLightColor; } - we can call this "Scene"
+	// 1. present in fragment, containing { vec4 pointLightPosition; vec4 pointLightColor; } - we can call this "Light"
+	// NOTE: the binding 1 should be later added to a "per object" descriptor layout, but for now here is fine.
+	// 
+	// 
+	// The second is Group (m_groupSetLayout) and has 1 binding dynamic uniform buffer
+	// 
+	// 0. present in vertex, containg { mat4 modelMatrix; } - we can call this "Object"
+	// 
 
 	m_globalSetLayout = DescriptorSetLayout::Builder(*m_device)
-		.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
-		.AddBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
-		.AddBinding(2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT)
+		.AddBinding(GLOBAL_BINDING_SCENE, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
+		.AddBinding(GLOBAL_BINDING_LIGHT, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)	// this has to be moved in a per object specific
+		.Build();
+
+	m_groupSetLayout = DescriptorSetLayout::Builder(*m_device)
+		.AddBinding(GROUP_BINDING_OBJECT, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT)
 		.Build();
 
 	m_gameEntitySystem = std::make_unique<GameEntitySystem>();
 	m_modelSystem = std::make_unique<ModelSystem>(*m_device);
-	m_simpleRenderSystem = std::make_unique<SimpleRenderSystem>(*m_device, m_renderer->GetSwapChainRenderPass(), m_globalSetLayout->GetDescriptorSetLayout(), static_cast<uint32>(sizeof(ObjectUBO)));
+
+	m_simpleRenderSystem = std::make_unique<SimpleRenderSystem>(*m_device, m_renderer->GetSwapChainRenderPass(), 
+		m_globalSetLayout->GetDescriptorSetLayout(),
+		m_groupSetLayout->GetDescriptorSetLayout(),
+		uboAlignedSize);
+
 	m_cameraSystem = std::make_unique<CameraSystem>();
 	m_objLoader = std::make_unique<ObjLoader>(*m_device);
 	m_buffer = std::make_unique<Buffer>(*m_device);
@@ -145,7 +173,7 @@ void ViewerApp::Run()
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, //| VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 			VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, //VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO,
 			VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
-			m_simpleRenderSystem->GetDynamicAlignmentObjectUBO(),
+			m_simpleRenderSystem->GetAlignedSizeUBO(),
 			true
 		);
 	}
@@ -155,13 +183,21 @@ void ViewerApp::Run()
 	{
 		auto sceneBufferInfo = m_buffer->GetDescriptorInfo(sceneUboBuffers[i]);
 		auto lightBufferInfo = m_buffer->GetDescriptorInfo(lightUboBuffers[i]);
-		auto objectBufferInfo = m_buffer->GetDescriptorInfo(objectUboBuffers[i]);
 
 		DescriptorWriter(*m_globalSetLayout, *m_globalPool)
-			.WriteBuffer(0, &sceneBufferInfo)
-			.WriteBuffer(1, &lightBufferInfo)
-			.WriteBuffer(2, &objectBufferInfo)
+			.WriteBuffer(GLOBAL_BINDING_SCENE, &sceneBufferInfo)
+			.WriteBuffer(GLOBAL_BINDING_LIGHT, &lightBufferInfo)
 			.Build(globalDescriptorSets[i]);
+	}
+
+	std::vector<VkDescriptorSet> groupDescriptorSets(SwapChain::kMaxFramesInFlight);
+	for (int32 i = 0; i < SwapChain::kMaxFramesInFlight; ++i)
+	{
+		auto objectBufferInfo = m_buffer->GetDescriptorInfo(objectUboBuffers[i]);
+
+		DescriptorWriter(*m_groupSetLayout, *m_globalPool)
+			.WriteBuffer(GROUP_BINDING_OBJECT, &objectBufferInfo)
+			.Build(groupDescriptorSets[i]);
 	}
 
 	auto currentTime = std::chrono::high_resolution_clock::now();
@@ -191,7 +227,7 @@ void ViewerApp::Run()
 		{
 			const int32 frameIndex = m_renderer->GetFrameIndex();
 
-			FrameInfo frameInfo { frameIndex, frameTime, commandBuffer, globalDescriptorSets[frameIndex] };
+			FrameInfo frameInfo { frameIndex, frameTime, commandBuffer, globalDescriptorSets[frameIndex], groupDescriptorSets[frameIndex] };
 			
 			const float aspectRatio = m_renderer->GetAspectRatio();
 
@@ -230,14 +266,15 @@ void ViewerApp::Run()
 
 			m_renderer->BeginSwapChainRenderPass(commandBuffer);
 
-			for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent>())
+			for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, RenderComponent>())
 			{
+				const DynamicOffsetComponent& dynamicOffsetComponent = ecs::ComponentManager::GetComponent<DynamicOffsetComponent>(gameEntity);
 				const RenderComponent& renderComponent = ecs::ComponentManager::GetComponent<RenderComponent>(gameEntity);
 
 				objectUBO.ModelMatrix = renderComponent.ModelMatrix;
 				 
-				m_buffer->WriteToIndex(objectUboBuffers[frameIndex], &objectUBO, renderComponent.DynamicOffsetIndex);
-				m_buffer->FlushIndex(objectUboBuffers[frameIndex], renderComponent.DynamicOffsetIndex);
+				m_buffer->WriteToIndex(objectUboBuffers[frameIndex], &objectUBO, dynamicOffsetComponent.DynamicOffsetIndex);
+				m_buffer->FlushIndex(objectUboBuffers[frameIndex], dynamicOffsetComponent.DynamicOffsetIndex);
 			}
 
 			m_simpleRenderSystem->Render(frameInfo);

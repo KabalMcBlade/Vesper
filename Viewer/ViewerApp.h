@@ -39,6 +39,7 @@ private:
 	// also, a DescriptorPool could be x system, instead one global.
 	std::unique_ptr<DescriptorPool> m_globalPool;	
 	std::unique_ptr<DescriptorSetLayout> m_globalSetLayout;
+	std::unique_ptr<DescriptorSetLayout> m_groupSetLayout;
 
 	std::unique_ptr<GameEntitySystem> m_gameEntitySystem;
 	std::unique_ptr<ModelSystem> m_modelSystem;

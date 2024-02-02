@@ -24,6 +24,18 @@ void BaseRenderSystem::Render(const FrameInfo& _frameInfo)
 {
 	m_pipeline->Bind(_frameInfo.CommandBuffer);
 
+	// GLOBAL DESCRIPTOR: SCENE
+	vkCmdBindDescriptorSets(
+		_frameInfo.CommandBuffer,
+		VK_PIPELINE_BIND_POINT_GRAPHICS,	// for now is only graphics, in future we want also the compute version
+		m_pipelineLayout,
+		0,
+		1,
+		&_frameInfo.GlobalDescriptorSet,
+		0,
+		nullptr
+	);
+
 	RenderFrame(_frameInfo);
 }
 
@@ -99,14 +111,14 @@ void BaseRenderSystem::Bind(const VertexBufferComponent& _vertexBufferComponent,
 	vkCmdBindIndexBuffer(_commandBuffer, _indexBufferComponent.Buffer, 0, VK_INDEX_TYPE_UINT32);
 }
 
-void BaseRenderSystem::Draw(const VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer) const
+void BaseRenderSystem::Draw(const VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer, uint32 _instanceCount) const
 {
-	vkCmdDraw(_commandBuffer, _vertexBufferComponent.Count, 1, 0, 0);
+	vkCmdDraw(_commandBuffer, _vertexBufferComponent.Count, _instanceCount, 0, 0);
 }
 
-void BaseRenderSystem::Draw(const IndexBufferComponent& _indexBufferComponent, VkCommandBuffer _commandBuffer) const
+void BaseRenderSystem::Draw(const IndexBufferComponent& _indexBufferComponent, VkCommandBuffer _commandBuffer, uint32 _instanceCount) const
 {
-	vkCmdDrawIndexed(_commandBuffer, _indexBufferComponent.Count, 1, 0, 0, 0);
+	vkCmdDrawIndexed(_commandBuffer, _indexBufferComponent.Count, _instanceCount, 0, 0, 0);
 }
 
 VESPERENGINE_NAMESPACE_END

@@ -58,12 +58,16 @@ struct MaterialComponent
 	glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };	// opaque white
 };
 
+struct DynamicOffsetComponent
+{
+	uint32 DynamicOffsetIndex{ 0 };
+	uint32 DynamicOffset{ 0 };
+};
+
 // define the struct which each instance has at least to have, if needs to be visible/rendered
 struct RenderComponent
 {
 	glm::mat4 ModelMatrix{ 1 };
-	uint32 DynamicOffsetIndex { 0 };
-	uint32 DynamicOffset { 0 };		// future, we should have a different struct, and having the DynamicOffsetCount and this one as ptr
 };
 
 VESPERENGINE_NAMESPACE_END

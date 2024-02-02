@@ -18,7 +18,7 @@ layout(set = 0, binding = 0) uniform SceneUBO
 
 // set 0 and binding 1 is on fragment shader only
 
-layout(set = 0, binding = 2) uniform ObjectUBO
+layout(set = 1, binding = 0) uniform ObjectUBO
 {
 	mat4 ModelMatrix;
 } objectUBO;

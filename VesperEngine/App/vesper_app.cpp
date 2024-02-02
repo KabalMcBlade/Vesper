@@ -54,6 +54,7 @@ void VesperApp::RegisterDefaultComponents()
 
 	// RENDER
 	ecs::ComponentManager::RegisterComponent<RenderComponent>();
+	ecs::ComponentManager::RegisterComponent<DynamicOffsetComponent>();
 }
 
 void VesperApp::UnregisterDefaultComponent()
@@ -76,6 +77,7 @@ void VesperApp::UnregisterDefaultComponent()
 
 	// RENDER
 	ecs::ComponentManager::UnregisterComponent<RenderComponent>();
+	ecs::ComponentManager::UnregisterComponent<DynamicOffsetComponent>();
 }
 
 VESPERENGINE_NAMESPACE_END

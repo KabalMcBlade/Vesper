@@ -23,20 +23,16 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-SimpleRenderSystem::SimpleRenderSystem(Device& _device, VkRenderPass _renderPass, VkDescriptorSetLayout _globalDescriptorSetLayout, uint32 _sizePerObjectUBO)
+SimpleRenderSystem::SimpleRenderSystem(Device& _device, VkRenderPass _renderPass,
+	VkDescriptorSetLayout _globalDescriptorSetLayout,
+	VkDescriptorSetLayout _groupDescriptorSetLayout,
+	uint32 _alignedSizeUBO)
 	: BaseRenderSystem{ _device }
 {
-	CreatePipelineLayout(std::vector<VkDescriptorSetLayout>{ _globalDescriptorSetLayout });
+	CreatePipelineLayout(std::vector<VkDescriptorSetLayout>{ _globalDescriptorSetLayout, _groupDescriptorSetLayout });
 	CreatePipeline(_renderPass);
 
-	// need to align the size for the object buffer, since we are using 
-	// Calculate required alignment based on minimum device offset alignment VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC
-	uint32 minUboAlignment = static_cast<uint32>(m_device.GetLimits().minUniformBufferOffsetAlignment);
-	m_dynamicAlignmentObjectUBO = _sizePerObjectUBO;
-	if (minUboAlignment > 0)
-	{
-		m_dynamicAlignmentObjectUBO = (m_dynamicAlignmentObjectUBO + minUboAlignment - 1) & ~(minUboAlignment - 1);
-	}
+	m_alignedSizeUBO = _alignedSizeUBO;
 }
 
 SimpleRenderSystem::~SimpleRenderSystem()
@@ -51,20 +47,27 @@ void SimpleRenderSystem::RegisterEntity(ecs::Entity _entity) const
 		ecs::ComponentManager::AddComponent<RenderComponent>(_entity);
 	}
 
-	RenderComponent& renderComponent = ecs::ComponentManager::GetComponent<RenderComponent>(_entity);
-	renderComponent.DynamicOffsetIndex = m_internalCounter;
-	renderComponent.DynamicOffset = m_internalCounter * m_dynamicAlignmentObjectUBO;
+	// don't add a check here, so we avoid to add twice the same entity, it will trigger an assert
+	ecs::ComponentManager::AddComponent<DynamicOffsetComponent>(_entity);
+
+	DynamicOffsetComponent& dynamicUniformBufferComponent = ecs::ComponentManager::GetComponent<DynamicOffsetComponent>(_entity);
+	dynamicUniformBufferComponent.DynamicOffsetIndex = m_internalCounter;
+	dynamicUniformBufferComponent.DynamicOffset = m_internalCounter * m_alignedSizeUBO;
+
 	++m_internalCounter;
 }
 
 void SimpleRenderSystem::UnregisterEntity(ecs::Entity _entity) const
 {
-	// Do nothing here
+	if (ecs::ComponentManager::HasComponents<DynamicOffsetComponent>(_entity))
+	{
+		ecs::ComponentManager::RemoveComponent<DynamicOffsetComponent>(_entity);
+	}
 }
 
 void SimpleRenderSystem::UnregisterEntities() const
 {
-	for (auto entity : ecs::IterateEntitiesWithAll<RenderComponent>())
+	for (auto entity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent>())
 	{
 		UnregisterEntity(entity);
 	}
@@ -86,9 +89,9 @@ void SimpleRenderSystem::UpdateFrame(const FrameInfo& _frameInfo)
 void SimpleRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 {
 	// 1. Render whatever has vertex buffers and index buffer
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent, VertexBufferComponent, IndexBufferComponent>())
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent>())
 	{
-		const RenderComponent& renderComponent = ecs::ComponentManager::GetComponent<RenderComponent>(gameEntity);
+		const DynamicOffsetComponent& dynamicOffsetComponent = ecs::ComponentManager::GetComponent<DynamicOffsetComponent>(gameEntity);
 
 		const VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
 		const IndexBufferComponent& indexBufferComponent = ecs::ComponentManager::GetComponent<IndexBufferComponent>(gameEntity);
@@ -97,11 +100,11 @@ void SimpleRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 			_frameInfo.CommandBuffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,	// for now is only graphics, in future we want also the compute version
 			m_pipelineLayout,
-			0,
 			1,
-			&_frameInfo.GlobalDescriptorSet,
 			1,
-			&renderComponent.DynamicOffset
+			&_frameInfo.GroupDescriptorSet,
+			1,
+			&dynamicOffsetComponent.DynamicOffset
 		);
 
 		Bind(vertexBufferComponent, indexBufferComponent, _frameInfo.CommandBuffer);
@@ -109,9 +112,9 @@ void SimpleRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 	}
 
 	// 2. Render only entities having Vertex buffers only
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent, VertexBufferComponent, NotIndexBufferComponent>())
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent>())
 	{
-		const RenderComponent& renderComponent = ecs::ComponentManager::GetComponent<RenderComponent>(gameEntity);
+		const DynamicOffsetComponent& dynamicOffsetComponent = ecs::ComponentManager::GetComponent<DynamicOffsetComponent>(gameEntity);
 
 		const VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
 
@@ -119,11 +122,11 @@ void SimpleRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 			_frameInfo.CommandBuffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,	// for now is only graphics, in future we want also the compute version
 			m_pipelineLayout,
-			0,
 			1,
-			&_frameInfo.GlobalDescriptorSet,
 			1,
-			&renderComponent.DynamicOffset
+			&_frameInfo.GroupDescriptorSet,
+			1,
+			&dynamicOffsetComponent.DynamicOffset
 		);
 
 		Bind(vertexBufferComponent, _frameInfo.CommandBuffer);
