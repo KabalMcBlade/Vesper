@@ -34,12 +34,12 @@ struct SceneUBO
 {
 	glm::mat4 ProjectionMatrix{ 1.0f };
 	glm::mat4 ViewMatrix{ 1.0f };
+	glm::vec4 AmbientColor{ 1.0f, 1.0f, 1.0f, 0.5f };	// w is intensity
 };
 
 // Light Uniform Buffer Object
 struct LightUBO
 {
-	glm::vec4 AmbientColor{ 1.0f, 1.0f, 1.0f, 0.5f };	// w is intensity
 	glm::vec4 LightPos{ 0.0f, -0.25f, 0.0f, 0.0f };
 	glm::vec4 LightColor{ 1.0f, 1.0f, 1.0f, 1.0f };
 };
@@ -70,8 +70,8 @@ ViewerApp::ViewerApp(Config& _config) :
 	// This should be part of the highest render system, which is shared among all the possible shaders and so all the possible Render systems
 	// 
 	// I will create 3 uniform buffers:
-	// 1. present in vertex, containing { mat4 projectionMatrix, mat4 viewMatrix; } - we can call this "Scene"
-	// 2. present in fragment, containing { vec4 ambientLightColor; vec4 pointLightPosition; vec4 pointLightColor; } - we can call this "Light"
+	// 1. present in vertex & fragment , containing { mat4 projectionMatrix, mat4 viewMatrix; vec4 ambientLightColor; } - we can call this "Scene"
+	// 2. present in fragment, containing { vec4 pointLightPosition; vec4 pointLightColor; } - we can call this "Light"
 	// 3. present in vertex, containg { mat4 modelMatrix; } - we can call this "Object"
 	// 
 	// I could have grouped in 2 only (scene and object), but I wanted to test in this way to check if I get a bit more GPU/CPU optimization
@@ -79,7 +79,7 @@ ViewerApp::ViewerApp(Config& _config) :
 	// Maybe I will add a common header file having a macro containing the indices of the descriptor set included both in code and shaders.
 
 	m_globalSetLayout = DescriptorSetLayout::Builder(*m_device)
-		.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT )
+		.AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
 		.AddBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
 		.AddBinding(2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT)
 		.Build();

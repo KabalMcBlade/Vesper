@@ -13,6 +13,7 @@ layout(set = 0, binding = 0) uniform SceneUBO
 {
 	mat4 ProjectionMatrix;
 	mat4 ViewMatrix;
+	vec4 AmbientColor;		// w is intensity
 } sceneUBO;
 
 // set 0 and binding 1 is on fragment shader only
