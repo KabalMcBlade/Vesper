@@ -18,7 +18,7 @@
 #include "Components/graphics_components.h"
 #include "Components/object_components.h"
 
-#include "ECS/ecs.h"
+#include "App/vesper_app.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN
@@ -28,10 +28,11 @@ struct SimplePushConstantData
 	glm::mat4 ModelMatrix{ 1.0f };
 };
 
-PushConstantRenderSystem::PushConstantRenderSystem(Device& _device, VkRenderPass _renderPass, VkDescriptorSetLayout _globalDescriptorSetLayout)
-	: BaseRenderSystem {_device }
+PushConstantRenderSystem::PushConstantRenderSystem(VesperApp& _app, Device& _device, VkRenderPass _renderPass, VkDescriptorSetLayout _globalDescriptorSetLayout)
+	: m_app(_app)
+	, BaseRenderSystem {_device }
 {
-	ecs::ComponentManager::RegisterComponent<SimplePushConstantData>();
+	m_app.GetComponentManager().RegisterComponent<SimplePushConstantData>();
 
 	VkPushConstantRange pushConstantRange{};
 	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -46,19 +47,19 @@ PushConstantRenderSystem::PushConstantRenderSystem(Device& _device, VkRenderPass
 
 PushConstantRenderSystem::~PushConstantRenderSystem()
 {
-	ecs::ComponentManager::UnregisterComponent<SimplePushConstantData>();
+	m_app.GetComponentManager().UnregisterComponent<SimplePushConstantData>();
 }
 
 void PushConstantRenderSystem::RegisterEntity(ecs::Entity _entity) const
 {
-	ecs::ComponentManager::AddComponent<SimplePushConstantData>(_entity);
+	m_app.GetComponentManager().AddComponent<SimplePushConstantData>(_entity);
 }
 
 void PushConstantRenderSystem::UnregisterEntity(ecs::Entity _entity) const
 {
-	if (ecs::ComponentManager::HasComponents<SimplePushConstantData>(_entity))
+	if (m_app.GetComponentManager().HasComponents<SimplePushConstantData>(_entity))
 	{
-		ecs::ComponentManager::RemoveComponent<SimplePushConstantData>(_entity);
+		m_app.GetComponentManager().RemoveComponent<SimplePushConstantData>(_entity);
 	}
 }
 
@@ -74,14 +75,14 @@ void PushConstantRenderSystem::UpdateFrame(const FrameInfo& _frameInfo)
 {
 	for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent, TransformComponent, SimplePushConstantData>())
 	{
-		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(gameEntity);
-		RenderComponent& renderComponent = ecs::ComponentManager::GetComponent<RenderComponent>(gameEntity);
+		TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(gameEntity);
+		RenderComponent& renderComponent = m_app.GetComponentManager().GetComponent<RenderComponent>(gameEntity);
 
 		renderComponent.ModelMatrix = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
 		renderComponent.ModelMatrix = renderComponent.ModelMatrix * glm::toMat4(transformComponent.Rotation);
 		renderComponent.ModelMatrix = glm::scale(renderComponent.ModelMatrix, transformComponent.Scale);
 
-		SimplePushConstantData& push = ecs::ComponentManager::GetComponent<SimplePushConstantData>(gameEntity);
+		SimplePushConstantData& push = m_app.GetComponentManager().GetComponent<SimplePushConstantData>(gameEntity);
 		push.ModelMatrix = renderComponent.ModelMatrix;
 	}
 }
@@ -91,11 +92,11 @@ void PushConstantRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 	// 1. Render whatever has vertex buffers and index buffer
 	for (auto gameEntity : ecs::IterateEntitiesWithAll<VertexBufferComponent, IndexBufferComponent, SimplePushConstantData>())
 	{
-		const VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
-		const IndexBufferComponent& indexBufferComponent = ecs::ComponentManager::GetComponent<IndexBufferComponent>(gameEntity);
-		const SimplePushConstantData& push = ecs::ComponentManager::GetComponent<SimplePushConstantData>(gameEntity);
+		const VertexBufferComponent& vertexBufferComponent = m_app.GetComponentManager().GetComponent<VertexBufferComponent>(gameEntity);
+		const IndexBufferComponent& indexBufferComponent = m_app.GetComponentManager().GetComponent<IndexBufferComponent>(gameEntity);
+		const SimplePushConstantData& push = m_app.GetComponentManager().GetComponent<SimplePushConstantData>(gameEntity);
 		
-		const RenderComponent& renderComponent = ecs::ComponentManager::GetComponent<RenderComponent>(gameEntity);
+		const RenderComponent& renderComponent = m_app.GetComponentManager().GetComponent<RenderComponent>(gameEntity);
 
 		vkCmdBindDescriptorSets(
 			_frameInfo.CommandBuffer,
@@ -116,8 +117,8 @@ void PushConstantRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 	// 2. Render only entities having Vertex buffers only
 	for (auto gameEntity : ecs::IterateEntitiesWithAll<VertexBufferComponent, NotIndexBufferComponent, SimplePushConstantData>())
 	{
-		const VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
-		const SimplePushConstantData& push = ecs::ComponentManager::GetComponent<SimplePushConstantData>(gameEntity);
+		const VertexBufferComponent& vertexBufferComponent = m_app.GetComponentManager().GetComponent<VertexBufferComponent>(gameEntity);
+		const SimplePushConstantData& push = m_app.GetComponentManager().GetComponent<SimplePushConstantData>(gameEntity);
 
 		vkCmdBindDescriptorSets(
 			_frameInfo.CommandBuffer,

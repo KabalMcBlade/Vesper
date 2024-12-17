@@ -13,11 +13,16 @@
 
 VESPERENGINE_USING_NAMESPACE
 
+KeyboardMovementCameraController::KeyboardMovementCameraController(VesperApp& _app)
+	: m_app(_app)
+{
+}
+
 void KeyboardMovementCameraController::MoveInPlaneXZ(GLFWwindow* _window, float _dt)
 {
 	for (auto camera : ecs::IterateEntitiesWithAll<CameraActive, CameraTransformComponent>())
 	{
-		CameraTransformComponent& transformComponent = ecs::ComponentManager::GetComponent<CameraTransformComponent>(camera);
+		CameraTransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<CameraTransformComponent>(camera);
 
 		glm::vec3 rotate{ 0.0f };
 		if (glfwGetKey(_window, m_keys.LookRight) == GLFW_PRESS) rotate.y += 1.0f;

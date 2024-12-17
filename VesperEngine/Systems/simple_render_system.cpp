@@ -18,16 +18,17 @@
 #include "Components/graphics_components.h"
 #include "Components/object_components.h"
 
-#include "ECS/ecs.h"
+#include "App/vesper_app.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-SimpleRenderSystem::SimpleRenderSystem(Device& _device, VkRenderPass _renderPass,
+SimpleRenderSystem::SimpleRenderSystem(VesperApp& _app, Device& _device, VkRenderPass _renderPass,
 	VkDescriptorSetLayout _globalDescriptorSetLayout,
 	VkDescriptorSetLayout _groupDescriptorSetLayout,
 	uint32 _alignedSizeUBO)
-	: BaseRenderSystem{ _device }
+	: m_app(_app)
+	, BaseRenderSystem{ _device }
 {
 	CreatePipelineLayout(std::vector<VkDescriptorSetLayout>{ _globalDescriptorSetLayout, _groupDescriptorSetLayout });
 	CreatePipeline(_renderPass);
@@ -42,15 +43,15 @@ SimpleRenderSystem::~SimpleRenderSystem()
 void SimpleRenderSystem::RegisterEntity(ecs::Entity _entity) const
 {
 	// just to ensure it has, but the RenderComponent should be already present
-	if (!ecs::ComponentManager::HasComponents<RenderComponent>(_entity))
+	if (!m_app.GetComponentManager().HasComponents<RenderComponent>(_entity))
 	{
-		ecs::ComponentManager::AddComponent<RenderComponent>(_entity);
+		m_app.GetComponentManager().AddComponent<RenderComponent>(_entity);
 	}
 
 	// don't add a check here, so we avoid to add twice the same entity, it will trigger an assert
-	ecs::ComponentManager::AddComponent<DynamicOffsetComponent>(_entity);
+	m_app.GetComponentManager().AddComponent<DynamicOffsetComponent>(_entity);
 
-	DynamicOffsetComponent& dynamicUniformBufferComponent = ecs::ComponentManager::GetComponent<DynamicOffsetComponent>(_entity);
+	DynamicOffsetComponent& dynamicUniformBufferComponent = m_app.GetComponentManager().GetComponent<DynamicOffsetComponent>(_entity);
 	dynamicUniformBufferComponent.DynamicOffsetIndex = m_internalCounter;
 	dynamicUniformBufferComponent.DynamicOffset = m_internalCounter * m_alignedSizeUBO;
 
@@ -59,9 +60,9 @@ void SimpleRenderSystem::RegisterEntity(ecs::Entity _entity) const
 
 void SimpleRenderSystem::UnregisterEntity(ecs::Entity _entity) const
 {
-	if (ecs::ComponentManager::HasComponents<DynamicOffsetComponent>(_entity))
+	if (m_app.GetComponentManager().HasComponents<DynamicOffsetComponent>(_entity))
 	{
-		ecs::ComponentManager::RemoveComponent<DynamicOffsetComponent>(_entity);
+		m_app.GetComponentManager().RemoveComponent<DynamicOffsetComponent>(_entity);
 	}
 }
 
@@ -77,8 +78,8 @@ void SimpleRenderSystem::UpdateFrame(const FrameInfo& _frameInfo)
 {
 	for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent, TransformComponent>())
 	{
-		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(gameEntity);
-		RenderComponent& renderComponent = ecs::ComponentManager::GetComponent<RenderComponent>(gameEntity);
+		TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(gameEntity);
+		RenderComponent& renderComponent = m_app.GetComponentManager().GetComponent<RenderComponent>(gameEntity);
 
 		renderComponent.ModelMatrix = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
 		renderComponent.ModelMatrix = renderComponent.ModelMatrix * glm::toMat4(transformComponent.Rotation);
@@ -91,10 +92,10 @@ void SimpleRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 	// 1. Render whatever has vertex buffers and index buffer
 	for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent>())
 	{
-		const DynamicOffsetComponent& dynamicOffsetComponent = ecs::ComponentManager::GetComponent<DynamicOffsetComponent>(gameEntity);
+		const DynamicOffsetComponent& dynamicOffsetComponent = m_app.GetComponentManager().GetComponent<DynamicOffsetComponent>(gameEntity);
 
-		const VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
-		const IndexBufferComponent& indexBufferComponent = ecs::ComponentManager::GetComponent<IndexBufferComponent>(gameEntity);
+		const VertexBufferComponent& vertexBufferComponent = m_app.GetComponentManager().GetComponent<VertexBufferComponent>(gameEntity);
+		const IndexBufferComponent& indexBufferComponent = m_app.GetComponentManager().GetComponent<IndexBufferComponent>(gameEntity);
 
 		vkCmdBindDescriptorSets(
 			_frameInfo.CommandBuffer,
@@ -114,9 +115,9 @@ void SimpleRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 	// 2. Render only entities having Vertex buffers only
 	for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent>())
 	{
-		const DynamicOffsetComponent& dynamicOffsetComponent = ecs::ComponentManager::GetComponent<DynamicOffsetComponent>(gameEntity);
+		const DynamicOffsetComponent& dynamicOffsetComponent = m_app.GetComponentManager().GetComponent<DynamicOffsetComponent>(gameEntity);
 
-		const VertexBufferComponent& vertexBufferComponent = ecs::ComponentManager::GetComponent<VertexBufferComponent>(gameEntity);
+		const VertexBufferComponent& vertexBufferComponent = m_app.GetComponentManager().GetComponent<VertexBufferComponent>(gameEntity);
 
 		vkCmdBindDescriptorSets(
 			_frameInfo.CommandBuffer,

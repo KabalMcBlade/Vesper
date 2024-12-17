@@ -1,19 +1,22 @@
 #pragma once
 
 #include "Core/core_defines.h"
+
 #include "Components/camera_components.h"
 #include "Components/object_components.h"
 #include "Components/graphics_components.h"
 
-#include "ECS/ecs.h"
+#include "ECS/ECS/ecs.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN
 
+class VesperApp;
+
 class VESPERENGINE_DLL CameraSystem
 {
 public:
-	CameraSystem() = default;
+	CameraSystem(VesperApp& _app);
 	~CameraSystem() = default;
 
 	CameraSystem(const CameraSystem&) = delete;
@@ -35,6 +38,7 @@ public:
 	void SetViewRotation(CameraComponent& _camera, const CameraTransformComponent& _transform) const;
 
 private:
+	VesperApp& m_app;
 	int32 m_lastCameraActiveIndex{ 0 };
 };
 

@@ -16,25 +16,13 @@
 #define ECS_FORCE_INLINE __attribute__((always_inline)) inline
 #endif
 
-
-
-// If ECS_DYNAMIC_LIB is defined, then the export/import symbols are generated
-//#define ECS_DYNAMIC_LIB
-
-#ifdef ECS_DYNAMIC_LIB
-
 #ifdef ECS_EXPORTS
 #define ECS_DLL __declspec(dllexport)
+#define ECS_TEMPLATE
 #else
 #define ECS_DLL __declspec(dllimport)
+#define ECS_TEMPLATE extern
 #endif 
-
-#else
-
-#define ECS_DLL
-
-#endif // ECS_DYNAMIC_LIB
-
 
 ECS_NAMESPACE_BEGIN
 

@@ -11,7 +11,7 @@ VESPERENGINE_USING_NAMESPACE
 class KeyboardMovementCameraController
 {
 public:
-	KeyboardMovementCameraController() = default;
+	KeyboardMovementCameraController(VesperApp& _app);
 	~KeyboardMovementCameraController() = default;
 
 public:
@@ -34,6 +34,7 @@ public:
 	void MoveInPlaneXZ(GLFWwindow* _window, float _dt);
 
 private:
+	VesperApp& m_app;
 	KeyMappings m_keys{};
 
 	float m_moveSpeed{3.0f};

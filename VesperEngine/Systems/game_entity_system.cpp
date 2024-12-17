@@ -1,25 +1,31 @@
 #include "pch.h"
 #include "game_entity_system.h"
 
+#include "App/vesper_app.h"
 
 VESPERENGINE_NAMESPACE_BEGIN
 
+GameEntitySystem::GameEntitySystem(VesperApp& _app)
+	: m_app(_app)
+{
+}
+
 ecs::Entity GameEntitySystem::CreateGameEntity(EntityType _type) const
 {
-	ecs::Entity entity = ecs::EntityManager::CreateEntity();
+	ecs::Entity entity = m_app.GetEntityManager().CreateEntity();
 
 	switch(_type)
 	{
 	case EntityType::Camera:
-		ecs::ComponentManager::AddComponent<CameraTransformComponent>(entity);
-		ecs::ComponentManager::AddComponent<CameraComponent>(entity);
+		m_app.GetComponentManager().AddComponent<CameraTransformComponent>(entity);
+		m_app.GetComponentManager().AddComponent<CameraComponent>(entity);
 		break;
     case EntityType::Object:
-		ecs::ComponentManager::AddComponent<TransformComponent>(entity);
+		m_app.GetComponentManager().AddComponent<TransformComponent>(entity);
 		break;
 	case EntityType::Renderable:
-		ecs::ComponentManager::AddComponent<TransformComponent>(entity);
-		ecs::ComponentManager::AddComponent<RenderComponent>(entity);
+		m_app.GetComponentManager().AddComponent<TransformComponent>(entity);
+		m_app.GetComponentManager().AddComponent<RenderComponent>(entity);
 		break;
 	default:
 		// Pure
@@ -31,27 +37,27 @@ ecs::Entity GameEntitySystem::CreateGameEntity(EntityType _type) const
 
 void GameEntitySystem::DestroyGameEntity(const ecs::Entity _entity) const
 {
-	if (ecs::ComponentManager::HasComponents<CameraComponent>(_entity))
+	if (m_app.GetComponentManager().HasComponents<CameraComponent>(_entity))
 	{
-		ecs::ComponentManager::RemoveComponent<CameraComponent>(_entity);
+		m_app.GetComponentManager().RemoveComponent<CameraComponent>(_entity);
 	}
 
-	if (ecs::ComponentManager::HasComponents<CameraTransformComponent>(_entity))
+	if (m_app.GetComponentManager().HasComponents<CameraTransformComponent>(_entity))
 	{
-		ecs::ComponentManager::RemoveComponent<CameraTransformComponent>(_entity);
+		m_app.GetComponentManager().RemoveComponent<CameraTransformComponent>(_entity);
 	}
 
-	if (ecs::ComponentManager::HasComponents<TransformComponent>(_entity))
+	if (m_app.GetComponentManager().HasComponents<TransformComponent>(_entity))
 	{
-		ecs::ComponentManager::RemoveComponent<TransformComponent>(_entity);
+		m_app.GetComponentManager().RemoveComponent<TransformComponent>(_entity);
 	}
 
-	if (ecs::ComponentManager::HasComponents<RenderComponent>(_entity))
+	if (m_app.GetComponentManager().HasComponents<RenderComponent>(_entity))
 	{
-		ecs::ComponentManager::RemoveComponent<RenderComponent>(_entity);
+		m_app.GetComponentManager().RemoveComponent<RenderComponent>(_entity);
 	}
 
-	ecs::EntityManager::DestroyEntity(_entity);
+	m_app.GetEntityManager().DestroyEntity(_entity);
 }
 
 void GameEntitySystem::DestroyGameEntities() const

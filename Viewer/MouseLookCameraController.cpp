@@ -11,6 +11,8 @@
 
 VESPERENGINE_USING_NAMESPACE
 
+VesperApp* MouseLookCameraController::m_staticApp = nullptr;
+
 MouseLookCameraController& MouseLookCameraController::GetInstance()
 {
 	static MouseLookCameraController instance;
@@ -27,8 +29,9 @@ void MouseLookCameraController::MouseButtonCallback(GLFWwindow* _window, int32 _
 	GetInstance().MouseButtonCallbackImpl(_window,  _button, _action, _mods);
 }
 
-void MouseLookCameraController::SetMouseCallback(GLFWwindow* _window)
+void MouseLookCameraController::SetMouseCallback(VesperApp* _app, GLFWwindow* _window)
 {
+	m_staticApp = _app;
 	glfwSetCursorPosCallback(_window, &MouseLookCameraController::MouseMoveCallback);
 	glfwSetMouseButtonCallback(_window, &MouseLookCameraController::MouseButtonCallback);
 }
@@ -55,7 +58,7 @@ void MouseLookCameraController::MouseMoveCallbackImpl(GLFWwindow* _window, doubl
 
 		for (auto camera : ecs::IterateEntitiesWithAll<CameraActive, CameraTransformComponent>())
 		{
-			CameraTransformComponent& transformComponent = ecs::ComponentManager::GetComponent<CameraTransformComponent>(camera);
+			CameraTransformComponent& transformComponent = m_staticApp->GetComponentManager().GetComponent<CameraTransformComponent>(camera);
 
 			transformComponent.Rotation.y += xoffset;
 			transformComponent.Rotation.x += yoffset;

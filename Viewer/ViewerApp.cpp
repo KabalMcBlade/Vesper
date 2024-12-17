@@ -107,25 +107,25 @@ ViewerApp::ViewerApp(Config& _config) :
 		.AddBinding(GROUP_BINDING_OBJECT, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT)
 		.Build();
 
-	m_gameEntitySystem = std::make_unique<GameEntitySystem>();
-	m_modelSystem = std::make_unique<ModelSystem>(*m_device);
+	m_gameEntitySystem = std::make_unique<GameEntitySystem>(*this);
+	m_modelSystem = std::make_unique<ModelSystem>(*this, *m_device);
 
-	m_simpleRenderSystem = std::make_unique<SimpleRenderSystem>(*m_device, m_renderer->GetSwapChainRenderPass(), 
+	m_simpleRenderSystem = std::make_unique<SimpleRenderSystem>(*this , *m_device, m_renderer->GetSwapChainRenderPass(),
 		m_globalSetLayout->GetDescriptorSetLayout(),
 		m_groupSetLayout->GetDescriptorSetLayout(),
 		uboAlignedSize);
 
-	m_cameraSystem = std::make_unique<CameraSystem>();
+	m_cameraSystem = std::make_unique<CameraSystem>(*this);
 	m_objLoader = std::make_unique<ObjLoader>(*m_device);
 	m_buffer = std::make_unique<Buffer>(*m_device);
 
-	m_keyboardController = std::make_unique<KeyboardMovementCameraController>();
+	m_keyboardController = std::make_unique<KeyboardMovementCameraController>(*this);
 
 	m_mouseController = std::make_unique<MouseLookCameraController>();
-	m_mouseController->SetMouseCallback(m_window->GetWindow());
+	m_mouseController->SetMouseCallback(this, m_window->GetWindow());
 
 	// test
-	ecs::ComponentManager::RegisterComponent<RotationComponent>();
+	GetComponentManager().RegisterComponent<RotationComponent>();
 
 	LoadCameraEntities();
 	LoadGameEntities();
@@ -134,7 +134,7 @@ ViewerApp::ViewerApp(Config& _config) :
 ViewerApp::~ViewerApp()
 {
 	// test
-	ecs::ComponentManager::UnregisterComponent<RotationComponent>();
+	GetComponentManager().UnregisterComponent<RotationComponent>();
 
 	UnloadGameEntities();
 }
@@ -235,8 +235,8 @@ void ViewerApp::Run()
 			// ROTATION TEST
 			for (auto gameEntity : ecs::IterateEntitiesWithAll<TransformComponent, RotationComponent>())
 			{
-				RotationComponent& rotateComponent = ecs::ComponentManager::GetComponent<RotationComponent>(gameEntity);
-				TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(gameEntity);
+				RotationComponent& rotateComponent = GetComponentManager().GetComponent<RotationComponent>(gameEntity);
+				TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(gameEntity);
 
 				// Add random rotation, for testing UBO
 				const glm::quat& prevRot = transformComponent.Rotation;
@@ -268,8 +268,8 @@ void ViewerApp::Run()
 
 			for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, RenderComponent>())
 			{
-				const DynamicOffsetComponent& dynamicOffsetComponent = ecs::ComponentManager::GetComponent<DynamicOffsetComponent>(gameEntity);
-				const RenderComponent& renderComponent = ecs::ComponentManager::GetComponent<RenderComponent>(gameEntity);
+				const DynamicOffsetComponent& dynamicOffsetComponent = GetComponentManager().GetComponent<DynamicOffsetComponent>(gameEntity);
+				const RenderComponent& renderComponent = GetComponentManager().GetComponent<RenderComponent>(gameEntity);
 
 				objectUBO.ModelMatrix = renderComponent.ModelMatrix;
 				 
@@ -299,10 +299,10 @@ void ViewerApp::LoadCameraEntities()
 	{
 		ecs::Entity camera = m_gameEntitySystem->CreateGameEntity(EntityType::Camera);
 
-		CameraTransformComponent& transformComponent = ecs::ComponentManager::GetComponent<CameraTransformComponent>(camera);
+		CameraTransformComponent& transformComponent = GetComponentManager().GetComponent<CameraTransformComponent>(camera);
 		transformComponent.Position = { 0.0f, 0.0f, -3.0f };
 
-		CameraComponent& cameraComponent = ecs::ComponentManager::GetComponent<CameraComponent>(camera);
+		CameraComponent& cameraComponent = GetComponentManager().GetComponent<CameraComponent>(camera);
 
 		m_cameraSystem->SetViewRotation(cameraComponent, transformComponent);
 		m_cameraSystem->SetPerspectiveProjection(cameraComponent, glm::radians(50.0f), 1.0f, 0.1f, 100.0f);
@@ -326,7 +326,7 @@ void ViewerApp::LoadGameEntities()
 
 		m_modelSystem->LoadModel(cubeNoIndices, std::move(cubeNoIndicesData));
 
-		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(cubeNoIndices);
+		TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(cubeNoIndices);
 		transformComponent.Position = { 0.0f, -1.0f, 0.0f };
 		transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
 		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
@@ -334,10 +334,10 @@ void ViewerApp::LoadGameEntities()
 		m_simpleRenderSystem->RegisterEntity(cubeNoIndices);
 
 		// test
-		ecs::ComponentManager::AddComponent<RotationComponent>(cubeNoIndices);
+		GetComponentManager().AddComponent<RotationComponent>(cubeNoIndices);
 
 		static const float radPerFrame = 0.00174533f;     // 0.1 deg
-		RotationComponent& rotateComponent = ecs::ComponentManager::GetComponent<RotationComponent>(cubeNoIndices);
+		RotationComponent& rotateComponent = GetComponentManager().GetComponent<RotationComponent>(cubeNoIndices);
 		rotateComponent.RotationAxis = glm::vec3(0.0f, 1.0f, 0.0f);
 		rotateComponent.RadiantPerFrame = radPerFrame;
 	}
@@ -351,21 +351,21 @@ void ViewerApp::LoadGameEntities()
 
 		m_modelSystem->LoadModel(coloredCube, std::move(coloredCubeData));
 
-		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(coloredCube);
+		TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(coloredCube);
 		transformComponent.Position = { 0.0f, 0.0f, 0.0f };
 		transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
 		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
 		m_simpleRenderSystem->RegisterEntity(coloredCube);
 
-		// 	MaterialComponent& materialComponent = ecs::ComponentManager::GetComponent<MaterialComponent>(coloredCube);
+		// 	MaterialComponent& materialComponent = GetComponentManager().GetComponent<MaterialComponent>(coloredCube);
 		// 	materialComponent.Color = { 0.1f, 0.8f, 0.1f, 1.0f };
 
 		// test
-		ecs::ComponentManager::AddComponent<RotationComponent>(coloredCube);
+		GetComponentManager().AddComponent<RotationComponent>(coloredCube);
 
 		static const float radPerFrame = 0.00174533f;     // 0.1 deg
-		RotationComponent& rotateComponent = ecs::ComponentManager::GetComponent<RotationComponent>(coloredCube);
+		RotationComponent& rotateComponent = GetComponentManager().GetComponent<RotationComponent>(coloredCube);
 		rotateComponent.RotationAxis = glm::vec3(0.0f, 0.0f, 1.0f);
 		rotateComponent.RadiantPerFrame = radPerFrame;
 	}
@@ -378,7 +378,7 @@ void ViewerApp::LoadGameEntities()
 
 		m_modelSystem->LoadModel(flatVase, std::move(flatVaseData));
 
-		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(flatVase);
+		TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(flatVase);
 		transformComponent.Position = { -1.0f, 0.5f, 0.0f };
 		transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
 		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
@@ -394,7 +394,7 @@ void ViewerApp::LoadGameEntities()
 
 		m_modelSystem->LoadModel(smoothVase, std::move(smoothVaseData));
 
-		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(smoothVase);
+		TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(smoothVase);
 		transformComponent.Position = { 1.0f, 0.5f, 0.0f };
 		transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
 		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
@@ -410,7 +410,7 @@ void ViewerApp::LoadGameEntities()
 
 		m_modelSystem->LoadModel(quad, std::move(quadData));
 
-		TransformComponent& transformComponent = ecs::ComponentManager::GetComponent<TransformComponent>(quad);
+		TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(quad);
 		transformComponent.Position = { 0.0f, 1.0f, 0.0f };
 		transformComponent.Scale = { 3.0f, 1.0f, 3.0f };
 		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
