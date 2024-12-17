@@ -119,6 +119,17 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
     <ClInclude Include="Backend\frame_info.h" />
     <ClInclude Include="Backend\model_data.h" />
     <ClInclude Include="Backend\descriptors.h" />
+    <ClInclude Include="ECS\ECS\component_manager.h" />
+    <ClInclude Include="ECS\ECS\ecs.h" />
+    <ClInclude Include="ECS\ECS\entity.h" />
+    <ClInclude Include="ECS\ECS\entity_collector.h" />
+    <ClInclude Include="ECS\ECS\entity_manager.h" />
+    <ClInclude Include="ECS\ECS\hash.h" />
+    <ClInclude Include="ECS\ECS\iterate_entities_with_all.h" />
+    <ClInclude Include="ECS\ECS\iterate_entities_with_any.h" />
+    <ClInclude Include="ECS\ECS\iterate_entities_with_not.h" />
+    <ClInclude Include="ECS\ECS\types.h" />
+    <ClInclude Include="ECS\ECS\utility.h" />
     <ClInclude Include="Systems\push_constant_render_system.h" />
     <ClInclude Include="Utility\hash.h" />
     <ClInclude Include="Utility\obj_loader.h" />
@@ -132,17 +143,6 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
     <ClInclude Include="Core\core_defines.h" />
     <ClInclude Include="Core\memory_copy.h" />
     <ClInclude Include="Backend\renderer.h" />
-    <ClInclude Include="ECS\component_manager.h" />
-    <ClInclude Include="ECS\ecs.h" />
-    <ClInclude Include="ECS\entity.h" />
-    <ClInclude Include="ECS\entity_collector.h" />
-    <ClInclude Include="ECS\entity_manager.h" />
-    <ClInclude Include="ECS\hash.h" />
-    <ClInclude Include="ECS\iterate_entities_with_all.h" />
-    <ClInclude Include="ECS\iterate_entities_with_any.h" />
-    <ClInclude Include="ECS\iterate_entities_with_not.h" />
-    <ClInclude Include="ECS\types.h" />
-    <ClInclude Include="ECS\utility.h" />
     <ClInclude Include="Components\graphics_components.h" />
     <ClInclude Include="Backend\device.h" />
     <ClInclude Include="framework.h" />
@@ -161,13 +161,17 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
     <ClCompile Include="Backend\renderer.cpp" />
     <ClCompile Include="Backend\model_data.cpp" />
     <ClCompile Include="Backend\descriptors.cpp" />
+    <ClCompile Include="ECS\ECS\component_manager.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="ECS\ECS\entity_manager.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Systems\push_constant_render_system.cpp" />
     <ClCompile Include="Utility\obj_loader.cpp" />
     <ClCompile Include="Systems\model_system.cpp" />
     <ClCompile Include="Utility\primitive_factory.cpp" />
     <ClCompile Include="Systems\camera_system.cpp" />
-    <ClCompile Include="ECS\component_manager.cpp" />
-    <ClCompile Include="ECS\entity_manager.cpp" />
     <ClCompile Include="Backend\device.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="pch.cpp">

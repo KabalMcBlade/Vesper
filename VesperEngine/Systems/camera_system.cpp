@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "camera_system.h"
 
+#include "App/vesper_app.h"
+
 #define GLM_FORCE_INTRINSICS
 //#define GLM_FORCE_SSE2		// or GLM_FORCE_SSE42 or else, but the above one use compiler to find out which one is enabled
 #define GLM_FORCE_ALIGNED
@@ -15,14 +17,19 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
+CameraSystem::CameraSystem(VesperApp& _app)
+	: m_app(_app)
+{
+}
+
 void CameraSystem::SetCurrentActiveCamera(ecs::Entity _activeCamera)
 {
-	if (!ecs::ComponentManager::HasComponents<CameraComponent>(_activeCamera))
+	if (!m_app.GetComponentManager().HasComponents<CameraComponent>(_activeCamera))
 	{
 		return;
 	}
 
-	if (ecs::ComponentManager::HasComponents<CameraActive>(_activeCamera))
+	if (m_app.GetComponentManager().HasComponents<CameraActive>(_activeCamera))
 	{
 		return;
 	}
@@ -30,10 +37,10 @@ void CameraSystem::SetCurrentActiveCamera(ecs::Entity _activeCamera)
 	// TODO: maybe use collect here? Might alter current iterator, double check when having more than 1 camera
 	for (auto camera : ecs::IterateEntitiesWithAll<CameraComponent, CameraActive>())
 	{
-		ecs::ComponentManager::RemoveComponent<CameraActive>(camera);
+		m_app.GetComponentManager().RemoveComponent<CameraActive>(camera);
 	}
 	
-	ecs::ComponentManager::AddComponent<CameraActive>(_activeCamera);
+	m_app.GetComponentManager().AddComponent<CameraActive>(_activeCamera);
 }
 
 void CameraSystem::SwitchActiveCamera()
@@ -46,7 +53,7 @@ void CameraSystem::SwitchActiveCamera()
 	{
 		ecs::Entity entity = cameras[i];
 
-		if (ecs::ComponentManager::HasComponents<CameraActive>(entity))
+		if (m_app.GetComponentManager().HasComponents<CameraActive>(entity))
 		{
 			m_lastCameraActiveIndex = i;
 			break;
@@ -64,8 +71,8 @@ void CameraSystem::Update(const float _aspectRatio)
 {
 	for (auto camera : ecs::IterateEntitiesWithAll<CameraComponent, CameraTransformComponent>())
 	{
-		CameraTransformComponent& transformComponent = ecs::ComponentManager::GetComponent<CameraTransformComponent>(camera);
-		CameraComponent& cameraComponent = ecs::ComponentManager::GetComponent<CameraComponent>(camera);
+		CameraTransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<CameraTransformComponent>(camera);
+		CameraComponent& cameraComponent = m_app.GetComponentManager().GetComponent<CameraComponent>(camera);
 
 		SetViewRotation(cameraComponent, transformComponent);
 		SetPerspectiveProjection(cameraComponent, glm::radians(50.0f), _aspectRatio, 0.1f, 100.0f);
@@ -82,8 +89,8 @@ void CameraSystem::GetActiveCameraData(const uint32 _activeCameraIndex, CameraCo
 
 	const ecs::Entity activeCamera = cameras[_activeCameraIndex];
 
-	_outCameraComponent = ecs::ComponentManager::GetComponent<CameraComponent>(activeCamera);
-	_outCameraTransform = ecs::ComponentManager::GetComponent<CameraTransformComponent>(activeCamera);
+	_outCameraComponent = m_app.GetComponentManager().GetComponent<CameraComponent>(activeCamera);
+	_outCameraTransform = m_app.GetComponentManager().GetComponent<CameraTransformComponent>(activeCamera);
 
 	cameras.clear();
 }

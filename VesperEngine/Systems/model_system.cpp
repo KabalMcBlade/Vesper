@@ -4,13 +4,14 @@
 #include "Core/memory_copy.h"
 #include "Backend/device.h"
 
-#include "ECS/ecs.h"
+#include "App/vesper_app.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-ModelSystem::ModelSystem(Device& _device)
-	: m_device{ _device }
+ModelSystem::ModelSystem(VesperApp& _app, Device& _device)
+	: m_app(_app)
+	, m_device{ _device }
 {
 	m_buffer = std::make_unique<Buffer>(m_device);
 }
@@ -20,16 +21,16 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 	// depending by the data, add the component
 	if (_data->IsStatic)
 	{
-		ecs::ComponentManager::AddComponent<StaticComponent>(_entity);
+		m_app.GetComponentManager().AddComponent<StaticComponent>(_entity);
 	}
 
 	if (_data->Vertices.size() > 0)
 	{
-		ecs::ComponentManager::AddComponent<VertexBufferComponent>(_entity);
+		m_app.GetComponentManager().AddComponent<VertexBufferComponent>(_entity);
 
-		VertexBufferComponent& vertexBuffer = ecs::ComponentManager::GetComponent<VertexBufferComponent>(_entity);
+		VertexBufferComponent& vertexBuffer = m_app.GetComponentManager().GetComponent<VertexBufferComponent>(_entity);
 
-		if (ecs::ComponentManager::HasComponents<StaticComponent>(_entity))
+		if (m_app.GetComponentManager().HasComponents<StaticComponent>(_entity))
 		{
 			vertexBuffer = CreateVertexBuffersWithStagingBuffer(_data->Vertices);
 		}
@@ -40,14 +41,14 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 	}
 	else
 	{
-		ecs::ComponentManager::AddComponent<NotVertexBufferComponent>(_entity);
+		m_app.GetComponentManager().AddComponent<NotVertexBufferComponent>(_entity);
 	}
 
 	if (_data->Indices.size() > 0)
 	{
-		ecs::ComponentManager::AddComponent<IndexBufferComponent>(_entity);
+		m_app.GetComponentManager().AddComponent<IndexBufferComponent>(_entity);
 
-		IndexBufferComponent& indexBuffer = ecs::ComponentManager::GetComponent<IndexBufferComponent>(_entity);
+		IndexBufferComponent& indexBuffer = m_app.GetComponentManager().GetComponent<IndexBufferComponent>(_entity);
 
 		if (_data->IsStatic)
 		{
@@ -60,7 +61,7 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 	}
 	else
 	{
-		ecs::ComponentManager::AddComponent<NotIndexBufferComponent>(_entity);
+		m_app.GetComponentManager().AddComponent<NotIndexBufferComponent>(_entity);
 	}
 
 	// material later
@@ -68,37 +69,37 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 
 void ModelSystem::UnloadModel(ecs::Entity _entity) const
 {
-	if (ecs::ComponentManager::HasComponents<VertexBufferComponent>(_entity))
+	if (m_app.GetComponentManager().HasComponents<VertexBufferComponent>(_entity))
 	{
-		VertexBufferComponent& vertexBuffer = ecs::ComponentManager::GetComponent<VertexBufferComponent>(_entity);
+		VertexBufferComponent& vertexBuffer = m_app.GetComponentManager().GetComponent<VertexBufferComponent>(_entity);
 
 		m_buffer->Destroy(vertexBuffer);
 
-		ecs::ComponentManager::RemoveComponent<VertexBufferComponent>(_entity);
+		m_app.GetComponentManager().RemoveComponent<VertexBufferComponent>(_entity);
 	}
 
-	if (ecs::ComponentManager::HasComponents<IndexBufferComponent>(_entity))
+	if (m_app.GetComponentManager().HasComponents<IndexBufferComponent>(_entity))
 	{
-		IndexBufferComponent& indexBuffer = ecs::ComponentManager::GetComponent<IndexBufferComponent>(_entity);
+		IndexBufferComponent& indexBuffer = m_app.GetComponentManager().GetComponent<IndexBufferComponent>(_entity);
 
 		m_buffer->Destroy(indexBuffer);
 
-		ecs::ComponentManager::RemoveComponent<IndexBufferComponent>(_entity);
+		m_app.GetComponentManager().RemoveComponent<IndexBufferComponent>(_entity);
 	}
 
-	if (ecs::ComponentManager::HasComponents<NotVertexBufferComponent>(_entity))
+	if (m_app.GetComponentManager().HasComponents<NotVertexBufferComponent>(_entity))
 	{
-		ecs::ComponentManager::RemoveComponent<NotVertexBufferComponent>(_entity);
+		m_app.GetComponentManager().RemoveComponent<NotVertexBufferComponent>(_entity);
 	}
 
-	if (ecs::ComponentManager::HasComponents<NotIndexBufferComponent>(_entity))
+	if (m_app.GetComponentManager().HasComponents<NotIndexBufferComponent>(_entity))
 	{
-		ecs::ComponentManager::RemoveComponent<NotIndexBufferComponent>(_entity);
+		m_app.GetComponentManager().RemoveComponent<NotIndexBufferComponent>(_entity);
 	}
 
-	if (ecs::ComponentManager::HasComponents<StaticComponent>(_entity))
+	if (m_app.GetComponentManager().HasComponents<StaticComponent>(_entity))
 	{
-		ecs::ComponentManager::RemoveComponent<StaticComponent>(_entity);
+		m_app.GetComponentManager().RemoveComponent<StaticComponent>(_entity);
 	}
 
 	// material later

@@ -8,9 +8,11 @@
 #include "Components/object_components.h"
 #include "Components/camera_components.h"
 
-#include "ECS/ecs.h"
+#include "ECS/ECS/ecs.h"
 
 VESPERENGINE_NAMESPACE_BEGIN
+
+class VesperApp;
 
 // this is the basic type, eventually the host application can add has many as it wants to the entity
 enum EntityType : uint32
@@ -24,7 +26,7 @@ enum EntityType : uint32
 class VESPERENGINE_DLL GameEntitySystem final
 {
 public:
-	GameEntitySystem() = default;
+	GameEntitySystem(VesperApp& _app);
 	~GameEntitySystem() = default;
 
 	GameEntitySystem(const GameEntitySystem&) = delete;
@@ -34,6 +36,9 @@ public:
 	ecs::Entity CreateGameEntity(EntityType _type) const;
 	void DestroyGameEntity(const ecs::Entity _entity) const;
 	void DestroyGameEntities() const;
+
+private:
+	VesperApp& m_app;
 };
 
 VESPERENGINE_NAMESPACE_END

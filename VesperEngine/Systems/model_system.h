@@ -11,7 +11,7 @@
 #include "Components/graphics_components.h"
 #include "Components/object_components.h"
 
-#include "ECS/ecs.h"
+#include "ECS/ECS/ecs.h"
 
 #include <vector>
 #include <memory>
@@ -19,10 +19,12 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
+class VesperApp;
+
 class VESPERENGINE_DLL ModelSystem
 {
 public:
-	ModelSystem(Device& _device);
+	ModelSystem(VesperApp& _app, Device& _device);
 	~ModelSystem() = default;
 
 	ModelSystem(const ModelSystem&) = delete;
@@ -40,6 +42,7 @@ private:
 	IndexBufferComponent CreateIndexBufferWithStagingBuffer(const std::vector<uint32>& _indices) const;
 
 private:
+	VesperApp& m_app;
 	Device& m_device;
 	std::unique_ptr<Buffer> m_buffer;
 };

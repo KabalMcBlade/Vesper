@@ -11,15 +11,17 @@
 
 #include <memory>
 
-#include "ECS/ecs.h"
+#include "ECS/ECS/ecs.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN
 
+class VesperApp;
+
 class VESPERENGINE_DLL PushConstantRenderSystem final : public BaseRenderSystem
 {
 public:
-	PushConstantRenderSystem(Device& _device, VkRenderPass _renderPass, VkDescriptorSetLayout _globalDescriptorSetLayout);
+	PushConstantRenderSystem(VesperApp& _app, Device& _device, VkRenderPass _renderPass, VkDescriptorSetLayout _globalDescriptorSetLayout);
 	~PushConstantRenderSystem();
 
 	PushConstantRenderSystem(const PushConstantRenderSystem&) = delete;
@@ -34,6 +36,9 @@ protected:
 	virtual void UpdateFrame(const FrameInfo& _frameInfo) override;
 	virtual void RenderFrame(const FrameInfo& _frameInfo) override;
 	virtual void SetupePipeline(PipelineConfigInfo& _pipelineConfig) override;
+
+private:
+	VesperApp& m_app;
 };
 
 VESPERENGINE_NAMESPACE_END

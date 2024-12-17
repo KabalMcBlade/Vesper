@@ -11,15 +11,17 @@
 
 #include <memory>
 
-#include "ECS/ecs.h"
+#include "ECS/ECS/ecs.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN
 
+class VesperApp;
+
 class VESPERENGINE_DLL SimpleRenderSystem final : public BaseRenderSystem
 {
 public:
-	SimpleRenderSystem(Device& _device, VkRenderPass _renderPass, 
+	SimpleRenderSystem(VesperApp& _app, Device& _device, VkRenderPass _renderPass,
 		VkDescriptorSetLayout _globalDescriptorSetLayout,
 		VkDescriptorSetLayout _groupDescriptorSetLayout,
 		uint32 _alignedSizeUBO);
@@ -43,6 +45,7 @@ protected:
 	virtual void SetupePipeline(PipelineConfigInfo& _pipelineConfig) override;
 
 private:
+	VesperApp& m_app;
 	uint32 m_alignedSizeUBO {0};
 	mutable uint32 m_internalCounter {0};
 };

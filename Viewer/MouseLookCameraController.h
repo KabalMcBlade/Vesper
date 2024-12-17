@@ -20,7 +20,7 @@ public:
 	static void MouseButtonCallback(GLFWwindow* _window, int32 _button, int32 _action, int32 _mods);
 
 public:
-	void SetMouseCallback(GLFWwindow* _window);
+	void SetMouseCallback(VesperApp* _app, GLFWwindow* _window);
 
 	void Update(float _dt);
 
@@ -29,6 +29,9 @@ private:
 	void MouseButtonCallbackImpl(GLFWwindow* _window, int32 _button, int32 _action, int32 _mods);
 
 private:
+	//VesperApp* m_app;
+	static VesperApp* m_staticApp;
+
 	float m_lastX{ 0.0f };
 	float m_lastY{ 0.0f };
 	float m_dt{1.0f/60.0f};

@@ -5,12 +5,24 @@
 #include "Components/object_components.h"
 #include "Components/camera_components.h"
 
-#include "ECS/ecs.h"
+#include "ECS/ECS/ecs.h"
 
 VESPERENGINE_NAMESPACE_BEGIN
 
+ecs::ComponentManager& VesperApp::GetComponentManager() 
+{
+	return m_componentManager; 
+}
+
+ecs::EntityManager& VesperApp::GetEntityManager()
+{ 
+	return m_entityManager; 
+}
+
 VesperApp::VesperApp(Config& _config)
-	: m_config{ _config }
+	: m_componentManager(ecs::GetComponentManager())
+	, m_entityManager(ecs::GetEntityManager())
+	, m_config{ _config }
 {
 	InitialieECS();
 	RegisterDefaultComponents();
@@ -24,60 +36,60 @@ VesperApp::~VesperApp()
 
 void VesperApp::InitialieECS()
 {
-	ecs::EntityManager::Create(m_config.MaxEntities);
-	ecs::ComponentManager::Create(m_config.MaxEntities, m_config.MaxComponentsPerEntity);
+	m_entityManager.Create(m_config.MaxEntities);
+	m_componentManager.Create(m_config.MaxEntities, m_config.MaxComponentsPerEntity);
 }
 
 void VesperApp::ShutdownECS()
 {
-	ecs::ComponentManager::Destroy();
-	ecs::EntityManager::Destroy();
+	m_componentManager.Destroy();
+	m_entityManager.Destroy();
 }
 
 void VesperApp::RegisterDefaultComponents()
 {
 	// CAMERA
-	ecs::ComponentManager::RegisterComponent<CameraActive>();
-	ecs::ComponentManager::RegisterComponent<CameraComponent>();
-	ecs::ComponentManager::RegisterComponent<CameraTransformComponent>();
+	m_componentManager.RegisterComponent<CameraActive>();
+	m_componentManager.RegisterComponent<CameraComponent>();
+	m_componentManager.RegisterComponent<CameraTransformComponent>();
 
 	// OBJECTS
-	ecs::ComponentManager::RegisterComponent<TransformComponent>();
-	ecs::ComponentManager::RegisterComponent<MaterialComponent>();
-	ecs::ComponentManager::RegisterComponent<StaticComponent>();
+	m_componentManager.RegisterComponent<TransformComponent>();
+	m_componentManager.RegisterComponent<MaterialComponent>();
+	m_componentManager.RegisterComponent<StaticComponent>();
 
 	// BUFFERS
-	ecs::ComponentManager::RegisterComponent<VertexBufferComponent>();
-	ecs::ComponentManager::RegisterComponent<IndexBufferComponent>();
-	ecs::ComponentManager::RegisterComponent<NotVertexBufferComponent>();
-	ecs::ComponentManager::RegisterComponent<NotIndexBufferComponent>();
+	m_componentManager.RegisterComponent<VertexBufferComponent>();
+	m_componentManager.RegisterComponent<IndexBufferComponent>();
+	m_componentManager.RegisterComponent<NotVertexBufferComponent>();
+	m_componentManager.RegisterComponent<NotIndexBufferComponent>();
 
 	// RENDER
-	ecs::ComponentManager::RegisterComponent<RenderComponent>();
-	ecs::ComponentManager::RegisterComponent<DynamicOffsetComponent>();
+	m_componentManager.RegisterComponent<RenderComponent>();
+	m_componentManager.RegisterComponent<DynamicOffsetComponent>();
 }
 
 void VesperApp::UnregisterDefaultComponent()
 {
 	// CAMERA
-	ecs::ComponentManager::UnregisterComponent<CameraActive>();
-	ecs::ComponentManager::UnregisterComponent<CameraComponent>();
-	ecs::ComponentManager::UnregisterComponent<CameraTransformComponent>();
+	m_componentManager.UnregisterComponent<CameraActive>();
+	m_componentManager.UnregisterComponent<CameraComponent>();
+	m_componentManager.UnregisterComponent<CameraTransformComponent>();
 
 	// OBJECTS
-	ecs::ComponentManager::UnregisterComponent<TransformComponent>();
-	ecs::ComponentManager::UnregisterComponent<MaterialComponent>();
-	ecs::ComponentManager::UnregisterComponent<StaticComponent>();
+	m_componentManager.UnregisterComponent<TransformComponent>();
+	m_componentManager.UnregisterComponent<MaterialComponent>();
+	m_componentManager.UnregisterComponent<StaticComponent>();
 
 	// BUFFERS
-	ecs::ComponentManager::UnregisterComponent<VertexBufferComponent>();
-	ecs::ComponentManager::UnregisterComponent<IndexBufferComponent>();
-	ecs::ComponentManager::UnregisterComponent<NotVertexBufferComponent>();
-	ecs::ComponentManager::UnregisterComponent<NotIndexBufferComponent>();
+	m_componentManager.UnregisterComponent<VertexBufferComponent>();
+	m_componentManager.UnregisterComponent<IndexBufferComponent>();
+	m_componentManager.UnregisterComponent<NotVertexBufferComponent>();
+	m_componentManager.UnregisterComponent<NotIndexBufferComponent>();
 
 	// RENDER
-	ecs::ComponentManager::UnregisterComponent<RenderComponent>();
-	ecs::ComponentManager::UnregisterComponent<DynamicOffsetComponent>();
+	m_componentManager.UnregisterComponent<RenderComponent>();
+	m_componentManager.UnregisterComponent<DynamicOffsetComponent>();
 }
 
 VESPERENGINE_NAMESPACE_END
