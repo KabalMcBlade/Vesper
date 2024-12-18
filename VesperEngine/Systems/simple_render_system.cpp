@@ -68,7 +68,9 @@ void SimpleRenderSystem::UnregisterEntity(ecs::Entity _entity) const
 
 void SimpleRenderSystem::UnregisterEntities() const
 {
-	for (auto entity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent>())
+	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
+
+	for (auto entity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent>(componentManager))
 	{
 		UnregisterEntity(entity);
 	}
@@ -76,10 +78,12 @@ void SimpleRenderSystem::UnregisterEntities() const
 
 void SimpleRenderSystem::UpdateFrame(const FrameInfo& _frameInfo)
 {
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent, TransformComponent>())
+	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
+
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent, TransformComponent>(componentManager))
 	{
-		TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(gameEntity);
-		RenderComponent& renderComponent = m_app.GetComponentManager().GetComponent<RenderComponent>(gameEntity);
+		TransformComponent& transformComponent = componentManager.GetComponent<TransformComponent>(gameEntity);
+		RenderComponent& renderComponent = componentManager.GetComponent<RenderComponent>(gameEntity);
 
 		renderComponent.ModelMatrix = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
 		renderComponent.ModelMatrix = renderComponent.ModelMatrix * glm::toMat4(transformComponent.Rotation);
@@ -89,13 +93,15 @@ void SimpleRenderSystem::UpdateFrame(const FrameInfo& _frameInfo)
 
 void SimpleRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 {
-	// 1. Render whatever has vertex buffers and index buffer
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent>())
-	{
-		const DynamicOffsetComponent& dynamicOffsetComponent = m_app.GetComponentManager().GetComponent<DynamicOffsetComponent>(gameEntity);
+	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-		const VertexBufferComponent& vertexBufferComponent = m_app.GetComponentManager().GetComponent<VertexBufferComponent>(gameEntity);
-		const IndexBufferComponent& indexBufferComponent = m_app.GetComponentManager().GetComponent<IndexBufferComponent>(gameEntity);
+	// 1. Render whatever has vertex buffers and index buffer
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent>(componentManager))
+	{
+		const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(gameEntity);
+
+		const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(gameEntity);
+		const IndexBufferComponent& indexBufferComponent = componentManager.GetComponent<IndexBufferComponent>(gameEntity);
 
 		vkCmdBindDescriptorSets(
 			_frameInfo.CommandBuffer,
@@ -113,11 +119,11 @@ void SimpleRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 	}
 
 	// 2. Render only entities having Vertex buffers only
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent>())
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent>(componentManager))
 	{
-		const DynamicOffsetComponent& dynamicOffsetComponent = m_app.GetComponentManager().GetComponent<DynamicOffsetComponent>(gameEntity);
+		const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(gameEntity);
 
-		const VertexBufferComponent& vertexBufferComponent = m_app.GetComponentManager().GetComponent<VertexBufferComponent>(gameEntity);
+		const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(gameEntity);
 
 		vkCmdBindDescriptorSets(
 			_frameInfo.CommandBuffer,
