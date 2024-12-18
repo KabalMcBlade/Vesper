@@ -65,7 +65,9 @@ void PushConstantRenderSystem::UnregisterEntity(ecs::Entity _entity) const
 
 void PushConstantRenderSystem::UnregisterEntities() const
 {
-	for (auto entity : ecs::IterateEntitiesWithAll<SimplePushConstantData>())
+	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
+
+	for (auto entity : ecs::IterateEntitiesWithAll<SimplePushConstantData>(componentManager))
 	{
 		UnregisterEntity(entity);
 	}
@@ -73,30 +75,34 @@ void PushConstantRenderSystem::UnregisterEntities() const
 
 void PushConstantRenderSystem::UpdateFrame(const FrameInfo& _frameInfo)
 {
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent, TransformComponent, SimplePushConstantData>())
+	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
+
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent, TransformComponent, SimplePushConstantData>(componentManager))
 	{
-		TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(gameEntity);
-		RenderComponent& renderComponent = m_app.GetComponentManager().GetComponent<RenderComponent>(gameEntity);
+		TransformComponent& transformComponent = componentManager.GetComponent<TransformComponent>(gameEntity);
+		RenderComponent& renderComponent = componentManager.GetComponent<RenderComponent>(gameEntity);
 
 		renderComponent.ModelMatrix = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
 		renderComponent.ModelMatrix = renderComponent.ModelMatrix * glm::toMat4(transformComponent.Rotation);
 		renderComponent.ModelMatrix = glm::scale(renderComponent.ModelMatrix, transformComponent.Scale);
 
-		SimplePushConstantData& push = m_app.GetComponentManager().GetComponent<SimplePushConstantData>(gameEntity);
+		SimplePushConstantData& push = componentManager.GetComponent<SimplePushConstantData>(gameEntity);
 		push.ModelMatrix = renderComponent.ModelMatrix;
 	}
 }
 
 void PushConstantRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 {
+	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
+
 	// 1. Render whatever has vertex buffers and index buffer
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<VertexBufferComponent, IndexBufferComponent, SimplePushConstantData>())
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<VertexBufferComponent, IndexBufferComponent, SimplePushConstantData>(componentManager))
 	{
-		const VertexBufferComponent& vertexBufferComponent = m_app.GetComponentManager().GetComponent<VertexBufferComponent>(gameEntity);
-		const IndexBufferComponent& indexBufferComponent = m_app.GetComponentManager().GetComponent<IndexBufferComponent>(gameEntity);
-		const SimplePushConstantData& push = m_app.GetComponentManager().GetComponent<SimplePushConstantData>(gameEntity);
+		const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(gameEntity);
+		const IndexBufferComponent& indexBufferComponent = componentManager.GetComponent<IndexBufferComponent>(gameEntity);
+		const SimplePushConstantData& push = componentManager.GetComponent<SimplePushConstantData>(gameEntity);
 		
-		const RenderComponent& renderComponent = m_app.GetComponentManager().GetComponent<RenderComponent>(gameEntity);
+		const RenderComponent& renderComponent = componentManager.GetComponent<RenderComponent>(gameEntity);
 
 		vkCmdBindDescriptorSets(
 			_frameInfo.CommandBuffer,
@@ -115,10 +121,10 @@ void PushConstantRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 	}
 
 	// 2. Render only entities having Vertex buffers only
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<VertexBufferComponent, NotIndexBufferComponent, SimplePushConstantData>())
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<VertexBufferComponent, NotIndexBufferComponent, SimplePushConstantData>(componentManager))
 	{
-		const VertexBufferComponent& vertexBufferComponent = m_app.GetComponentManager().GetComponent<VertexBufferComponent>(gameEntity);
-		const SimplePushConstantData& push = m_app.GetComponentManager().GetComponent<SimplePushConstantData>(gameEntity);
+		const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(gameEntity);
+		const SimplePushConstantData& push = componentManager.GetComponent<SimplePushConstantData>(gameEntity);
 
 		vkCmdBindDescriptorSets(
 			_frameInfo.CommandBuffer,

@@ -209,6 +209,8 @@ void ViewerApp::Run()
 	CameraComponent activeCameraComponent;
 	CameraTransformComponent activeCameraTransformComponent;
 
+	ecs::ComponentManager& componentManager = GetComponentManager();
+
 	while (!m_window->ShouldClose())
 	{
 		glfwPollEvents();
@@ -233,10 +235,10 @@ void ViewerApp::Run()
 
 			//////////////////////////////////////////////////////////////////////////
 			// ROTATION TEST
-			for (auto gameEntity : ecs::IterateEntitiesWithAll<TransformComponent, RotationComponent>())
+			for (auto gameEntity : ecs::IterateEntitiesWithAll<TransformComponent, RotationComponent>(componentManager))
 			{
-				RotationComponent& rotateComponent = GetComponentManager().GetComponent<RotationComponent>(gameEntity);
-				TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(gameEntity);
+				RotationComponent& rotateComponent = componentManager.GetComponent<RotationComponent>(gameEntity);
+				TransformComponent& transformComponent = componentManager.GetComponent<TransformComponent>(gameEntity);
 
 				// Add random rotation, for testing UBO
 				const glm::quat& prevRot = transformComponent.Rotation;
@@ -266,10 +268,10 @@ void ViewerApp::Run()
 
 			m_renderer->BeginSwapChainRenderPass(commandBuffer);
 
-			for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, RenderComponent>())
+			for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, RenderComponent>(componentManager))
 			{
-				const DynamicOffsetComponent& dynamicOffsetComponent = GetComponentManager().GetComponent<DynamicOffsetComponent>(gameEntity);
-				const RenderComponent& renderComponent = GetComponentManager().GetComponent<RenderComponent>(gameEntity);
+				const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(gameEntity);
+				const RenderComponent& renderComponent = componentManager.GetComponent<RenderComponent>(gameEntity);
 
 				objectUBO.ModelMatrix = renderComponent.ModelMatrix;
 				 

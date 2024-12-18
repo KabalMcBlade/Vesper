@@ -24,23 +24,25 @@ CameraSystem::CameraSystem(VesperApp& _app)
 
 void CameraSystem::SetCurrentActiveCamera(ecs::Entity _activeCamera)
 {
-	if (!m_app.GetComponentManager().HasComponents<CameraComponent>(_activeCamera))
+	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
+
+	if (!componentManager.HasComponents<CameraComponent>(_activeCamera))
 	{
 		return;
 	}
 
-	if (m_app.GetComponentManager().HasComponents<CameraActive>(_activeCamera))
+	if (componentManager.HasComponents<CameraActive>(_activeCamera))
 	{
 		return;
 	}
 	
 	// TODO: maybe use collect here? Might alter current iterator, double check when having more than 1 camera
-	for (auto camera : ecs::IterateEntitiesWithAll<CameraComponent, CameraActive>())
+	for (auto camera : ecs::IterateEntitiesWithAll<CameraComponent, CameraActive>(componentManager))
 	{
-		m_app.GetComponentManager().RemoveComponent<CameraActive>(camera);
+		componentManager.RemoveComponent<CameraActive>(camera);
 	}
 	
-	m_app.GetComponentManager().AddComponent<CameraActive>(_activeCamera);
+	componentManager.AddComponent<CameraActive>(_activeCamera);
 }
 
 void CameraSystem::SwitchActiveCamera()
@@ -69,10 +71,12 @@ void CameraSystem::SwitchActiveCamera()
 
 void CameraSystem::Update(const float _aspectRatio)
 {
-	for (auto camera : ecs::IterateEntitiesWithAll<CameraComponent, CameraTransformComponent>())
+	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
+
+	for (auto camera : ecs::IterateEntitiesWithAll<CameraComponent, CameraTransformComponent>(componentManager))
 	{
-		CameraTransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<CameraTransformComponent>(camera);
-		CameraComponent& cameraComponent = m_app.GetComponentManager().GetComponent<CameraComponent>(camera);
+		CameraTransformComponent& transformComponent = componentManager.GetComponent<CameraTransformComponent>(camera);
+		CameraComponent& cameraComponent = componentManager.GetComponent<CameraComponent>(camera);
 
 		SetViewRotation(cameraComponent, transformComponent);
 		SetPerspectiveProjection(cameraComponent, glm::radians(50.0f), _aspectRatio, 0.1f, 100.0f);

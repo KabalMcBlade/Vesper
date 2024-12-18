@@ -107,7 +107,9 @@ void ModelSystem::UnloadModel(ecs::Entity _entity) const
 
 void ModelSystem::UnloadModels() const
 {
-	for (auto iterator : ecs::IterateEntitiesWithAny<VertexBufferComponent, IndexBufferComponent>())
+	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
+
+	for (auto iterator : ecs::IterateEntitiesWithAny<VertexBufferComponent, IndexBufferComponent>(componentManager))
 	{
 		UnloadModel(iterator);
 	}

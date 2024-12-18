@@ -56,9 +56,11 @@ void MouseLookCameraController::MouseMoveCallbackImpl(GLFWwindow* _window, doubl
 		xoffset *= m_dt * m_mouseSensitivity;
 		yoffset *= m_dt * m_mouseSensitivity;
 
-		for (auto camera : ecs::IterateEntitiesWithAll<CameraActive, CameraTransformComponent>())
+		ecs::ComponentManager& componentManager = m_staticApp->GetComponentManager();
+
+		for (auto camera : ecs::IterateEntitiesWithAll<CameraActive, CameraTransformComponent>(componentManager))
 		{
-			CameraTransformComponent& transformComponent = m_staticApp->GetComponentManager().GetComponent<CameraTransformComponent>(camera);
+			CameraTransformComponent& transformComponent = componentManager.GetComponent<CameraTransformComponent>(camera);
 
 			transformComponent.Rotation.y += xoffset;
 			transformComponent.Rotation.x += yoffset;
