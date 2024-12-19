@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "App/window_handle.h"
 
 

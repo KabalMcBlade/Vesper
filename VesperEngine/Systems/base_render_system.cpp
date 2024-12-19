@@ -1,5 +1,3 @@
-#include "pch.h"
-
 #include "Systems/base_render_system.h"
 
 

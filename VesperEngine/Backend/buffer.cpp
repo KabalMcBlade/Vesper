@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "Backend/buffer.h"
 
 #include <cassert>

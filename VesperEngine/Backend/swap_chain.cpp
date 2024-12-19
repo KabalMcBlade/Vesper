@@ -1,5 +1,3 @@
-#include "pch.h"
-
 #include "Backend/swap_chain.h"
 
 #include <array>

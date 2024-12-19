@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "camera_system.h"
 
 #include "App/vesper_app.h"

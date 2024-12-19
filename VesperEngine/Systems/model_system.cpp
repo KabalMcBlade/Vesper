@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "model_system.h"
 
 #include "Core/memory_copy.h"

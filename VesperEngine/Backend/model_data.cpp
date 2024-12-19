@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "Backend/model_data.h"
 
 #include "vulkan/vulkan.h"

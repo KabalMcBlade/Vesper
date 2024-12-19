@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "game_entity_system.h"
 
 #include "App/vesper_app.h"

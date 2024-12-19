@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "simple_render_system.h"
 
 #include <array>

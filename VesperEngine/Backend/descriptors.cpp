@@ -1,5 +1,6 @@
-#include "pch.h"
 #include "Backend/descriptors.h"
+
+#include <cassert>
 
 
 VESPERENGINE_NAMESPACE_BEGIN

@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "push_constant_render_system.h"
 
 #include <array>

@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "primitive_factory.h"
 
 VESPERENGINE_NAMESPACE_BEGIN

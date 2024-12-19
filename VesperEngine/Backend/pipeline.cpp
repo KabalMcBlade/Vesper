@@ -1,9 +1,9 @@
-#include "pch.h"
 #include "Backend/pipeline.h"
 
 #include "Backend/model_data.h"
 
 #include <stdexcept>
+#include <fstream>
 
 
 VESPERENGINE_NAMESPACE_BEGIN

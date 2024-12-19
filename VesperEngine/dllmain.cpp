@@ -1,6 +1,4 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
-#include "pch.h"
-
 #include "Core/core_defines.h"
 
 #ifdef VESPERENGINE_DYNAMIC_LIB

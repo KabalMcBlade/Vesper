@@ -1,5 +1,3 @@
-#include "pch.h"
-
 #include "Backend/device.h"
 
 #include <cstring>

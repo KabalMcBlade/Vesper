@@ -1,6 +1,6 @@
-#include "pch.h"
-
 #include "renderer.h"
+
+#include <array>
 
 
 VESPERENGINE_NAMESPACE_BEGIN

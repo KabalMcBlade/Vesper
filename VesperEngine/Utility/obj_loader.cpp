@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "obj_loader.h"
 
 #include "Utility/hash.h"
