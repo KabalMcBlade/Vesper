@@ -1,39 +1,41 @@
+# Specify the build worker image with Visual Studio 2022
+image: Visual Studio 2022
+
 # Set environment variables
 environment:
   VULKAN_SDK_VERSION: '1.3.261.1'
   VULKAN_SDK: 'C:\\VulkanSDK\\$(VULKAN_SDK_VERSION)'
-
-# Specify the build worker image with Visual Studio 2022
-image: Visual Studio 2022
+  VK_SDK_PATH: 'C:\\VulkanSDK\\$(VULKAN_SDK_VERSION)'
 
 # Cache the Vulkan SDK installer to speed up subsequent builds
 cache:
   - C:\\VulkanSDK -> appveyor.yml
 
-# Install section to download and install Vulkan SDK
+# Install section to download and install Vulkan SDK and other dependencies
 install:
-  # Download the Vulkan SDK installer if not already cached
+  # Download the Vulkan SDK installer
   - ps: |
       $VulkanSdkInstaller = 'VulkanSDK.exe'
-      if (-Not (Test-Path $VulkanSdkInstaller)) {
-        Invoke-WebRequest -Uri "https://vulkan.lunarg.com/sdk/download/$env:VULKAN_SDK_VERSION/windows/VulkanSDK-$env:VULKAN_SDK_VERSION-Installer.exe" -OutFile $VulkanSdkInstaller
-      }
+      Invoke-WebRequest -Uri "https://vulkan.lunarg.com/sdk/download/$env:VULKAN_SDK_VERSION/windows/VulkanSDK-$env:VULKAN_SDK_VERSION-Installer.exe" -OutFile $VulkanSdkInstaller
   # Install the Vulkan SDK silently
   - ps: |
       Start-Process -FilePath .\$VulkanSdkInstaller -ArgumentList '--accept-licenses', '--default-answer', '--confirm-command', 'install' -NoNewWindow -Wait
-  # Set the VULKAN_SDK environment variable for the current session
-  - ps: |
-      $env:VULKAN_SDK = "C:\\VulkanSDK\\$env:VULKAN_SDK_VERSION"
-      [System.Environment]::SetEnvironmentVariable('VULKAN_SDK', $env:VULKAN_SDK, [System.EnvironmentVariableTarget]::Process)
-  # Update the PATH environment variable for the current session
+  # Update the PATH environment variable
   - ps: |
       $env:PATH = "$env:VULKAN_SDK\Bin;$env:PATH"
       [System.Environment]::SetEnvironmentVariable('PATH', $env:PATH, [System.EnvironmentVariableTarget]::Process)
+  # Install vcpkg for managing additional dependencies
+  - ps: |
+      git clone https://github.com/microsoft/vcpkg.git
+      .\vcpkg\bootstrap-vcpkg.bat
+  # Install necessary packages using vcpkg
+  - ps: |
+      .\vcpkg\vcpkg.exe install glfw3 glm
 
 # Build script
 build_script:
-  # Ensure the correct Visual Studio environment is loaded
+  # Specify the Visual Studio version and platform toolset
   - ps: |
-      & "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
-  # Build the solution
-  - msbuild C:\projects\vesper\Vesper.sln /p:Configuration=Release /p:Platform=x64
+      $solutionPath = 'C:\projects\vesper\Vesper.sln'
+      $msbuildArgs = '/p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143'
+      & "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" $solutionPath $msbuildArgs
