@@ -20,9 +20,10 @@ KeyboardMovementCameraController::KeyboardMovementCameraController(VesperApp& _a
 
 void KeyboardMovementCameraController::MoveInPlaneXZ(GLFWwindow* _window, float _dt)
 {
+	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-	for (auto camera : ecs::IterateEntitiesWithAll<CameraActive, CameraTransformComponent>(componentManager))
+	for (auto camera : ecs::IterateEntitiesWithAll<CameraActive, CameraTransformComponent>(entityManager, componentManager))
 	{
 		CameraTransformComponent& transformComponent = componentManager.GetComponent<CameraTransformComponent>(camera);
 

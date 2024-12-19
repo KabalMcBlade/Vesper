@@ -65,9 +65,10 @@ void PushConstantRenderSystem::UnregisterEntity(ecs::Entity _entity) const
 
 void PushConstantRenderSystem::UnregisterEntities() const
 {
+	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-	for (auto entity : ecs::IterateEntitiesWithAll<SimplePushConstantData>(componentManager))
+	for (auto entity : ecs::IterateEntitiesWithAll<SimplePushConstantData>(entityManager, componentManager))
 	{
 		UnregisterEntity(entity);
 	}
@@ -75,9 +76,10 @@ void PushConstantRenderSystem::UnregisterEntities() const
 
 void PushConstantRenderSystem::UpdateFrame(const FrameInfo& _frameInfo)
 {
+	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent, TransformComponent, SimplePushConstantData>(componentManager))
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent, TransformComponent, SimplePushConstantData>(entityManager, componentManager))
 	{
 		TransformComponent& transformComponent = componentManager.GetComponent<TransformComponent>(gameEntity);
 		RenderComponent& renderComponent = componentManager.GetComponent<RenderComponent>(gameEntity);
@@ -93,10 +95,11 @@ void PushConstantRenderSystem::UpdateFrame(const FrameInfo& _frameInfo)
 
 void PushConstantRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 {
+	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
 	// 1. Render whatever has vertex buffers and index buffer
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<VertexBufferComponent, IndexBufferComponent, SimplePushConstantData>(componentManager))
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<VertexBufferComponent, IndexBufferComponent, SimplePushConstantData>(entityManager, componentManager))
 	{
 		const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(gameEntity);
 		const IndexBufferComponent& indexBufferComponent = componentManager.GetComponent<IndexBufferComponent>(gameEntity);
@@ -121,7 +124,7 @@ void PushConstantRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 	}
 
 	// 2. Render only entities having Vertex buffers only
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<VertexBufferComponent, NotIndexBufferComponent, SimplePushConstantData>(componentManager))
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<VertexBufferComponent, NotIndexBufferComponent, SimplePushConstantData>(entityManager, componentManager))
 	{
 		const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(gameEntity);
 		const SimplePushConstantData& push = componentManager.GetComponent<SimplePushConstantData>(gameEntity);

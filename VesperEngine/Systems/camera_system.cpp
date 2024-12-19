@@ -24,6 +24,7 @@ CameraSystem::CameraSystem(VesperApp& _app)
 
 void CameraSystem::SetCurrentActiveCamera(ecs::Entity _activeCamera)
 {
+	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
 	if (!componentManager.HasComponents<CameraComponent>(_activeCamera))
@@ -37,7 +38,7 @@ void CameraSystem::SetCurrentActiveCamera(ecs::Entity _activeCamera)
 	}
 	
 	// TODO: maybe use collect here? Might alter current iterator, double check when having more than 1 camera
-	for (auto camera : ecs::IterateEntitiesWithAll<CameraComponent, CameraActive>(componentManager))
+	for (auto camera : ecs::IterateEntitiesWithAll<CameraComponent, CameraActive>(entityManager, componentManager))
 	{
 		componentManager.RemoveComponent<CameraActive>(camera);
 	}
@@ -48,7 +49,7 @@ void CameraSystem::SetCurrentActiveCamera(ecs::Entity _activeCamera)
 void CameraSystem::SwitchActiveCamera()
 {
 	std::vector<ecs::Entity> cameras;
-	ecs::EntityCollector::CollectEntitiesWithAll<CameraTransformComponent>(cameras);
+	ecs::EntityCollector::CollectEntitiesWithAll<CameraTransformComponent>(m_app.GetEntityManager(), m_app.GetComponentManager(), cameras);
 
 	const int32 cameraCount = static_cast<int32>(cameras.size());
 	for (int32 i = 0; i < cameraCount; ++i)
@@ -71,9 +72,10 @@ void CameraSystem::SwitchActiveCamera()
 
 void CameraSystem::Update(const float _aspectRatio)
 {
+	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-	for (auto camera : ecs::IterateEntitiesWithAll<CameraComponent, CameraTransformComponent>(componentManager))
+	for (auto camera : ecs::IterateEntitiesWithAll<CameraComponent, CameraTransformComponent>(entityManager, componentManager))
 	{
 		CameraTransformComponent& transformComponent = componentManager.GetComponent<CameraTransformComponent>(camera);
 		CameraComponent& cameraComponent = componentManager.GetComponent<CameraComponent>(camera);
@@ -86,7 +88,7 @@ void CameraSystem::Update(const float _aspectRatio)
 void CameraSystem::GetActiveCameraData(const uint32 _activeCameraIndex, CameraComponent& _outCameraComponent, CameraTransformComponent& _outCameraTransform)
 {
 	std::vector<ecs::Entity> cameras;
-	ecs::EntityCollector::CollectEntitiesWithAny<CameraActive, CameraComponent, CameraTransformComponent>(cameras);
+	ecs::EntityCollector::CollectEntitiesWithAny<CameraActive, CameraComponent, CameraTransformComponent>(m_app.GetEntityManager(), m_app.GetComponentManager(), cameras);
 
 	assertMsgReturnVoid(cameras.size() > 0, "There is no active camera!");
 	assertMsgReturnVoid(_activeCameraIndex >= 0 && _activeCameraIndex < cameras.size(), "Active camera index is out of bound!");

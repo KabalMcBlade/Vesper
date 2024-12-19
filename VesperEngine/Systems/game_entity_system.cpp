@@ -68,7 +68,7 @@ void GameEntitySystem::DestroyGameEntities() const
 
 	// destroy just whatever defined by the enum EntityType, so either TransformComponent or CameraComponent
 	std::vector<ecs::Entity> entities;
-	ecs::EntityCollector::CollectEntitiesWithAny<TransformComponent, CameraTransformComponent>(entities);
+	ecs::EntityCollector::CollectEntitiesWithAny<TransformComponent, CameraTransformComponent>(m_app.GetEntityManager(), m_app.GetComponentManager(), entities);
 	for (const ecs::Entity entity : entities)
 	{
 		DestroyGameEntity(entity);

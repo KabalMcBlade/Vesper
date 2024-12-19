@@ -209,6 +209,7 @@ void ViewerApp::Run()
 	CameraComponent activeCameraComponent;
 	CameraTransformComponent activeCameraTransformComponent;
 
+	ecs::EntityManager& entityManager = GetEntityManager();
 	ecs::ComponentManager& componentManager = GetComponentManager();
 
 	while (!m_window->ShouldClose())
@@ -235,7 +236,7 @@ void ViewerApp::Run()
 
 			//////////////////////////////////////////////////////////////////////////
 			// ROTATION TEST
-			for (auto gameEntity : ecs::IterateEntitiesWithAll<TransformComponent, RotationComponent>(componentManager))
+			for (auto gameEntity : ecs::IterateEntitiesWithAll<TransformComponent, RotationComponent>(entityManager, componentManager))
 			{
 				RotationComponent& rotateComponent = componentManager.GetComponent<RotationComponent>(gameEntity);
 				TransformComponent& transformComponent = componentManager.GetComponent<TransformComponent>(gameEntity);
@@ -268,7 +269,7 @@ void ViewerApp::Run()
 
 			m_renderer->BeginSwapChainRenderPass(commandBuffer);
 
-			for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, RenderComponent>(componentManager))
+			for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, RenderComponent>(entityManager, componentManager))
 			{
 				const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(gameEntity);
 				const RenderComponent& renderComponent = componentManager.GetComponent<RenderComponent>(gameEntity);
