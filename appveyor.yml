@@ -31,11 +31,9 @@ install:
         & C:\tools\vcpkg\bootstrap-vcpkg.bat
       } else {
         cd C:\tools\vcpkg
-        # Suppress git pull output
         git pull > $null 2>&1
         & .\bootstrap-vcpkg.bat > $null 2>&1
       }
-      # Suppress vcpkg output
       & C:\tools\vcpkg\vcpkg.exe integrate install > $null 2>&1
       & C:\tools\vcpkg\vcpkg.exe install glfw3 glm > $null 2>&1
 
@@ -54,20 +52,16 @@ build_script:
         exit 1
       }
       Write-Output "Found MSBuild at $msbuildPath"
-      
+
       $solutionPath = 'C:\projects\vesper\Vesper.sln'
       $additionalInclude = "$env:VK_SDK_PATH\Include"
-      
+
       if (-Not (Test-Path $additionalInclude)) {
         Write-Error "Include path does not exist: $additionalInclude"
         exit 1
       }
-      
-      # Correctly format MSBuild arguments
-      $msbuildArgs = @(
-        "/p:Configuration=Release",
-        "/p:Platform=x64"
-        "/p:AdditionalIncludeDirectories=""$additionalInclude;$additionalInclude\vma"""
-      )
-      & $msbuildPath $solutionPath $msbuildArgs
 
+      # Correctly format MSBuild arguments
+      $msbuildArgs = "/p:Configuration=Release /p:Platform=x64 /p:AdditionalIncludeDirectories=\"$additionalInclude;$additionalInclude\vma\""
+
+      & $msbuildPath $solutionPath $msbuildArgs
