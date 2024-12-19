@@ -67,7 +67,7 @@ build_script:
       $msbuildArgs = @(
         "/p:Configuration=Release",
         "/p:Platform=x64"
-        "/p:AdditionalIncludeDirectories=$additionalInclude;$additionalInclude\vma"
+        "/p:AdditionalIncludeDirectories=""$additionalInclude;$additionalInclude\vma"""
       )
       & $msbuildPath $solutionPath $msbuildArgs
 
