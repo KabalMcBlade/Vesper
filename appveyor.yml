@@ -24,7 +24,8 @@ install:
     & C:\tools\vcpkg\vcpkg.exe integrate install
     & C:\tools\vcpkg\vcpkg.exe install glfw3 glm
 
-build:
-  project: Vesper.sln
-  verbosity: minimal
-  args: /p:Configuration=Release /p:Platform=x64
+build_script:
+- ps: >-
+    $solutionPath = "C:\projects\vesper\Vesper.sln"
+    $msbuildArgs = "/p:Configuration=Release /p:Platform=x64"
+    & "C:\Program Files\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe" $solutionPath $msbuildArgs
