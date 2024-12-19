@@ -7,9 +7,10 @@ environment:
   VULKAN_SDK: 'C:\\VulkanSDK\\$(VULKAN_SDK_VERSION)'
   VK_SDK_PATH: 'C:\\VulkanSDK\\$(VULKAN_SDK_VERSION)'
 
-# Cache the Vulkan SDK installer to speed up subsequent builds
+# Cache the Vulkan SDK installer and vcpkg installed packages to speed up subsequent builds
 cache:
-  - C:\\VulkanSDK -> appveyor.yml
+  - C:\\VulkanSDK
+  - C:\\tools\\vcpkg\\installed
 
 # Install section to download and install Vulkan SDK and other dependencies
 install:
@@ -24,18 +25,22 @@ install:
   - ps: |
       $env:PATH = "$env:VULKAN_SDK\Bin;$env:PATH"
       [System.Environment]::SetEnvironmentVariable('PATH', $env:PATH, [System.EnvironmentVariableTarget]::Process)
-  # Install vcpkg for managing additional dependencies
+  # Ensure vcpkg is up-to-date and install necessary packages
   - ps: |
-      git clone https://github.com/microsoft/vcpkg.git
-      .\vcpkg\bootstrap-vcpkg.bat
-  # Install necessary packages using vcpkg
-  - ps: |
-      .\vcpkg\vcpkg.exe install glfw3 glm
+      if (-Not (Test-Path 'C:\tools\vcpkg')) {
+        git clone https://github.com/microsoft/vcpkg.git C:\tools\vcpkg
+        & C:\tools\vcpkg\bootstrap-vcpkg.bat
+      } else {
+        cd C:\tools\vcpkg
+        git pull
+        & .\bootstrap-vcpkg.bat
+      }
+      & C:\tools\vcpkg\vcpkg.exe integrate install
+      & C:\tools\vcpkg\vcpkg.exe install glfw3 glm
 
 # Build script
 build_script:
-  # Specify the Visual Studio version and platform toolset
   - ps: |
       $solutionPath = 'C:\projects\vesper\Vesper.sln'
       $msbuildArgs = '/p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143'
-      & "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" $solutionPath $msbuildArgs
+      & "C:\Program Files\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe" $solutionPath $msbuildArgs
