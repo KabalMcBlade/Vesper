@@ -15,9 +15,11 @@ init:
   - ps: |
       if (!(Test-Path $env:VK_SDK_PATH)) {
         Write-Host "Downloading Vulkan SDK..."
-        Invoke-WebRequest $env:VK_SDK_INSTALLER -OutFile VulkanSDK-Installer.exe
-        Start-Process -FilePath VulkanSDK-Installer.exe -ArgumentList "/S" -Wait
-        Remove-Item VulkanSDK-Installer.exe
+        Invoke-WebRequest $env:VK_SDK_INSTALLER -OutFile VulkanSDK-Installer.exe -Verbose
+        Write-Host "Installing Vulkan SDK..."
+        Start-Process -FilePath VulkanSDK-Installer.exe -ArgumentList "/S" -Wait -NoNewWindow
+        Write-Host "Cleaning up installer..."
+        Remove-Item VulkanSDK-Installer.exe -Verbose
       }
       if (!(Test-Path $env:VK_SDK_PATH)) {
         Write-Error "Vulkan SDK installation failed or path not found: $env:VK_SDK_PATH"
@@ -25,8 +27,11 @@ init:
       }
 
 build_script:
-  - cmd: |
-      'C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe' Vesper.sln /p:Configuration=%CONFIGURATION% /p:Platform=%PLATFORM%
+  - cmd: >
+      "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe"
+      Vesper.sln
+      /p:Configuration=%CONFIGURATION%
+      /p:Platform=%PLATFORM%
 
 artifacts:
   - path: "**\\bin\\%CONFIGURATION%\\*"
