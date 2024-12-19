@@ -24,16 +24,18 @@ init:
         }
 
         Write-Host "Installing Vulkan SDK..."
-        Start-Process -FilePath $installerPath -ArgumentList "/S" -Wait -NoNewWindow
+        & $installerPath "/S" | Out-Host
 
-        if (Test-Path $installerPath) {
-          Write-Host "Cleaning up installer..."
-          Remove-Item $installerPath -Verbose
+        if (!(Test-Path $env:VK_SDK_PATH)) {
+          Write-Error "Vulkan SDK installation failed or path not found: $env:VK_SDK_PATH"
+          exit 1
         }
+
+        Write-Host "Cleaning up installer..."
+        Remove-Item $installerPath -Verbose
       }
-      if (!(Test-Path $env:VK_SDK_PATH)) {
-        Write-Error "Vulkan SDK installation failed or path not found: $env:VK_SDK_PATH"
-        exit 1
+      else {
+        Write-Host "Vulkan SDK already installed."
       }
 
 build_script:
