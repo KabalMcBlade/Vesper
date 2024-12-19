@@ -21,10 +21,12 @@ install:
   # Install the Vulkan SDK silently
   - ps: |
       Start-Process -FilePath .\$VulkanSdkInstaller -ArgumentList '--accept-licenses', '--default-answer', '--confirm-command', 'install' -NoNewWindow -Wait
-  # Update the PATH environment variable
+  # Update the PATH environment variable and set VK_SDK_PATH
   - ps: |
       $env:PATH = "$env:VULKAN_SDK\Bin;$env:PATH"
+      $env:VK_SDK_PATH = $env:VULKAN_SDK
       [System.Environment]::SetEnvironmentVariable('PATH', $env:PATH, [System.EnvironmentVariableTarget]::Process)
+      [System.Environment]::SetEnvironmentVariable('VK_SDK_PATH', $env:VK_SDK_PATH, [System.EnvironmentVariableTarget]::Process)
   # Ensure vcpkg is up-to-date and install necessary packages
   - ps: |
       if (-Not (Test-Path 'C:\tools\vcpkg')) {
