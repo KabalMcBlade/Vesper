@@ -15,7 +15,7 @@ Here I will post the screenshots while something new will be added and worth to 
 
 
 First render of the engine, using ECS core.
-<img src="./Screenshots/first.jpg">
+<img src="./Screenshots/first.png">
 
 
 ## Demo Controls
