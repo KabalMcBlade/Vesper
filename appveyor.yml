@@ -32,11 +32,13 @@ install:
         & C:\tools\vcpkg\bootstrap-vcpkg.bat
       } else {
         cd C:\tools\vcpkg
-        git pull
-        & .\bootstrap-vcpkg.bat
+        # Suppress git pull output
+        git pull > $null 2>&1
+        & .\bootstrap-vcpkg.bat > $null 2>&1
       }
-      & C:\tools\vcpkg\vcpkg.exe integrate install
-      & C:\tools\vcpkg\vcpkg.exe install glfw3 glm
+      # Suppress vcpkg output
+      & C:\tools\vcpkg\vcpkg.exe integrate install > $null 2>&1
+      & C:\tools\vcpkg\vcpkg.exe install glfw3 glm > $null 2>&1
 
 # Build script
 build_script:
@@ -56,5 +58,5 @@ build_script:
       
       $solutionPath = 'C:\projects\vesper\Vesper.sln'
       # Ensure the platform and configuration are set properly
-      $msbuildArgs = '/p:Configuration="Release" /p:Platform="x64"'
+      $msbuildArgs = '/p:Configuration=Release /p:Platform="x64"'
       & $msbuildPath $solutionPath $msbuildArgs
