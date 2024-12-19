@@ -29,7 +29,7 @@ build_script:
       'C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe' Vesper.sln /p:Configuration=%CONFIGURATION% /p:Platform=%PLATFORM%
 
 artifacts:
-  - path: "**\bin\%CONFIGURATION%\*"
+  - path: "**\\bin\\%CONFIGURATION%\\*"
     name: Build-%CONFIGURATION%-%PLATFORM%
 
 test_script:
