@@ -1,0 +1,50 @@
+# appveyor.yml
+
+# Use a Visual Studio image that matches your local development environment
+image: Visual Studio 2019
+
+# Environment variables
+environment:
+  VULKAN_SDK_VERSION: '1.3.261.1'
+  VULKAN_SDK_PATH: 'C:\VulkanSDK\$(VULKAN_SDK_VERSION)'
+
+# Install scripts
+install:
+  # Install Vulkan SDK
+  - ps: |
+      $VulkanSdkInstaller = 'VulkanSDK.exe'
+      Invoke-WebRequest -Uri "https://vulkan.lunarg.com/sdk/download/$(VULKAN_SDK_VERSION)/windows/VulkanSDK-$(VULKAN_SDK_VERSION)-Installer.exe" -OutFile $VulkanSdkInstaller
+      Start-Process -FilePath .\$VulkanSdkInstaller -ArgumentList '--accept-licenses', '--default-answer', '--confirm-command', 'install' -NoNewWindow -Wait
+
+  # Set VULKAN_SDK environment variable
+  - ps: |
+      [System.Environment]::SetEnvironmentVariable('VULKAN_SDK', '$(VULKAN_SDK_PATH)', [System.EnvironmentVariableTarget]::Machine)
+
+  # Install vcpkg
+  - ps: |
+      git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
+      C:\vcpkg\bootstrap-vcpkg.bat
+
+  # Install GLM using vcpkg
+  - ps: |
+      C:\vcpkg\vcpkg.exe install glm
+
+  # Download Vulkan Memory Allocator header
+  - ps: |
+      $VmaHeaderUrl = 'https://raw.githubusercontent.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/master/include/vk_mem_alloc.h'
+      $VmaHeaderPath = 'C:\projects\vesper\VesperEngine\Backend\vma\vk_mem_alloc.h'
+      Invoke-WebRequest -Uri $VmaHeaderUrl -OutFile $VmaHeaderPath
+
+# Build script
+build_script:
+  - msbuild "C:\projects\vesper\Vesper.sln" /p:Configuration=Release
+
+# Test script (if applicable)
+test_script:
+  - echo "Running tests..."
+  # Add your test commands here
+
+# Artifacts (if you want to store build outputs)
+artifacts:
+  - path: C:\projects\vesper\VesperEngine\bin\Release
+    name: VesperEngine
