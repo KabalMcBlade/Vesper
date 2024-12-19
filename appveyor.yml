@@ -9,7 +9,7 @@ environment:
 
 # Cache the Vulkan SDK installer and vcpkg installed packages to speed up subsequent builds
 cache:
-  - C:\\VulkanSDK
+  - C:\\VulkanSDK\\Installer
   - C:\\tools\\vcpkg\\installed
 
 # Install section to download and install Vulkan SDK and other dependencies
@@ -17,10 +17,16 @@ install:
   # Download the Vulkan SDK installer
   - ps: |
       $VulkanSdkInstaller = 'VulkanSDK.exe'
-      Invoke-WebRequest -Uri "https://vulkan.lunarg.com/sdk/download/$env:VULKAN_SDK_VERSION/windows/VulkanSDK-$env:VULKAN_SDK_VERSION-Installer.exe" -OutFile $VulkanSdkInstaller
+      $installerPath = "C:\\VulkanSDK\\Installer\\$VulkanSdkInstaller"
+      if (-Not (Test-Path $installerPath)) {
+        Write-Output "Downloading Vulkan SDK Installer..."
+        Invoke-WebRequest -Uri "https://vulkan.lunarg.com/sdk/download/$env:VULKAN_SDK_VERSION/windows/VulkanSDK-$env:VULKAN_SDK_VERSION-Installer.exe" -OutFile $installerPath
+      } else {
+        Write-Output "Using cached Vulkan SDK Installer."
+      }
   # Install the Vulkan SDK silently
   - ps: |
-      Start-Process -FilePath .\$VulkanSdkInstaller -ArgumentList '--accept-licenses', '--default-answer', '--confirm-command', 'install' -NoNewWindow -Wait
+      Start-Process -FilePath $installerPath -ArgumentList '--accept-licenses', '--default-answer', '--confirm-command', 'install' -NoNewWindow -Wait
   # Update the PATH environment variable
   - ps: |
       $env:PATH = "$env:VULKAN_SDK\Bin;$env:PATH"
@@ -32,11 +38,11 @@ install:
         & C:\tools\vcpkg\bootstrap-vcpkg.bat
       } else {
         cd C:\tools\vcpkg
-        # Suppress git pull output
+        Write-Output "Updating vcpkg..."
         git pull > $null 2>&1
         & .\bootstrap-vcpkg.bat > $null 2>&1
       }
-      # Suppress vcpkg output
+      Write-Output "Installing required vcpkg packages..."
       & C:\tools\vcpkg\vcpkg.exe integrate install > $null 2>&1
       & C:\tools\vcpkg\vcpkg.exe install glfw3 glm > $null 2>&1
 
@@ -57,6 +63,21 @@ build_script:
       Write-Output "Found MSBuild at $msbuildPath"
       
       $solutionPath = 'C:\projects\vesper\Vesper.sln'
-      # Ensure the platform and configuration are set properly
-      $msbuildArgs = '/p:Configuration=Release /p:Platform="x64"'
-      & $msbuildPath $solutionPath $msbuildArgs
+
+      # Validate the solution configuration
+      Write-Output "Validating solution configuration..."
+      & $msbuildPath $solutionPath /t:ValidateSolutionConfiguration > build_validation_log.txt 2>&1
+      if ($LastExitCode -ne 0) {
+        Write-Error "Solution validation failed. Check build_validation_log.txt for details."
+        exit 1
+      }
+
+      # Build the solution
+      Write-Output "Building the solution..."
+      $msbuildArgs = '/p:Configuration=Release /p:Platform=x64'
+      & $msbuildPath $solutionPath $msbuildArgs > build_log.txt 2>&1
+      if ($LastExitCode -ne 0) {
+        Write-Error "Build failed. Check build_log.txt for details."
+        exit 1
+      }
+      Write-Output "Build completed successfully."
