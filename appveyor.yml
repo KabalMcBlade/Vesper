@@ -56,10 +56,18 @@ build_script:
       Write-Output "Found MSBuild at $msbuildPath"
       
       $solutionPath = 'C:\projects\vesper\Vesper.sln'
+      $includePath = "$env:VK_SDK_PATH\Include"
+      
+      if (-Not (Test-Path $includePath)) {
+        Write-Error "Include path does not exist: $includePath"
+        exit 1
+      }
+      
       # Correctly format MSBuild arguments
       $msbuildArgs = @(
         "/p:Configuration=Release",
         "/p:Platform=x64"
+        "/p:AdditionalIncludeDirectories=$includePath"
       )
       & $msbuildPath $solutionPath $msbuildArgs
 
