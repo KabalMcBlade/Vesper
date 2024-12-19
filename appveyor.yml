@@ -26,7 +26,7 @@ init:
 
 build_script:
   - cmd: |
-      "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" Vesper.sln /p:Configuration=%CONFIGURATION% /p:Platform=%PLATFORM%
+      'C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe' Vesper.sln /p:Configuration=%CONFIGURATION% /p:Platform=%PLATFORM%
 
 artifacts:
   - path: "**\bin\%CONFIGURATION%\*"
