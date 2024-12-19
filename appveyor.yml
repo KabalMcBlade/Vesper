@@ -7,20 +7,24 @@ environment:
   VK_SDK_PATH: C:\VulkanSDK\$(VULKAN_SDK_VERSION)
 
 install:
-- cmd: >-
-    appveyor DownloadFile https://vulkan.lunarg.com/sdk/download/$(VULKAN_SDK_VERSION)/windows/VulkanSDK-$(VULKAN_SDK_VERSION)-Installer.exe -FileName vulkan.exe
-    vulkan.exe /S
-    if not exist C:\tools\vcpkg (
+- ps: >-
+    $vulkanUrl = "https://vulkan.lunarg.com/sdk/download/$env:VULKAN_SDK_VERSION/windows/VulkanSDK-$env:VULKAN_SDK_VERSION-Installer.exe"
+    $installerPath = "vulkan.exe"
+    Invoke-WebRequest -Uri $vulkanUrl -OutFile $installerPath
+    Start-Process -FilePath $installerPath -ArgumentList "/S" -NoNewWindow -Wait
+
+    if (!(Test-Path "C:\tools\vcpkg")) {
       git clone https://github.com/microsoft/vcpkg.git C:\tools\vcpkg
-      C:\tools\vcpkg\bootstrap-vcpkg.bat
-    ) else (
+      & C:\tools\vcpkg\bootstrap-vcpkg.bat
+    } else {
       cd C:\tools\vcpkg
       git pull
-      C:\tools\vcpkg\bootstrap-vcpkg.bat
-    )
-    C:\tools\vcpkg\vcpkg.exe integrate install
-    C:\tools\vcpkg\vcpkg.exe install glfw3 glm
+      & C:\tools\vcpkg\bootstrap-vcpkg.bat
+    }
+    & C:\tools\vcpkg\vcpkg.exe integrate install
+    & C:\tools\vcpkg\vcpkg.exe install glfw3 glm
 
 build:
   project: Vesper.sln
   verbosity: minimal
+  args: /p:Configuration=Release /p:Platform=x64
