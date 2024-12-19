@@ -41,6 +41,19 @@ install:
 # Build script
 build_script:
   - ps: |
+      # Use vswhere to locate MSBuild dynamically
+      $vswherePath = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
+      if (-Not (Test-Path $vswherePath)) {
+        Write-Error "vswhere.exe not found at $vswherePath"
+        exit 1
+      }
+      $msbuildPath = & $vswherePath -latest -products * -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe
+      if (-Not (Test-Path $msbuildPath)) {
+        Write-Error "MSBuild.exe not found."
+        exit 1
+      }
+      Write-Output "Found MSBuild at $msbuildPath"
+      
       $solutionPath = 'C:\projects\vesper\Vesper.sln'
       $msbuildArgs = '/p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143'
-      & "C:\Program Files\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe" $solutionPath $msbuildArgs
+      & $msbuildPath $solutionPath $msbuildArgs
