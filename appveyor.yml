@@ -16,3 +16,12 @@ install:
   - ps: |
       $env:PATH = "$env:VULKAN_SDK\Bin;$env:PATH"
       [System.Environment]::SetEnvironmentVariable('PATH', $env:PATH, [System.EnvironmentVariableTarget]::Process)
+
+# Specify the project or solution file to build
+build:
+  project: 'Vesper.sln'  # Replace with the actual path to your .sln or project file
+
+# Alternatively, if you're using custom build scripts, disable the default build and specify your scripts
+# build: off
+# build_script:
+#   - ps: .\build.ps1  # Replace with your build script
