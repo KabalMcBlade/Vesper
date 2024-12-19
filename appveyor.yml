@@ -15,11 +15,21 @@ init:
   - ps: |
       if (!(Test-Path $env:VK_SDK_PATH)) {
         Write-Host "Downloading Vulkan SDK..."
-        Invoke-WebRequest $env:VK_SDK_INSTALLER -OutFile VulkanSDK-Installer.exe -Verbose
+        $installerPath = "$PWD\\VulkanSDK-Installer.exe"
+        Invoke-WebRequest $env:VK_SDK_INSTALLER -OutFile $installerPath -Verbose
+
+        if (!(Test-Path $installerPath)) {
+          Write-Error "Failed to download Vulkan SDK installer."
+          exit 1
+        }
+
         Write-Host "Installing Vulkan SDK..."
-        Start-Process -FilePath VulkanSDK-Installer.exe -ArgumentList "/S" -Wait -NoNewWindow
-        Write-Host "Cleaning up installer..."
-        Remove-Item VulkanSDK-Installer.exe -Verbose
+        Start-Process -FilePath $installerPath -ArgumentList "/S" -Wait -NoNewWindow
+
+        if (Test-Path $installerPath) {
+          Write-Host "Cleaning up installer..."
+          Remove-Item $installerPath -Verbose
+        }
       }
       if (!(Test-Path $env:VK_SDK_PATH)) {
         Write-Error "Vulkan SDK installation failed or path not found: $env:VK_SDK_PATH"
