@@ -1,67 +1,40 @@
-# Specify the build worker image with Visual Studio 2022
+version: 1.0.{build}
 image: Visual Studio 2022
 
-# Set environment variables
 environment:
-  VULKAN_SDK_VERSION: '1.3.261.1'
-  VK_SDK_PATH: 'C:\\VulkanSDK\\$(VULKAN_SDK_VERSION)'
+  matrix:
+    - CONFIGURATION: Debug
+      PLATFORM: x64
+    - CONFIGURATION: Release
+      PLATFORM: x64
+  VK_SDK_VERSION: "1.3.261.1"
+  VK_SDK_INSTALLER: "https://sdk.lunarg.com/sdk/download/1.3.261.1/windows/VulkanSDK-1.3.261.1-Installer.exe"
+  VK_SDK_PATH: "C:\\VulkanSDK\\1.3.261.1"
 
-# Cache the Vulkan SDK installer and vcpkg installed packages to speed up subsequent builds
-cache:
-  - C:\\VulkanSDK
-  - C:\\tools\\vcpkg\\installed
-
-# Install section to download and install Vulkan SDK and other dependencies
-install:
-  # Download the Vulkan SDK installer
+init:
   - ps: |
-      $VulkanSdkInstaller = 'VulkanSDK.exe'
-      Invoke-WebRequest -Uri "https://vulkan.lunarg.com/sdk/download/$env:VULKAN_SDK_VERSION/windows/VulkanSDK-$env:VULKAN_SDK_VERSION-Installer.exe" -OutFile $VulkanSdkInstaller
-  # Install the Vulkan SDK silently
-  - ps: |
-      Start-Process -FilePath .\$VulkanSdkInstaller -ArgumentList '--accept-licenses', '--default-answer', '--confirm-command', 'install' -NoNewWindow -Wait
-  # Update the PATH environment variable
-  - ps: |
-      $env:PATH = "$env:VK_SDK_PATH\Bin;$env:PATH"
-      [System.Environment]::SetEnvironmentVariable('PATH', $env:PATH, [System.EnvironmentVariableTarget]::Process)
-  # Ensure vcpkg is up-to-date and install necessary packages
-  - ps: |
-      if (-Not (Test-Path 'C:\tools\vcpkg')) {
-        git clone https://github.com/microsoft/vcpkg.git C:\tools\vcpkg
-        & C:\tools\vcpkg\bootstrap-vcpkg.bat
-      } else {
-        cd C:\tools\vcpkg
-        git pull > $null 2>&1
-        & .\bootstrap-vcpkg.bat > $null 2>&1
+      if (!(Test-Path $env:VK_SDK_PATH)) {
+        Write-Host "Downloading Vulkan SDK..."
+        Invoke-WebRequest $env:VK_SDK_INSTALLER -OutFile VulkanSDK-Installer.exe
+        Start-Process -FilePath VulkanSDK-Installer.exe -ArgumentList "/S" -Wait
+        Remove-Item VulkanSDK-Installer.exe
       }
-      & C:\tools\vcpkg\vcpkg.exe integrate install > $null 2>&1
-      & C:\tools\vcpkg\vcpkg.exe install glfw3 glm > $null 2>&1
+      if (!(Test-Path $env:VK_SDK_PATH)) {
+        Write-Error "Vulkan SDK installation failed or path not found: $env:VK_SDK_PATH"
+        exit 1
+      }
 
-# Build script
 build_script:
-  - ps: |
-      # Use vswhere to locate MSBuild dynamically
-      $vswherePath = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
-      if (-Not (Test-Path $vswherePath)) {
-        Write-Error "vswhere.exe not found at $vswherePath"
-        exit 1
-      }
-      $msbuildPath = & $vswherePath -latest -products * -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe
-      if (-Not (Test-Path $msbuildPath)) {
-        Write-Error "MSBuild.exe not found."
-        exit 1
-      }
-      Write-Output "Found MSBuild at $msbuildPath"
+  - cmd: |
+      "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" Vesper.sln /p:Configuration=%CONFIGURATION% /p:Platform=%PLATFORM%
 
-      $solutionPath = 'C:\projects\vesper\Vesper.sln'
-      $additionalInclude = "$env:VK_SDK_PATH\Include"
+artifacts:
+  - path: "**\bin\%CONFIGURATION%\*"
+    name: Build-%CONFIGURATION%-%PLATFORM%
 
-      if (-Not (Test-Path $additionalInclude)) {
-        Write-Error "Include path does not exist: $additionalInclude"
-        exit 1
-      }
+test_script:
+  # Include testing commands here if applicable.
+  # Example: Run unit tests or validation scripts.
 
-      # Correctly format MSBuild arguments
-      $msbuildArgs = "/p:Configuration=Release /p:Platform=x64 /p:AdditionalIncludeDirectories=\"$additionalInclude;$additionalInclude\vma\""
-
-      & $msbuildPath $solutionPath $msbuildArgs
+deploy:
+  # Add deployment configurations here if needed.
