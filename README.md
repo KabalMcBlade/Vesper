@@ -1,27 +1,27 @@
 # Vesper
-Render engine using Vulkan API
+Render Engine Using the Vulkan API
 
-This is made from scratch following in order to learn more about Vulkan API, just to learn something about this new graphic API. 
-I'm not a render or engine programmer, so be aware!
+This engine was created from scratch to explore the Vulkan API and learn more about this modern graphics API. I am not a rendering or engine programmer, so please bear that in mind!
 
-> Vesper means Evening in Latin
+> "Vesper" means evening in Latin
 
-The important and main difference across usual engine out there, is that is fully powered by my own [ECS](https://github.com/KabalMcBlade/ECS-API) library.
-When I say "fully" I mean it, also the objects, to be rendered, have to have assigned a vertex and /or an index buffer component, just to name one.
+The main and important distinction between this engine and many others is that it is entirely powered by my own [ECS](https://github.com/KabalMcBlade/ECS-API) library. 
+When I say "fully," I mean every part of it: objects to be rendered must have a vertex and/or an index buffer component assigned, just to name one example
+
 
 ## Screenshots
 
-Here I will post the screenshots while something new will be added and worth to show.
+I will post screenshots here as new features are added and when there’s something significant to show.
 
 
-First render of the engine, using ECS core.
+First render from the engine, using the ECS core.
 <img src="./Screenshots/first.png">
 
 
 ## Demo Controls
 
-For now the demo just load a couple of cubes and 2 obj vase, adding a point light.
-Will evolve in a proper viewer in the future.
+For now, the demo simply loads a couple of cubes and two OBJ vases, adding a point light. 
+It will evolve into a proper viewer in the future.
 
 
 ## LICENSE
