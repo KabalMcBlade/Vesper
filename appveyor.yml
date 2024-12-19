@@ -24,8 +24,18 @@ init:
         }
 
         Write-Host "Installing Vulkan SDK..."
-        & $installerPath "/S" | Out-Host
+        $process = Start-Process -FilePath $installerPath -ArgumentList "/S" `
+          -NoNewWindow -PassThru `
+          -RedirectStandardOutput "install-output.log" `
+          -RedirectStandardError "install-error.log"
 
+        # Display progress in real-time
+        while (-not $process.HasExited) {
+          Get-Content "install-output.log" -Tail 10
+          Start-Sleep -Seconds 5
+        }
+
+        # Check for completion
         if (!(Test-Path $env:VK_SDK_PATH)) {
           Write-Error "Vulkan SDK installation failed or path not found: $env:VK_SDK_PATH"
           exit 1
