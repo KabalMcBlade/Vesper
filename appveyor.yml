@@ -55,6 +55,6 @@ build_script:
       Write-Output "Found MSBuild at $msbuildPath"
       
       $solutionPath = 'C:\projects\vesper\Vesper.sln'
-      # Specify valid configuration and platform properties
-      $msbuildArgs = '/p:Configuration=Release /p:Platform="x64"'
+      # Ensure the platform and configuration are set properly
+      $msbuildArgs = '/p:Configuration="Release" /p:Platform="x64"'
       & $msbuildPath $solutionPath $msbuildArgs
