@@ -7,7 +7,7 @@
 #include "Core/core_defines.h"
 #include "Core/memory_copy.h"
 
-#include <vma/vk_mem_alloc.h>
+#include "vma/vk_mem_alloc.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN

@@ -7,7 +7,7 @@
 #include "Backend/swap_chain.h"
 #include "App/window_handle.h"
 
-#include <vma/vk_mem_alloc.h>
+#include "vma/vk_mem_alloc.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN

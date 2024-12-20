@@ -10,7 +10,7 @@
 //#define VMA_RECORDING_ENABLED PICOVK_ENABLE_VALIDATION
 //#define VMA_VULKAN_VERSION 1003000
 #define VMA_IMPLEMENTATION
-#include <vma/vk_mem_alloc.h>
+#include "vma/vk_mem_alloc.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN
