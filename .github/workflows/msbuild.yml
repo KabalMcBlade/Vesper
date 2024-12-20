@@ -36,7 +36,11 @@ jobs:
       with:
           version: 1.3.261.1
           cache: true
-        
+
+    - name: Set VK_SDK_PATH Environment Variable
+      run: |
+        echo "VK_SDK_PATH=$VULKAN_SDK" >> $GITHUB_ENV
+    
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
 
