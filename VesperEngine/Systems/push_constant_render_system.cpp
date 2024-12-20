@@ -10,9 +10,9 @@
 #define GLM_FORCE_SWIZZLE
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-#include <glm/ext.hpp>
-#include <gtx/quaternion.hpp>
+#include "glm/glm.hpp"
+#include "glm/ext.hpp"
+#include "gtx/quaternion.hpp"
 
 #include "Components/graphics_components.h"
 #include "Components/object_components.h"

@@ -3,7 +3,7 @@
 #include "Utility/hash.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/hash.hpp>
+#include "glm/gtx/hash.hpp"
 
 // Maybe to move in a specific loader system for obj
 #define TINYOBJLOADER_USE_MAPBOX_EARCUT	// robust triangulation

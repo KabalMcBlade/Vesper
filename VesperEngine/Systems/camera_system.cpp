@@ -8,10 +8,11 @@
 #define GLM_FORCE_SWIZZLE
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-#include <glm/ext.hpp>
-#include <gtx/quaternion.hpp>
-#include <gtx/euler_angles.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/glm.hpp"
+#include "glm/ext.hpp"
+#include "gtx/quaternion.hpp"
+#include "gtx/euler_angles.hpp"
 
 
 VESPERENGINE_NAMESPACE_BEGIN

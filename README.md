@@ -9,6 +9,13 @@ The main and important distinction between this engine and many others is that i
 When I say "fully," I mean every part of it: objects to be rendered must have a vertex and/or an index buffer component assigned, just to name one example
 
 
+## Installation Notes
+
+This project uses vma and glm (for now). Both of them have been referenced from VulkanSDK, so for a path point of view, you should have:<br />
+C:\VulkanSDK\1.3.261.1\Include\glm<br />
+C:\VulkanSDK\1.3.261.1\Include\vma<br />
+
+
 ## Screenshots
 
 I will post screenshots here as new features are added and when there’s something significant to show.
