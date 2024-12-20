@@ -75,10 +75,11 @@ jobs:
     
     - name: Download GLM Math Library
       run: |
-        echo "Downloading GLM Math Library..."
+        echo "Cloning GLM Math Library..."
         mkdir -p $env:VULKAN_SDK/Include/glm
-        curl -L https://github.com/g-truc/glm/releases/latest/download/glm-0.9.9.8.zip -o glm.zip
-        Expand-Archive -Path glm.zip -DestinationPath $env:VULKAN_SDK/Include/glm
+        git clone --depth 1 https://github.com/g-truc/glm.git temp_glm
+        cp -r temp_glm/glm/* $env:VULKAN_SDK/Include/glm
+        rm -rf temp_glm
     
     - name: Verify VMA and GLM Headers in Vulkan SDK
       run: |
