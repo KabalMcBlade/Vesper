@@ -21,7 +21,7 @@ jobs:
 
       - name: Configure Visual Studio
         run: |
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\vs_installer.exe" modify \
+          & "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\vs_installer.exe" modify \
           --add Microsoft.VisualStudio.Component.Windows10SDK.10.0.19041 \
           Microsoft.VisualStudio.Component.VC.Tools.x86.x64 \
           --quiet --wait --norestart
