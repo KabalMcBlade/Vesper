@@ -48,6 +48,16 @@ jobs:
         echo "Checking Vulkan SDK installation directory..."
         ls -l D:/a/Vesper/Vesper/VULKAN_SDK || echo "Installation path not found!"
     
+    - name: Debug Vulkan SDK Include
+      run: |
+        echo "Checking Vulkan SDK Include directory..."
+        ls -l D:/a/Vesper/Vesper/VULKAN_SDK/Include || echo "Vulkan Include path not found!"
+    
+    - name: Debug Vulkan SDK Library
+      run: |
+        echo "Checking Vulkan SDK Library directory..."
+        ls -l D:/a/Vesper/Vesper/VULKAN_SDK/Lib || echo "Vulkan Lib path not found!"
+        
     - name: Set VULKAN_SDK Environment Variable
       run: echo "VULKAN_SDK=D:/a/Vesper/Vesper/VULKAN_SDK" >> $GITHUB_ENV
     
