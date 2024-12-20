@@ -39,8 +39,8 @@ jobs:
 
     - name: Verify Vulkan Installation
       run: |
-        echo "VK_SDK_PATH=$VK_SDK_PATH"
-        ls -l $VK_SDK_PATH
+        echo "VULKAN_SDK=$VULKAN_SDK"
+        ls -l $VULKAN_SDK
         
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
