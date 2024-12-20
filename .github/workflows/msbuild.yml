@@ -40,7 +40,12 @@ jobs:
     - name: Set VK_SDK_PATH Environment Variable
       run: |
         echo "VK_SDK_PATH=$VULKAN_SDK" >> $GITHUB_ENV
-    
+
+    - name: Verify Vulkan Installation
+      run: |
+        echo "VK_SDK_PATH=$VK_SDK_PATH"
+        ls -l $VK_SDK_PATH
+        
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
 
@@ -50,6 +55,5 @@ jobs:
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      # Add additional options to the MSBuild command line here (like platform or verbosity level).
-      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
-      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:IncludePath="${{env.VK_SDK_PATH}}\Include" /p:LibraryPath="${{env.VK_SDK_PATH}}\Lib" ${{env.SOLUTION_FILE_PATH}}
+
