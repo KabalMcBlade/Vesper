@@ -80,17 +80,10 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v2
     
-    - name: Check for Preinstalled SDK
-      run: |
-        dir "C:\\Program Files (x86)\\Windows Kits\\10\\Lib" || exit 1
-    
-    - name: Download Windows SDK Installer
-      run: curl -L -o sdk-installer.exe https://go.microsoft.com/fwlink/?linkid=2120843
-    
-    - name: Install Windows SDK with Logging
+    - name: Install Required SDK Components
       shell: cmd
       run: |
-        start /wait sdk-installer.exe /quiet /norestart /log sdk-install-log.txt
+        "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --add Microsoft.VisualStudio.Component.Windows10SDK.10.0.19041 Microsoft.VisualStudio.Component.VC.Tools.x86.x64
     
     - name: Verify SDK Installation
       run: |
