@@ -78,7 +78,7 @@ jobs:
         echo "Downloading GLM Math Library..."
         mkdir -p $env:VULKAN_SDK/Include/glm
         curl -L https://github.com/g-truc/glm/releases/latest/download/glm-0.9.9.8.zip -o glm.zip
-        tar -xf glm.zip -C $env:VULKAN_SDK/Include/glm --strip-components=1
+        Expand-Archive -Path glm.zip -DestinationPath $env:VULKAN_SDK/Include/glm
     
     - name: Verify VMA and GLM Headers in Vulkan SDK
       run: |
