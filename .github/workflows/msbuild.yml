@@ -27,8 +27,8 @@ jobs:
 
       - name: Install Vulkan SDK and dependencies
         run: |
-          choco install vulkan-sdk --version=1.3.243.0 -y
-          set VULKAN_SDK=C:\\VulkanSDK\\1.3.243.0
+          choco install vulkan-sdk --version=1.3.261.1 -y
+          set VULKAN_SDK=C:\\VulkanSDK\\1.3.261.1
           mkdir %VULKAN_SDK%\\Include\\glm
           mkdir %VULKAN_SDK%\\Include\\vma
 
