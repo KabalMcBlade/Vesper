@@ -25,12 +25,14 @@ jobs:
       - name: Restore NuGet packages
         run: nuget restore Vesper.sln
 
-      - name: Install Vulkan SDK and dependencies
+      - name: Download and Install Vulkan SDK
         run: |
-          choco install vulkan-sdk --version=1.3.261.1 -y
-          set VULKAN_SDK=C:\\VulkanSDK\\1.3.261.1
-          mkdir %VULKAN_SDK%\\Include\\glm
-          mkdir %VULKAN_SDK%\\Include\\vma
+          curl -LO https://sdk.lunarg.com/sdk/download/1.3.261.1/windows/VulkanSDK-1.3.261.1-Installer.exe
+          start /wait VulkanSDK-1.3.261.1-Installer.exe /S /D=C:\VulkanSDK\1.3.261.1
+          set VULKAN_SDK=C:\VulkanSDK\1.3.261.1
+          set PATH=%VULKAN_SDK%\Bin;%PATH%
+          set PATH=%VULKAN_SDK%\Lib;%PATH%
+          set PATH=%VULKAN_SDK%\Include;%PATH%
 
       - name: Install GLM into Vulkan SDK dependencies
         run: |
