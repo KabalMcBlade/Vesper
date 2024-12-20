@@ -51,8 +51,8 @@ jobs:
     - name: Verify VULKAN_SDK Environment Variable
       run: |
         echo "Verifying Vulkan SDK..."
-        echo "VULKAN_SDK=$VULKAN_SDK"
-        ls -l $VULKAN_SDK || echo "VULKAN_SDK path is incorrect!"
+        echo "VULKAN_SDK=$env:VULKAN_SDK"
+        ls -l $env:VULKAN_SDK || echo "VULKAN_SDK path is incorrect!"
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
