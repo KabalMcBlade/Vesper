@@ -54,6 +54,11 @@ jobs:
         echo "VULKAN_SDK=$env:VULKAN_SDK"
         ls -l $env:VULKAN_SDK || echo "VULKAN_SDK path is incorrect!"
 
+    - name: Verify VMA Include Path
+      run: |
+        echo "Checking VMA path..."
+        ls -l $env:VULKAN_SDK\Include\vma || echo "VMA path not found!"
+
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
 
@@ -63,9 +68,7 @@ jobs:
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ^
-            /p:IncludePath="${{env.VULKAN_SDK}}\Include\vma;${{env.VULKAN_SDK}}\Include" ^
-            /p:LibraryPath="${{env.VULKAN_SDK}}\Lib" ^
-            ${{env.SOLUTION_FILE_PATH}}
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:IncludePath="${{env.VULKAN_SDK}}/Include/vma;${{env.VULKAN_SDK}}/Include" /p:LibraryPath="${{env.VULKAN_SDK}}/Lib" ${{env.SOLUTION_FILE_PATH}}
+
 
 
