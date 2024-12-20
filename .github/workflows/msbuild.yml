@@ -87,8 +87,11 @@ jobs:
         ls -l $env:VULKAN_SDK/Include/vma || echo "VMA header not found!"
         ls -l $env:VULKAN_SDK/Include/glm || echo "GLM headers not found!"
 
-    - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.2
+    - name: Set up MSBuild
+      run: |
+        echo "Setting up MSBuild..."
+        $msbuildPath = (&"C:\ProgramData\Chocolatey\bin\vswhere.exe" -products * -requires Microsoft.Component.MSBuild -property installationPath -latest)
+        echo "MSBUILD_PATH=$msbuildPath\MSBuild\Current\Bin\MSBuild.exe" >> $GITHUB_ENV
 
     - name: Restore NuGet packages
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -96,7 +99,7 @@ jobs:
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:IncludePath="${{env.VULKAN_SDK}}/Include" /p:LibraryPath="${{env.VULKAN_SDK}}/Lib" ${{env.SOLUTION_FILE_PATH}}
+      run: $env:MSBUILD_PATH /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:IncludePath="${{env.VULKAN_SDK}}/Include" /p:LibraryPath="${{env.VULKAN_SDK}}/Lib" ${{env.SOLUTION_FILE_PATH}}
 
 
 
