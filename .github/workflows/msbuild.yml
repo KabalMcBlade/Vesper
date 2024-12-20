@@ -72,11 +72,19 @@ jobs:
         echo "Downloading Vulkan Memory Allocator header..."
         mkdir -p $env:VULKAN_SDK/Include/vma
         curl -L https://raw.githubusercontent.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/master/include/vk_mem_alloc.h -o $env:VULKAN_SDK/Include/vma/vk_mem_alloc.h
-
-    - name: Verify VMA Header in Vulkan SDK
+    
+    - name: Download GLM Math Library
       run: |
-        echo "Checking VMA header in Vulkan SDK..."
+        echo "Downloading GLM Math Library..."
+        mkdir -p $env:VULKAN_SDK/Include/glm
+        curl -L https://github.com/g-truc/glm/releases/latest/download/glm-0.9.9.8.zip -o glm.zip
+        tar -xf glm.zip -C $env:VULKAN_SDK/Include/glm --strip-components=1
+    
+    - name: Verify VMA and GLM Headers in Vulkan SDK
+      run: |
+        echo "Checking VMA and GLM headers in Vulkan SDK..."
         ls -l $env:VULKAN_SDK/Include/vma || echo "VMA header not found!"
+        ls -l $env:VULKAN_SDK/Include/glm || echo "GLM headers not found!"
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
