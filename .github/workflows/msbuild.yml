@@ -36,7 +36,13 @@ jobs:
       with:
         version: 1.3.261.1
         cache: true
-    
+
+    - name: Download Vulkan Memory Allocator
+      run: |
+        echo "Downloading Vulkan Memory Allocator..."
+        mkdir -p ${{env.GITHUB_WORKSPACE}}/External
+        curl -L https://raw.githubusercontent.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/master/include/vk_mem_alloc.h -o ${{env.GITHUB_WORKSPACE}}/External/vk_mem_alloc.h
+
     - name: Debug Vulkan SDK Installation
       run: |
         echo "Checking Vulkan SDK installation directory..."
