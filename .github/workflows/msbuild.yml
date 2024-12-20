@@ -41,17 +41,7 @@ jobs:
       run: |
         echo "Checking Vulkan SDK installation directory..."
         ls -l D:/a/Vesper/Vesper/VULKAN_SDK || echo "Installation path not found!"
-    
-    - name: Debug Vulkan SDK Include
-      run: |
-        echo "Checking Vulkan SDK Include directory..."
-        ls -l D:/a/Vesper/Vesper/VULKAN_SDK/Include || echo "Vulkan Include path not found!"
-    
-    - name: Debug Vulkan SDK Library
-      run: |
-        echo "Checking Vulkan SDK Library directory..."
-        ls -l D:/a/Vesper/Vesper/VULKAN_SDK/Lib || echo "Vulkan Lib path not found!"
-        
+
     - name: Set VULKAN_SDK Environment Variable
       run: echo "VULKAN_SDK=D:/a/Vesper/Vesper/VULKAN_SDK" >> $GITHUB_ENV
     
@@ -89,6 +79,13 @@ jobs:
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Setup Windows SDK
+      run: choco install windows-sdk-10
+
+    - name: Initialize MSVC Environment
+      shell: cmd
+      run: call "C:\Program Files (x86)\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
       
     - name: Restore NuGet packages
       working-directory: ${{env.GITHUB_WORKSPACE}}
