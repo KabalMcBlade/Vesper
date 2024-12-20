@@ -63,8 +63,8 @@ jobs:
     - name: Verify VMA Include Path
       run: |
         echo "Checking VMA path..."
-        ls -l $env:VULKAN_SDK\Include\vma || echo "VMA path not found!"
-
+        ls -l "$env:VULKAN_SDK/Include/vma" || echo "VMA path not found!"
+        
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
 
