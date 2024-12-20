@@ -37,12 +37,6 @@ jobs:
         version: 1.3.261.1
         cache: true
 
-    - name: Download Vulkan Memory Allocator
-      run: |
-        echo "Downloading Vulkan Memory Allocator..."
-        mkdir -p ${{env.GITHUB_WORKSPACE}}/External
-        curl -L https://raw.githubusercontent.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/master/include/vk_mem_alloc.h -o ${{env.GITHUB_WORKSPACE}}/External/vk_mem_alloc.h
-
     - name: Debug Vulkan SDK Installation
       run: |
         echo "Checking Vulkan SDK installation directory..."
@@ -63,7 +57,7 @@ jobs:
     
     - name: Force Reload Environment Variables
       run: env
-    
+       
     - name: Verify VULKAN_SDK Environment Variable
       run: |
         echo "Verifying Vulkan SDK..."
@@ -73,12 +67,16 @@ jobs:
     - name: Debug VULKAN_SDK Variable
       run: echo "VULKAN_SDK=$env:VULKAN_SDK"
 
-    - name: Verify VMA Include Path
+    - name: Download Vulkan Memory Allocator
       run: |
-        echo "Checking VMA path..."
-        $vulkan_path = "$env:VULKAN_SDK/Include/vma"
-        echo "Resolved path: $vulkan_path"
-        ls -l $vulkan_path || echo "VMA path not found!"
+        echo "Downloading Vulkan Memory Allocator header..."
+        mkdir -p $env:VULKAN_SDK/Include/vma
+        curl -L https://raw.githubusercontent.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/master/include/vk_mem_alloc.h -o $env:VULKAN_SDK/Include/vma/vk_mem_alloc.h
+
+    - name: Verify VMA Header in Vulkan SDK
+      run: |
+        echo "Checking VMA header in Vulkan SDK..."
+        ls -l $env:VULKAN_SDK/Include/vma || echo "VMA header not found!"
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
@@ -89,7 +87,7 @@ jobs:
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:IncludePath="${{env.VULKAN_SDK}}/Include/vma;${{env.VULKAN_SDK}}/Include" /p:LibraryPath="${{env.VULKAN_SDK}}/Lib" ${{env.SOLUTION_FILE_PATH}}
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:IncludePath="${{env.VULKAN_SDK}}/Include" /p:LibraryPath="${{env.VULKAN_SDK}}/Lib" ${{env.SOLUTION_FILE_PATH}}
 
 
 
