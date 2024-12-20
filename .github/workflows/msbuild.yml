@@ -63,5 +63,9 @@ jobs:
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:IncludePath="${{env.VK_SDK_PATH}}\Include" /p:LibraryPath="${{env.VK_SDK_PATH}}\Lib" ${{env.SOLUTION_FILE_PATH}}
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ^
+            /p:IncludePath="${{env.VULKAN_SDK}}\Include\vma;${{env.VULKAN_SDK}}\Include" ^
+            /p:LibraryPath="${{env.VULKAN_SDK}}\Lib" ^
+            ${{env.SOLUTION_FILE_PATH}}
+
 
