@@ -40,6 +40,6 @@ GPL-3.0
 
 | Platform | Build Status |
 |:--------:|:------------:|
-| Windows (Visual Studio 2022) | [![Building status](https://github.comKabalMcBlade/Vesper/actions/workflows/msbuild.yml/badge.svg)] |
+| Windows (Visual Studio 2022) | [![Building status](https://github.com/KabalMcBlade/Vesper/actions/workflows/msbuild.yml/badge.svg)] |
 
 
