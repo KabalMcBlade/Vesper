@@ -98,5 +98,3 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: $env:MSBUILD_PATH /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:IncludePath="${{env.VULKAN_SDK}}/Include" /p:LibraryPath="${{env.VULKAN_SDK}}/Lib" ${{env.SOLUTION_FILE_PATH}}
 
-
-
