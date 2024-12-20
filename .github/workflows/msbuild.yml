@@ -79,7 +79,7 @@ jobs:
         mkdir -p $env:VULKAN_SDK/Include/glm
         git clone --depth 1 https://github.com/g-truc/glm.git temp_glm
         cp -r temp_glm/glm/* $env:VULKAN_SDK/Include/glm
-        rm -rf temp_glm
+        Remove-Item temp_glm -Recurse -Force
     
     - name: Verify VMA and GLM Headers in Vulkan SDK
       run: |
