@@ -79,14 +79,18 @@ jobs:
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v2
-
+    
+    - name: Check for Preinstalled SDK
+      run: |
+        dir "C:\\Program Files (x86)\\Windows Kits\\10\\Lib" || exit 1
+    
     - name: Download Windows SDK Installer
       run: curl -L -o sdk-installer.exe https://go.microsoft.com/fwlink/?linkid=2120843
     
-    - name: Install Windows SDK
+    - name: Install Windows SDK with Logging
       shell: cmd
       run: |
-        start /wait sdk-installer.exe /quiet /norestart
+        start /wait sdk-installer.exe /quiet /norestart /log sdk-install-log.txt
     
     - name: Verify SDK Installation
       run: |
