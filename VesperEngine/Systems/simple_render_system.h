@@ -18,7 +18,7 @@ VESPERENGINE_NAMESPACE_BEGIN
 
 class VesperApp;
 
-class VESPERENGINE_DLL SimpleRenderSystem final : public BaseRenderSystem
+class VESPERENGINE_API SimpleRenderSystem final : public BaseRenderSystem
 {
 public:
 	SimpleRenderSystem(VesperApp& _app, Device& _device, VkRenderPass _renderPass,

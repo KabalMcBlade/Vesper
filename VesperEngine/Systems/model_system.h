@@ -21,7 +21,7 @@ VESPERENGINE_NAMESPACE_BEGIN
 
 class VesperApp;
 
-class VESPERENGINE_DLL ModelSystem
+class VESPERENGINE_API ModelSystem
 {
 public:
 	ModelSystem(VesperApp& _app, Device& _device);

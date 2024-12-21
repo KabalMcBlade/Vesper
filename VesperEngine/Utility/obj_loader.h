@@ -11,7 +11,7 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-class VESPERENGINE_DLL ObjLoader
+class VESPERENGINE_API ObjLoader
 {
 public:
 	ObjLoader(Device& _device);

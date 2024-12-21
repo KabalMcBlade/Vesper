@@ -54,7 +54,7 @@ struct ShaderInfo
 	ShaderType Type;
 };
 
-class VESPERENGINE_DLL Pipeline final
+class VESPERENGINE_API Pipeline final
 {
 public:
 	static void DefaultPipelineConfiguration(PipelineConfigInfo& _outConfigInfo);

@@ -17,7 +17,7 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-class VESPERENGINE_DLL PrimitiveFactory
+class VESPERENGINE_API PrimitiveFactory
 {
 public:
 	static std::unique_ptr<ModelData> GenerateTriangleNoIndices(glm::vec3 _offset, glm::vec3 _faceColor, bool _isStatic = true);

@@ -28,7 +28,7 @@ struct QueueFamilyIndices
 };
 
 
-class VESPERENGINE_DLL Device final
+class VESPERENGINE_API Device final
 {
 public:
 	Device(WindowHandle& _window);

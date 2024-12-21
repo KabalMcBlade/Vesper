@@ -13,7 +13,7 @@ VESPERENGINE_NAMESPACE_BEGIN
 
 class VesperApp;
 
-class VESPERENGINE_DLL CameraSystem
+class VESPERENGINE_API CameraSystem
 {
 public:
 	CameraSystem(VesperApp& _app);

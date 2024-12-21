@@ -12,7 +12,7 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-class VESPERENGINE_DLL Buffer final
+class VESPERENGINE_API Buffer final
 {
 public:
 	Buffer(Device& _device);

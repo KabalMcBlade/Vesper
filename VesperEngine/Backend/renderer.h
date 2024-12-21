@@ -12,7 +12,7 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-class VESPERENGINE_DLL Renderer final
+class VESPERENGINE_API Renderer final
 {
 public:
 	Renderer(WindowHandle& _window, Device& _device);

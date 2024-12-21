@@ -18,7 +18,7 @@ VESPERENGINE_NAMESPACE_BEGIN
 
 class VesperApp;
 
-class VESPERENGINE_DLL PushConstantRenderSystem final : public BaseRenderSystem
+class VESPERENGINE_API PushConstantRenderSystem final : public BaseRenderSystem
 {
 public:
 	PushConstantRenderSystem(VesperApp& _app, Device& _device, VkRenderPass _renderPass, VkDescriptorSetLayout _globalDescriptorSetLayout);

@@ -6,24 +6,14 @@
 // PREPROCESSORS
 //////////////////////////////////////////////////////////////////////////
 
-// If VESPERENGINE_DYNAMIC_LIB is defined, then the export/import symbols are generated
-//#define VESPERENGINE_DYNAMIC_LIB
 
-#ifdef VESPERENGINE_DYNAMIC_LIB
-
-#ifdef VESPERENGINE_EXPORTS
-#define VESPERENGINE_DLL __declspec(dllexport)
-#else
-#define VESPERENGINE_DLL __declspec(dllimport)
-#endif 
-
-#else
-
-#define VESPERENGINE_DLL 
-
-#endif // VESPERENGINE_DYNAMIC_LIB
-
-
+#if defined(VESPERENGINE_DLL_EXPORT)             // When exporting from the DLL
+#define VESPERENGINE_API __declspec(dllexport)
+#elif defined(VESPERENGINE_DLL_IMPORT)           // When importing to the DLL
+#define VESPERENGINE_API __declspec(dllimport)
+#else                                           // When using the static library
+#define VESPERENGINE_API
+#endif
 
 
 // defines for easy namespace

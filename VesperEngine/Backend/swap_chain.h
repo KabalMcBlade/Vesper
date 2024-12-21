@@ -11,7 +11,7 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-class VESPERENGINE_DLL SwapChain final
+class VESPERENGINE_API SwapChain final
 {
 public:
 	// SwapChain image count can be 2 or 3, depending if the device support triple buffering

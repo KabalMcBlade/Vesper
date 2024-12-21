@@ -23,7 +23,7 @@ VESPERENGINE_NAMESPACE_BEGIN
  * 
  */
 
-class VESPERENGINE_DLL BaseRenderSystem
+class VESPERENGINE_API BaseRenderSystem
 {
 public:
 	BaseRenderSystem(Device& _device);

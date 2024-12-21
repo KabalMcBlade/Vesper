@@ -10,7 +10,7 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-class VESPERENGINE_DLL WindowHandle
+class VESPERENGINE_API WindowHandle
 {
 public:
 	WindowHandle(int32 _width, int32 _height, std::string _name);

@@ -11,7 +11,7 @@ namespace ecs {
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-class VESPERENGINE_DLL VesperApp
+class VESPERENGINE_API VesperApp
 {
 public:
 	VesperApp(Config& _config);

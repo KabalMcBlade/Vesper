@@ -13,10 +13,10 @@
 VESPERENGINE_NAMESPACE_BEGIN
 
 //////////////////////////////////////////////////////////////////////////
-class VESPERENGINE_DLL DescriptorSetLayout
+class VESPERENGINE_API DescriptorSetLayout
 {
 public:
-	class VESPERENGINE_DLL Builder
+	class VESPERENGINE_API Builder
 	{
 	public:
 		Builder(Device& _device) : m_device{ _device } {}
@@ -55,10 +55,10 @@ private:
 };
 
 //////////////////////////////////////////////////////////////////////////
-class VESPERENGINE_DLL DescriptorPool
+class VESPERENGINE_API DescriptorPool
 {
 public:
-	class VESPERENGINE_DLL Builder
+	class VESPERENGINE_API Builder
 	{
 	public:
 		Builder(Device& _device) : m_device{ _device } {}
@@ -96,7 +96,7 @@ private:
 };
 
 //////////////////////////////////////////////////////////////////////////
-class VESPERENGINE_DLL DescriptorWriter
+class VESPERENGINE_API DescriptorWriter
 {
 public:
 	DescriptorWriter(DescriptorSetLayout& _setLayout, DescriptorPool& _pool);

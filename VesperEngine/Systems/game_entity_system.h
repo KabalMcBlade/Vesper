@@ -23,7 +23,7 @@ enum EntityType : uint32
 	Renderable = 3	// Object can be rendered
 };
 
-class VESPERENGINE_DLL GameEntitySystem final
+class VESPERENGINE_API GameEntitySystem final
 {
 public:
 	GameEntitySystem(VesperApp& _app);
