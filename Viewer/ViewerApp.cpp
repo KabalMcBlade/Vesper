@@ -15,8 +15,11 @@
 #include "glm/ext.hpp"
 
 // ONLY IF USING VESPER ENGINE AS DLL, IF USING AS STATIC LIB, DON'T ADD!
-//#define VMA_IMPLEMENTATION
-//#include <vma/vk_mem_alloc.h>
+#if defined(VESPERENGINE_DLL_IMPORT)
+#define VMA_IMPLEMENTATION
+#include <vma/vk_mem_alloc.h>
+#endif
+
 
 #define DESCRIPTOR_SET_COUNT 2
 

@@ -11,10 +11,33 @@ When I say "fully," I mean every part of it: objects to be rendered must have a 
 
 ## Installation Notes
 
-This project uses vma and glm (for now). Both of them have been referenced from VulkanSDK, so for a path point of view, you should have:<br />
-C:\VulkanSDK\1.3.261.1\Include\glm<br />
-C:\VulkanSDK\1.3.261.1\Include\vma<br />
+### Inclusion and relative paths
 
+This project uses vma and glm (for now). Both of them have been referenced from VulkanSDK, so for a path point of view, you should have:<br />
+C:\VulkanSDK\{version}\Include\glm<br />
+C:\VulkanSDK\{version}\Include\vma<br />
+which in my case {version} is 1.3.261.1<br />
+<br />
+This is not mandatory but avoid you to add or change various paths in the project files.
+
+### Linking
+
+Currently the project is set as dynamic library DLL, but can be built as static library LIB if you'd like.<br />
+The different settings for linkage are, in Windows and Visual Studio 2022:<br />
+<br />
+- Dynamic Library:
+  - Vesper Engine
+    - Runtime Library: Multi-threaded DLL (/MD) **OR** Multi-threaded Debug DLL (/MDd) 
+    - Preprocessor macro to add: ECS_DLL_EXPORT;VESPERENGINE_DLL_EXPORT;
+  - Viewer or any other executable
+    - Runtime Library: Multi-threaded DLL (/MD) **OR** Multi-threaded Debug DLL (/MDd) 
+    - Preprocessor macro to add: ECS_DLL_IMPORT;VESPERENGINE_DLL_IMPORT;
+- Static Library:
+  - Vesper Engine
+    - Runtime Library: Multi-threaded (/MT) **OR** Multi-threaded Debug (/MTd)
+  - Viewer or Any executable
+    - Runtime Library: Multi-threaded (/MT) **OR** Multi-threaded Debug (/MTd)
+	  
 
 ## Screenshots
 
@@ -25,7 +48,7 @@ First render from the engine, using the ECS core.
 <img src="./Screenshots/first.png">
 
 
-## Demo Controls
+## Viewer
 
 For now, the demo simply loads a couple of cubes and two OBJ vases, adding a point light. 
 It will evolve into a proper viewer in the future.
