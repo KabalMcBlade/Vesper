@@ -364,9 +364,6 @@ void ViewerApp::LoadGameEntities()
 
 		m_simpleRenderSystem->RegisterEntity(coloredCube);
 
-		// 	MaterialComponent& materialComponent = GetComponentManager().GetComponent<MaterialComponent>(coloredCube);
-		// 	materialComponent.Color = { 0.1f, 0.8f, 0.1f, 1.0f };
-
 		// test
 		GetComponentManager().AddComponent<RotationComponent>(coloredCube);
 
