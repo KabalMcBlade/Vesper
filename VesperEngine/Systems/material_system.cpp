@@ -308,6 +308,46 @@ void MaterialSystem::Cleanup()
 		}
 	}
 
+
+	// Destroy default textures - Phong
+	vkDestroyImageView(m_device.GetDevice(), m_defaultDiffuseTexture.ImageView, nullptr);
+	vkDestroySampler(m_device.GetDevice(), m_defaultDiffuseTexture.Sampler, nullptr);
+	vmaDestroyImage(m_device.GetAllocator(), m_defaultDiffuseTexture.Image, m_defaultDiffuseTexture.AllocationMemory);
+
+	vkDestroyImageView(m_device.GetDevice(), m_defaultSpecularTexture.ImageView, nullptr);
+	vkDestroySampler(m_device.GetDevice(), m_defaultSpecularTexture.Sampler, nullptr);
+	vmaDestroyImage(m_device.GetAllocator(), m_defaultSpecularTexture.Image, m_defaultSpecularTexture.AllocationMemory);
+
+	vkDestroyImageView(m_device.GetDevice(), m_defaultNormalTexture.ImageView, nullptr);
+	vkDestroySampler(m_device.GetDevice(), m_defaultNormalTexture.Sampler, nullptr);
+	vmaDestroyImage(m_device.GetAllocator(), m_defaultNormalTexture.Image, m_defaultNormalTexture.AllocationMemory);
+
+	vkDestroyImageView(m_device.GetDevice(), m_defaultAmbientTexture.ImageView, nullptr);
+	vkDestroySampler(m_device.GetDevice(), m_defaultAmbientTexture.Sampler, nullptr);
+	vmaDestroyImage(m_device.GetAllocator(), m_defaultAmbientTexture.Image, m_defaultAmbientTexture.AllocationMemory);
+
+
+	// Destroy default textures - PBR
+	vkDestroyImageView(m_device.GetDevice(), m_defaultRoughnessTexture.ImageView, nullptr);
+	vkDestroySampler(m_device.GetDevice(), m_defaultRoughnessTexture.Sampler, nullptr);
+	vmaDestroyImage(m_device.GetAllocator(), m_defaultRoughnessTexture.Image, m_defaultRoughnessTexture.AllocationMemory);
+
+	vkDestroyImageView(m_device.GetDevice(), m_defaultMetallicTexture.ImageView, nullptr);
+	vkDestroySampler(m_device.GetDevice(), m_defaultMetallicTexture.Sampler, nullptr);
+	vmaDestroyImage(m_device.GetAllocator(), m_defaultMetallicTexture.Image, m_defaultMetallicTexture.AllocationMemory);
+
+	vkDestroyImageView(m_device.GetDevice(), m_defaultSheenTexture.ImageView, nullptr);
+	vkDestroySampler(m_device.GetDevice(), m_defaultSheenTexture.Sampler, nullptr);
+	vmaDestroyImage(m_device.GetAllocator(), m_defaultSheenTexture.Image, m_defaultSheenTexture.AllocationMemory);
+
+	vkDestroyImageView(m_device.GetDevice(), m_defaultEmissiveTexture.ImageView, nullptr);
+	vkDestroySampler(m_device.GetDevice(), m_defaultEmissiveTexture.Sampler, nullptr);
+	vmaDestroyImage(m_device.GetAllocator(), m_defaultEmissiveTexture.Image, m_defaultEmissiveTexture.AllocationMemory);
+
+	vkDestroyImageView(m_device.GetDevice(), m_defaultNormalMapTexture.ImageView, nullptr);
+	vkDestroySampler(m_device.GetDevice(), m_defaultNormalMapTexture.Sampler, nullptr);
+	vmaDestroyImage(m_device.GetAllocator(), m_defaultNormalMapTexture.Image, m_defaultNormalMapTexture.AllocationMemory);
+
 	m_materials.clear();
 	m_materialLookup.clear();
 }
