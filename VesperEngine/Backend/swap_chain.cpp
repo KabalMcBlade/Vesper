@@ -1,5 +1,7 @@
 #include "Backend/swap_chain.h"
 
+#include "Utility/logger.h"
+
 #include <array>
 #include <cstdlib>
 #include <cstring>
@@ -428,9 +430,8 @@ VkPresentModeKHR SwapChain::SelectSwapPresentMode(const std::vector<VkPresentMod
 		//		cons:	High power consumption, Tearing
 		if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) 
 		{
-#ifdef _DEBUG
-			std::cout << "Present mode: Mailbox" << std::endl;
-#endif
+			LOG(Logger::INFO, "Present mode: Mailbox");
+
 			return availablePresentMode;
 		}
 	}
@@ -439,16 +440,13 @@ VkPresentModeKHR SwapChain::SelectSwapPresentMode(const std::vector<VkPresentMod
 	{
 		if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR)
 		{
-#ifdef _DEBUG
-			std::cout << "Present mode: Immediate" << std::endl;
-#endif
+			LOG(Logger::INFO, "Present mode: Immediate");
+
 			return availablePresentMode;
 		}
 	}
 
-#ifdef _DEBUG
-	std::cout << "Present mode: V-Sync" << std::endl;
-#endif
+	LOG(Logger::INFO, "Present mode: V-Sync");
 
 	return VK_PRESENT_MODE_FIFO_KHR;
 }

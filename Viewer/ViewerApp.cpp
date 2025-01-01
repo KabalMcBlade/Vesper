@@ -127,6 +127,8 @@ ViewerApp::ViewerApp(Config& _config) :
 	m_mouseController = std::make_unique<MouseLookCameraController>();
 	m_mouseController->SetMouseCallback(this, m_window->GetWindow());
 
+	LOG_NL();
+
 	// test
 	GetComponentManager().RegisterComponent<RotationComponent>();
 

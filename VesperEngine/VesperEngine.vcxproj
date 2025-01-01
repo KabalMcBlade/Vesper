@@ -137,6 +137,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
     <ClInclude Include="ThirdParty\stb\stb_perlin.h" />
     <ClInclude Include="ThirdParty\stb\stb_truetype.h" />
     <ClInclude Include="Utility\hash.h" />
+    <ClInclude Include="Utility\logger.h" />
     <ClInclude Include="Utility\obj_loader.h" />
     <ClInclude Include="Systems\model_system.h" />
     <ClInclude Include="ThirdParty\TinyObjLoader\mapbox\earcut.hpp" />
@@ -172,6 +173,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Systems\push_constant_render_system.cpp" />
+    <ClCompile Include="Utility\logger.cpp" />
     <ClCompile Include="Utility\obj_loader.cpp" />
     <ClCompile Include="Systems\model_system.cpp" />
     <ClCompile Include="Utility\primitive_factory.cpp" />

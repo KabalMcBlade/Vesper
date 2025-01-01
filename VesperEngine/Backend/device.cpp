@@ -1,5 +1,7 @@
 #include "Backend/device.h"
 
+#include "Utility/logger.h"
+
 #include <cstring>
 #include <iostream>
 #include <set>
@@ -139,9 +141,7 @@ void Device::PickPhysicalDevice()
 		throw std::runtime_error("failed to find GPUs with Vulkan support!");
 	}
 
-#ifdef _DEBUG
-	std::cout << "Device count: " << deviceCount << std::endl;
-#endif
+	LOG(Logger::INFO, "Device count: ", deviceCount);
 
 	std::vector<VkPhysicalDevice> devices(deviceCount);
 	vkEnumeratePhysicalDevices(m_instance, &deviceCount, devices.data());
@@ -162,9 +162,7 @@ void Device::PickPhysicalDevice()
 
 	vkGetPhysicalDeviceProperties(m_physicalDevice, &m_properties);
 
-#ifdef _DEBUG
-	std::cout << "physical device: " << m_properties.deviceName << std::endl;
-#endif
+	LOG(Logger::INFO, "Physical device: ", m_properties.deviceName);
 }
 
 void Device::CreateLogicalDevice() 
@@ -391,27 +389,23 @@ void Device::HasRequiredInstanceExtensions()
 	std::vector<VkExtensionProperties> extensions(extensionCount);
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
 
-#ifdef _DEBUG
-	std::cout << "available extensions:" << std::endl;
-#endif
+	LOG(Logger::INFO, "Available extensions:");
+
 	std::unordered_set<std::string> available;
 	for (const auto& extension : extensions)
 	{
-#ifdef _DEBUG
-		std::cout << "\t" << extension.extensionName << std::endl;
-#endif
+		LOG(Logger::INFO, "\t", extension.extensionName);
+
 		available.insert(extension.extensionName);
 	}
 
-#ifdef _DEBUG
-	std::cout << "required extensions:" << std::endl;
-#endif
+	LOG(Logger::INFO, "Required extensions:");
+
 	auto requiredExtensions = m_window.GetRequiredExtensions();
 	for (const auto& required : requiredExtensions)
 	{
-#ifdef _DEBUG
-		std::cout << "\t" << required << std::endl;
-#endif
+		LOG(Logger::INFO, "\t", required);
+
 		if (available.find(required) == available.end()) 
 		{
 			throw std::runtime_error("Missing required extensions");

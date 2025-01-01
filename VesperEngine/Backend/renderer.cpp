@@ -1,5 +1,7 @@
 #include "renderer.h"
 
+#include "Utility/logger.h"
+
 #include <array>
 
 
@@ -54,11 +56,11 @@ void Renderer::CreateCommandBuffers()
 #ifdef _DEBUG
 	if (m_commandBuffers.size() <= 2)
 	{
-		std::cout << "Device support double buffering." << std::endl;
+		LOG(Logger::INFO, "Device support double buffering");
 	}
 	else
 	{
-		std::cout << "Device support triple buffering." << std::endl;
+		LOG(Logger::INFO, "Device support triple buffering");
 	}
 #endif
 

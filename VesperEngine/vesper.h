@@ -35,6 +35,7 @@
 #include "Systems/camera_system.h"
 
 #include "Utility/hash.h"
+#include "Utility/logger.h"
 #include "Utility/primitive_factory.h"
 #include "Utility/obj_loader.h"
 

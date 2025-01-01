@@ -1,5 +1,7 @@
 #include "primitive_factory.h"
 
+#include "Utility/logger.h"
+
 VESPERENGINE_NAMESPACE_BEGIN
 
 std::unique_ptr<ModelData> PrimitiveFactory::GenerateTriangleNoIndices(glm::vec3 _offset, glm::vec3 _faceColor, bool _isStatic)
@@ -20,10 +22,10 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateTriangleNoIndices(glm::vec3
 
 	data.IsStatic = _isStatic;
 
-#ifdef _DEBUG
-	std::cout << "Vertices count: " << data.Vertices.size() << std::endl;
-	std::cout << "Indices count: " << data.Indices.size() << std::endl;
-#endif
+	LOG(Logger::INFO, "Model: TriangleNoIndices");
+	LOG(Logger::INFO, "Vertices count: ", data.Vertices.size());
+	LOG(Logger::INFO, "Indices count: ", data.Indices.size());
+	LOG_NL();
 
 	return std::make_unique<ModelData>(data);
 }
@@ -48,10 +50,10 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateTriangle(glm::vec3 _offset,
 
 	data.IsStatic = _isStatic;
 
-#ifdef _DEBUG
-	std::cout << "Vertices count: " << data.Vertices.size() << std::endl;
-	std::cout << "Indices count: " << data.Indices.size() << std::endl;
-#endif
+	LOG(Logger::INFO, "Model: Triangle");
+	LOG(Logger::INFO, "Vertices count: ", data.Vertices.size());
+	LOG(Logger::INFO, "Indices count: ", data.Indices.size());
+	LOG_NL();
 
 	return std::make_unique<ModelData>(data);
 }
@@ -124,10 +126,10 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateCubeNoIndices(glm::vec3 _of
 
 	data.IsStatic = _isStatic;
 
-#ifdef _DEBUG
-	std::cout << "Vertices count: " << data.Vertices.size() << std::endl;
-	std::cout << "Indices count: " << data.Indices.size() << std::endl;
-#endif
+	LOG(Logger::INFO, "Model: CubeNoIndices");
+	LOG(Logger::INFO, "Vertices count: ", data.Vertices.size());
+	LOG(Logger::INFO, "Indices count: ", data.Indices.size());
+	LOG_NL();
 
 	return std::make_unique<ModelData>(data);
 }
@@ -192,10 +194,10 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateCube(glm::vec3 _offset, std
 
 	data.IsStatic = _isStatic;
 
-#ifdef _DEBUG
-	std::cout << "Vertices count: " << data.Vertices.size() << std::endl;
-	std::cout << "Indices count: " << data.Indices.size() << std::endl;
-#endif
+	LOG(Logger::INFO, "Model: Cube");
+	LOG(Logger::INFO, "Vertices count: ", data.Vertices.size());
+	LOG(Logger::INFO, "Indices count: ", data.Indices.size());
+	LOG_NL();
 
 	return std::make_unique<ModelData>(data);
 }

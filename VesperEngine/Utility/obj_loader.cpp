@@ -1,6 +1,7 @@
 #include "obj_loader.h"
 
 #include "Utility/hash.h"
+#include "Utility/logger.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/hash.hpp"
@@ -109,11 +110,11 @@ std::unique_ptr<ModelData> ObjLoader::LoadModel(const std::string& _filePath, bo
 	}
 
 	model.IsStatic = _isStatic;
-	
-#ifdef _DEBUG
-	std::cout << "Vertices count: " << model.Vertices.size() << std::endl;
-	std::cout << "Indices count: " << model.Indices.size() << std::endl;
-#endif
+
+	LOG(Logger::INFO, "Model: ", _filePath);
+	LOG(Logger::INFO, "Vertices count: ", model.Vertices.size());
+	LOG(Logger::INFO, "Indices count: ", model.Indices.size());
+	LOG_NL();
 
 	return std::make_unique<ModelData>(model);
 }
