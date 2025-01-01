@@ -148,7 +148,7 @@ void SimpleRenderSystem::SetupePipeline(PipelineConfigInfo& _pipelineConfig)
 {
 	m_pipeline = std::make_unique<Pipeline>(
 		m_device,
-		std::vector{ ShaderInfo{"Assets/Shaders/simple_shader.vert.spv", ShaderType::Vertex}, ShaderInfo{"Assets/Shaders/simple_shader.frag.spv", ShaderType::Fragment}, },
+		std::vector{ ShaderInfo{m_app.GetConfig().ShadersPath + "simple_shader.vert.spv", ShaderType::Vertex}, ShaderInfo{m_app.GetConfig().ShadersPath + "simple_shader.frag.spv", ShaderType::Fragment}, },
 		_pipelineConfig
 	);
 }

@@ -16,6 +16,7 @@
 #include "vma/vk_mem_alloc.h"
 
 #include <vector>
+#include <memory>
 
 
 VESPERENGINE_NAMESPACE_BEGIN
@@ -36,13 +37,6 @@ struct Vertex
 	}
 };
 
-struct ModelData
-{
-	std::vector<Vertex> Vertices{};
-	std::vector<uint32> Indices{};
-	bool IsStatic{false};
-};
-
 struct TextureData
 {
 	VmaAllocation AllocationMemory{ VK_NULL_HANDLE };	// Memory allocation handled by VMA
@@ -51,8 +45,9 @@ struct TextureData
 	VkSampler Sampler{ VK_NULL_HANDLE };				// The sampler for texture filtering
 };
 
-enum class MaterialType
+enum class MaterialType : uint32
 {
+	Invalid,
 	Phong,
 	PBR
 };
@@ -60,18 +55,31 @@ enum class MaterialType
 struct MaterialData
 {
 	MaterialType Type;
+	std::string Name;
 	bool bIsBound;
 
-	MaterialData(MaterialType _type) : Type(_type), bIsBound(false) {}
+	MaterialData() : Type(MaterialType::Invalid), Name(""), bIsBound(false) {}
+	MaterialData(MaterialType _type) : Type(_type), Name(""), bIsBound(false) {}
+	MaterialData(MaterialType _type, const std::string& _name) : Type(_type), Name(_name), bIsBound(false) {}
 
 	// only to force polymorphisms
 	virtual ~MaterialData() = default;
 };
 
+struct ModelData
+{
+	std::vector<Vertex> Vertices{};
+	std::vector<uint32> Indices{};
+	std::unique_ptr<MaterialData> Material;
+	bool IsStatic{ false };
+};
+
+
 // This is used only to load from disk, has the texture paths
 struct MaterialDataPhong : public MaterialData
 {
-	MaterialDataPhong() : MaterialData(MaterialType::Phong) {}
+	MaterialDataPhong() : MaterialData(MaterialType::Phong, "Phong") {}
+	MaterialDataPhong(const std::string& _name) : MaterialData(MaterialType::Phong, _name) {}
 
 	glm::vec4 AmbientColor{ 1.0f, 1.0f, 1.0f, 1.0f };
 	glm::vec4 DiffuseColor{ 1.0f, 1.0f, 1.0f, 1.0f };
@@ -89,7 +97,8 @@ struct MaterialDataPhong : public MaterialData
 // This is used only to load from disk, has the texture paths
 struct MaterialDataPBR : public MaterialData
 {
-	MaterialDataPBR() : MaterialData(MaterialType::PBR) {}
+	MaterialDataPBR() : MaterialData(MaterialType::PBR, "PBR") {}
+	MaterialDataPBR(const std::string& _name) : MaterialData(MaterialType::PBR, _name) {}
 
 	float Roughness{ 0.0f };
 	float Metallic{ 0.0f };

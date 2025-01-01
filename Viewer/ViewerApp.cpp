@@ -120,7 +120,7 @@ ViewerApp::ViewerApp(Config& _config) :
 		uboAlignedSize);
 
 	m_cameraSystem = std::make_unique<CameraSystem>(*this);
-	m_objLoader = std::make_unique<ObjLoader>(*m_device);
+	m_objLoader = std::make_unique<ObjLoader>(*this , *m_device);
 	m_buffer = std::make_unique<Buffer>(*m_device);
 
 	m_keyboardController = std::make_unique<KeyboardMovementCameraController>(*this);
@@ -355,7 +355,7 @@ void ViewerApp::LoadGameEntities()
 	//////////////////////////////////////////////////////////////////////////
 	// Cube
 	{
-		std::vector<std::unique_ptr<ModelData>> coloredCubeDataList = m_objLoader->LoadModel("Assets/Models/colored_cube.obj");
+		std::vector<std::unique_ptr<ModelData>> coloredCubeDataList = m_objLoader->LoadModel("colored_cube.obj");
 		for (auto& coloredCubeData : coloredCubeDataList)
 		{
 			ecs::Entity coloredCube = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
@@ -382,7 +382,7 @@ void ViewerApp::LoadGameEntities()
 	//////////////////////////////////////////////////////////////////////////
 	// Flat Vase
 	{
-		std::vector<std::unique_ptr<ModelData>> flatVaseDataList = m_objLoader->LoadModel("Assets/Models/flat_vase.obj");
+		std::vector<std::unique_ptr<ModelData>> flatVaseDataList = m_objLoader->LoadModel("flat_vase.obj");
 		for (auto& flatVaseData : flatVaseDataList)
 		{
 			ecs::Entity flatVase = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
@@ -401,7 +401,7 @@ void ViewerApp::LoadGameEntities()
 	//////////////////////////////////////////////////////////////////////////
 	// Smooth Vase
 	{
-		std::vector<std::unique_ptr<ModelData>> smoothVaseDataList = m_objLoader->LoadModel("Assets/Models/smooth_vase.obj");
+		std::vector<std::unique_ptr<ModelData>> smoothVaseDataList = m_objLoader->LoadModel("smooth_vase.obj");
 		for (auto& smoothVaseData : smoothVaseDataList)
 		{
 			ecs::Entity smoothVase = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
@@ -420,7 +420,7 @@ void ViewerApp::LoadGameEntities()
 	//////////////////////////////////////////////////////////////////////////
 	// Plane / Quad
 	{
-		std::vector<std::unique_ptr<ModelData>> quadDataList = m_objLoader->LoadModel("Assets/Models/quad.obj");
+		std::vector<std::unique_ptr<ModelData>> quadDataList = m_objLoader->LoadModel("quad.obj");
 		for (auto& quadData : quadDataList)
 		{
 			ecs::Entity quad = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);

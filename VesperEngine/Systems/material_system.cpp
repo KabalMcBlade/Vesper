@@ -6,6 +6,7 @@
 #include "glm/gtx/hash.hpp"
 
 #include "App/vesper_app.h"
+#include "Utility/logger.h"
 
 #include "../stb/stb_image.h"
 
@@ -31,6 +32,10 @@ size_t HashMaterialData(const MaterialData& _data)
 	{
 		vesper::HashCombine(hash, value);
 	};
+
+	hashCombine(_data.Name);
+	hashCombine(_data.Type);
+	hashCombine(_data.bIsBound);
 
 	if (_data.Type == MaterialType::Phong)
 	{
@@ -82,6 +87,12 @@ MaterialSystem::MaterialSystem(VesperApp& _app, Device& _device)
 
 int32 MaterialSystem::CreateMaterial(const MaterialData& _data) 
 {
+	if (_data.Type == MaterialType::Invalid)
+	{
+		LOG(Logger::WARNING, "Cannot create Material! Material passed is Invalid");
+		return -1;
+	}
+
 	const size_t hash = HashMaterialData(_data);
 
 	// Check if the material already exists

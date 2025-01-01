@@ -11,6 +11,7 @@
 #include "glm/glm.hpp"
 
 #include "vma/vk_mem_alloc.h"
+#include <vector>
 
 
 VESPERENGINE_NAMESPACE_BEGIN
@@ -55,7 +56,8 @@ struct NotIndexBufferComponent
 
 struct MaterialComponent
 {
-	VkDescriptorSet DescriptorSet { VK_NULL_HANDLE };
+	// store the descriptor set bound to the resource per presentation frame (1,2 or 3)
+	std::vector<VkDescriptorSet> BoundDescriptorSet;
 };
 
 

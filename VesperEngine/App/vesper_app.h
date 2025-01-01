@@ -21,6 +21,8 @@ public:
 	ecs::ComponentManager& GetComponentManager();
 	ecs::EntityManager& GetEntityManager();
 
+	VESPERENGINE_INLINE const Config& GetConfig() const { return m_config; }
+
 private:
 	void InitialieECS();
 	void ShutdownECS();

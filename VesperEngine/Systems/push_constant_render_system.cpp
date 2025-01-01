@@ -150,7 +150,7 @@ void PushConstantRenderSystem::SetupePipeline(PipelineConfigInfo& _pipelineConfi
 {
 	m_pipeline = std::make_unique<Pipeline>(
 		m_device,
-		std::vector{ ShaderInfo{"Assets/Shaders/push_constant_shader.vert.spv", ShaderType::Vertex}, ShaderInfo{"Assets/Shaders/push_constant_shader.frag.spv", ShaderType::Fragment}, },
+		std::vector{ ShaderInfo{ m_app.GetConfig().ShadersPath + "push_constant_shader.vert.spv", ShaderType::Vertex}, ShaderInfo{m_app.GetConfig().ShadersPath + "push_constant_shader.frag.spv", ShaderType::Fragment}, },
 		_pipelineConfig
 		);
 }
