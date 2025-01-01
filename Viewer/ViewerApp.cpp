@@ -354,73 +354,85 @@ void ViewerApp::LoadGameEntities()
 	//////////////////////////////////////////////////////////////////////////
 	// Cube
 	{
-		std::unique_ptr<ModelData> coloredCubeData = m_objLoader->LoadModel("Assets/Models/colored_cube.obj");
-		ecs::Entity coloredCube = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
+		std::vector<std::unique_ptr<ModelData>> coloredCubeDataList = m_objLoader->LoadModel("Assets/Models/colored_cube.obj");
+		for (auto& coloredCubeData : coloredCubeDataList)
+		{
+			ecs::Entity coloredCube = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
 
-		m_modelSystem->LoadModel(coloredCube, std::move(coloredCubeData));
+			m_modelSystem->LoadModel(coloredCube, std::move(coloredCubeData));
 
-		TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(coloredCube);
-		transformComponent.Position = { 0.0f, 0.0f, 0.0f };
-		transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
-		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
+			TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(coloredCube);
+			transformComponent.Position = { 0.0f, 0.0f, 0.0f };
+			transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
+			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-		m_simpleRenderSystem->RegisterEntity(coloredCube);
+			m_simpleRenderSystem->RegisterEntity(coloredCube);
 
-		// test
-		GetComponentManager().AddComponent<RotationComponent>(coloredCube);
+			// test
+			GetComponentManager().AddComponent<RotationComponent>(coloredCube);
 
-		static const float radPerFrame = 0.00174533f;     // 0.1 deg
-		RotationComponent& rotateComponent = GetComponentManager().GetComponent<RotationComponent>(coloredCube);
-		rotateComponent.RotationAxis = glm::vec3(0.0f, 0.0f, 1.0f);
-		rotateComponent.RadiantPerFrame = radPerFrame;
+			static const float radPerFrame = 0.00174533f;     // 0.1 deg
+			RotationComponent& rotateComponent = GetComponentManager().GetComponent<RotationComponent>(coloredCube);
+			rotateComponent.RotationAxis = glm::vec3(0.0f, 0.0f, 1.0f);
+			rotateComponent.RadiantPerFrame = radPerFrame;
+		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////
 	// Flat Vase
 	{
-		std::unique_ptr<ModelData> flatVaseData = m_objLoader->LoadModel("Assets/Models/flat_vase.obj");
-		ecs::Entity flatVase = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
+		std::vector<std::unique_ptr<ModelData>> flatVaseDataList = m_objLoader->LoadModel("Assets/Models/flat_vase.obj");
+		for (auto& flatVaseData : flatVaseDataList)
+		{
+			ecs::Entity flatVase = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
 
-		m_modelSystem->LoadModel(flatVase, std::move(flatVaseData));
+			m_modelSystem->LoadModel(flatVase, std::move(flatVaseData));
 
-		TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(flatVase);
-		transformComponent.Position = { -1.0f, 0.5f, 0.0f };
-		transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
-		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
+			TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(flatVase);
+			transformComponent.Position = { -1.0f, 0.5f, 0.0f };
+			transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
+			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-		m_simpleRenderSystem->RegisterEntity(flatVase);
+			m_simpleRenderSystem->RegisterEntity(flatVase);
+		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////
 	// Smooth Vase
 	{
-		std::unique_ptr<ModelData> smoothVaseData = m_objLoader->LoadModel("Assets/Models/smooth_vase.obj");
-		ecs::Entity smoothVase = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
+		std::vector<std::unique_ptr<ModelData>> smoothVaseDataList = m_objLoader->LoadModel("Assets/Models/smooth_vase.obj");
+		for (auto& smoothVaseData : smoothVaseDataList)
+		{
+			ecs::Entity smoothVase = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
 
-		m_modelSystem->LoadModel(smoothVase, std::move(smoothVaseData));
+			m_modelSystem->LoadModel(smoothVase, std::move(smoothVaseData));
 
-		TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(smoothVase);
-		transformComponent.Position = { 1.0f, 0.5f, 0.0f };
-		transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
-		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
+			TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(smoothVase);
+			transformComponent.Position = { 1.0f, 0.5f, 0.0f };
+			transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
+			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-		m_simpleRenderSystem->RegisterEntity(smoothVase);
+			m_simpleRenderSystem->RegisterEntity(smoothVase);
+		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////
 	// Plane / Quad
 	{
-		std::unique_ptr<ModelData> quadData = m_objLoader->LoadModel("Assets/Models/quad.obj");
-		ecs::Entity quad = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
+		std::vector<std::unique_ptr<ModelData>> quadDataList = m_objLoader->LoadModel("Assets/Models/quad.obj");
+		for (auto& quadData : quadDataList)
+		{
+			ecs::Entity quad = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
 
-		m_modelSystem->LoadModel(quad, std::move(quadData));
+			m_modelSystem->LoadModel(quad, std::move(quadData));
 
-		TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(quad);
-		transformComponent.Position = { 0.0f, 1.0f, 0.0f };
-		transformComponent.Scale = { 3.0f, 1.0f, 3.0f };
-		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
+			TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(quad);
+			transformComponent.Position = { 0.0f, 1.0f, 0.0f };
+			transformComponent.Scale = { 3.0f, 1.0f, 3.0f };
+			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-		m_simpleRenderSystem->RegisterEntity(quad);
+			m_simpleRenderSystem->RegisterEntity(quad);
+		}
 	}
 }
 

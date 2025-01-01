@@ -7,6 +7,7 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 
 
 VESPERENGINE_NAMESPACE_BEGIN
@@ -21,7 +22,7 @@ public:
 	ObjLoader& operator=(const ObjLoader&) = delete;
 
 public:
-	std::unique_ptr<ModelData> LoadModel(const std::string& _filePath, bool _isStatic = true);
+	std::vector<std::unique_ptr<ModelData>> LoadModel(const std::string& _filePath, bool _isStatic = true);
 
 private:
 	Device& m_device;

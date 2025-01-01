@@ -41,9 +41,9 @@ ObjLoader::ObjLoader(Device& _device)
 
 }
 
-std::unique_ptr<ModelData> ObjLoader::LoadModel(const std::string& _filePath, bool _isStatic)
+std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& _filePath, bool _isStatic)
 {
-	ModelData model;
+	std::vector<std::unique_ptr<ModelData>> models;
 
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
@@ -56,16 +56,19 @@ std::unique_ptr<ModelData> ObjLoader::LoadModel(const std::string& _filePath, bo
 		throw std::runtime_error(warning + error);
 	}
 
-	std::unordered_map<Vertex, uint32> uniqueVertices{};
-	for (const auto& shape : shapes) 
+	for (const auto& shape : shapes)
 	{
-		for (const auto& index : shape.mesh.indices) 
+		// Create a new ModelData for this shape
+		auto model = std::make_unique<ModelData>();
+		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+
+		for (const auto& index : shape.mesh.indices)
 		{
 			Vertex vertex{};
 
-			if (index.vertex_index >= 0) 
+			if (index.vertex_index >= 0)
 			{
-				vertex.Position = 
+				vertex.Position =
 				{
 					attrib.vertices[3 * index.vertex_index + 0],
 					attrib.vertices[3 * index.vertex_index + 1],
@@ -99,24 +102,31 @@ std::unique_ptr<ModelData> ObjLoader::LoadModel(const std::string& _filePath, bo
 				};
 			}
 
-			if (uniqueVertices.count(vertex) == 0) 
+			if (uniqueVertices.count(vertex) == 0)
 			{
-				uniqueVertices[vertex] = static_cast<uint32_t>(model.Vertices.size());
-				model.Vertices.push_back(vertex);
+				uniqueVertices[vertex] = static_cast<uint32_t>(model->Vertices.size());
+				model->Vertices.push_back(vertex);
 			}
 
-			model.Indices.push_back(uniqueVertices[vertex]);
+			model->Indices.push_back(uniqueVertices[vertex]);
 		}
+
+		model->IsStatic = _isStatic;
+
+		LOG(Logger::INFO, "Shape: ", shape.name);
+		LOG(Logger::INFO, "Vertices count: ", model->Vertices.size());
+		LOG(Logger::INFO, "Indices count: ", model->Indices.size());
+		LOG_NL();
+
+		// Add the model for this shape to the list
+		models.push_back(std::move(model));
 	}
 
-	model.IsStatic = _isStatic;
-
-	LOG(Logger::INFO, "Model: ", _filePath);
-	LOG(Logger::INFO, "Vertices count: ", model.Vertices.size());
-	LOG(Logger::INFO, "Indices count: ", model.Indices.size());
+	LOG(Logger::INFO, "Total shapes processed: ", models.size());
+	LOG_NL();
 	LOG_NL();
 
-	return std::make_unique<ModelData>(model);
+	return models;
 }
 
 VESPERENGINE_NAMESPACE_END

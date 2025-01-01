@@ -27,6 +27,10 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateTriangleNoIndices(glm::vec3
 	LOG(Logger::INFO, "Indices count: ", data.Indices.size());
 	LOG_NL();
 
+	LOG(Logger::INFO, "Total shapes processed: 1");
+	LOG_NL();
+	LOG_NL();
+
 	return std::make_unique<ModelData>(data);
 }
 
@@ -53,6 +57,10 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateTriangle(glm::vec3 _offset,
 	LOG(Logger::INFO, "Model: Triangle");
 	LOG(Logger::INFO, "Vertices count: ", data.Vertices.size());
 	LOG(Logger::INFO, "Indices count: ", data.Indices.size());
+	LOG_NL();
+
+	LOG(Logger::INFO, "Total shapes processed: 1");
+	LOG_NL();
 	LOG_NL();
 
 	return std::make_unique<ModelData>(data);
@@ -131,6 +139,10 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateCubeNoIndices(glm::vec3 _of
 	LOG(Logger::INFO, "Indices count: ", data.Indices.size());
 	LOG_NL();
 
+	LOG(Logger::INFO, "Total shapes processed: 1");
+	LOG_NL();
+	LOG_NL();
+
 	return std::make_unique<ModelData>(data);
 }
 
@@ -197,6 +209,10 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateCube(glm::vec3 _offset, std
 	LOG(Logger::INFO, "Model: Cube");
 	LOG(Logger::INFO, "Vertices count: ", data.Vertices.size());
 	LOG(Logger::INFO, "Indices count: ", data.Indices.size());
+	LOG_NL();
+
+	LOG(Logger::INFO, "Total shapes processed: 1");
+	LOG_NL();
 	LOG_NL();
 
 	return std::make_unique<ModelData>(data);

@@ -12,6 +12,8 @@
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
 
+#include "ECS/ECS/ecs.h"
+
 
 VESPERENGINE_NAMESPACE_BEGIN
 
@@ -20,6 +22,9 @@ struct TransformComponent
 	glm::vec3 Position{ 0.0f, 0.0f, 0.0f };
 	glm::vec3 Scale{ 1.f, 1.f, 1.f };
 	glm::quat Rotation{ 1.0f, 0.0f, 0.0f, 0.0f };
+
+	ecs::Entity Parent = ecs::UnknowEntity;
+	std::vector<ecs::Entity> Children;
 };
 
 // define an object which never change
