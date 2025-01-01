@@ -42,7 +42,7 @@ public:
 protected:
 	virtual void UpdateFrame(const FrameInfo& _frameInfo) override;
 	virtual void RenderFrame(const FrameInfo& _frameInfo) override;
-	virtual void SetupePipeline(PipelineConfigInfo& _pipelineConfig) override;
+	virtual void SetupPipeline(PipelineConfigInfo& _pipelineConfig) override;
 
 private:
 	VesperApp& m_app;

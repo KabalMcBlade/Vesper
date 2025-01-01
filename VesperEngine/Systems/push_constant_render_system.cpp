@@ -146,7 +146,7 @@ void PushConstantRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 	}
 }
 
-void PushConstantRenderSystem::SetupePipeline(PipelineConfigInfo& _pipelineConfig)
+void PushConstantRenderSystem::SetupPipeline(PipelineConfigInfo& _pipelineConfig)
 {
 	m_pipeline = std::make_unique<Pipeline>(
 		m_device,

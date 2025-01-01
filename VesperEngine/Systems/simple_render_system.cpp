@@ -144,7 +144,7 @@ void SimpleRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 	}
 }
 
-void SimpleRenderSystem::SetupePipeline(PipelineConfigInfo& _pipelineConfig)
+void SimpleRenderSystem::SetupPipeline(PipelineConfigInfo& _pipelineConfig)
 {
 	m_pipeline = std::make_unique<Pipeline>(
 		m_device,

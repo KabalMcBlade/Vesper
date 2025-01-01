@@ -41,7 +41,7 @@ public:
 protected:
 	virtual void UpdateFrame(const FrameInfo& _frameInfo) {}
 	virtual void RenderFrame(const FrameInfo& _frameInfo) {}
-	virtual void SetupePipeline(PipelineConfigInfo& _pipelineConfig) {};
+	virtual void SetupPipeline(PipelineConfigInfo& _pipelineConfig) {};
 
 protected:
 	void PushConstants(VkCommandBuffer _commandBuffer, const uint32 _pushConstantIndex, const void* _pushConstantValue) const;

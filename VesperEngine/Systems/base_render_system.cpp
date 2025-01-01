@@ -70,7 +70,7 @@ void BaseRenderSystem::CreatePipeline(VkRenderPass _renderPass)
 	pipelineConfig.RenderPass = _renderPass;
 	pipelineConfig.PipelineLayout = m_pipelineLayout;
 
-	SetupePipeline(pipelineConfig);
+	SetupPipeline(pipelineConfig);
 }
 
 void BaseRenderSystem::PushConstants(VkCommandBuffer _commandBuffer, const uint32 _pushConstantIndex, const void* _pushConstantValue) const
