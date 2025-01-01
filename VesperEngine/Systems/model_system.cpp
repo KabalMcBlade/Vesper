@@ -17,6 +17,21 @@ ModelSystem::ModelSystem(VesperApp& _app, Device& _device)
 
 void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _data) const
 {
+	// add material component
+	switch (_data->Material->Type)
+	{
+	case MaterialType::Phong:
+		m_app.GetComponentManager().AddComponent<PhongMaterialComponent>(_entity);
+		break;
+	case MaterialType::PBR:
+		m_app.GetComponentManager().AddComponent<PBRMaterialComponent>(_entity);
+		break;
+	case MaterialType::Invalid:
+	default:
+		m_app.GetComponentManager().AddComponent<NoMaterialComponent>(_entity);
+		break;
+	}
+
 	// depending by the data, add the component
 	if (_data->IsStatic)
 	{
@@ -101,7 +116,20 @@ void ModelSystem::UnloadModel(ecs::Entity _entity) const
 		m_app.GetComponentManager().RemoveComponent<StaticComponent>(_entity);
 	}
 
-	// material later
+	if (m_app.GetComponentManager().HasComponents<PhongMaterialComponent>(_entity))
+	{
+		m_app.GetComponentManager().RemoveComponent<PhongMaterialComponent>(_entity);
+	}
+
+	if (m_app.GetComponentManager().HasComponents<PBRMaterialComponent>(_entity))
+	{
+		m_app.GetComponentManager().RemoveComponent<PBRMaterialComponent>(_entity);
+	}
+
+	if (m_app.GetComponentManager().HasComponents<NoMaterialComponent>(_entity))
+	{
+		m_app.GetComponentManager().RemoveComponent<NoMaterialComponent>(_entity);
+	}
 }
 
 void ModelSystem::UnloadModels() const

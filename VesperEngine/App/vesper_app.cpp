@@ -54,7 +54,9 @@ void VesperApp::RegisterDefaultComponents()
 
 	// OBJECTS
 	m_componentManager.RegisterComponent<TransformComponent>();
-	m_componentManager.RegisterComponent<MaterialComponent>();
+	m_componentManager.RegisterComponent<NoMaterialComponent>();
+	m_componentManager.RegisterComponent<PhongMaterialComponent>();
+	m_componentManager.RegisterComponent<PBRMaterialComponent>();
 	m_componentManager.RegisterComponent<StaticComponent>();
 
 	// BUFFERS
@@ -77,7 +79,9 @@ void VesperApp::UnregisterDefaultComponent()
 
 	// OBJECTS
 	m_componentManager.UnregisterComponent<TransformComponent>();
-	m_componentManager.UnregisterComponent<MaterialComponent>();
+	m_componentManager.UnregisterComponent<NoMaterialComponent>();
+	m_componentManager.UnregisterComponent<PhongMaterialComponent>();
+	m_componentManager.UnregisterComponent<PBRMaterialComponent>();
 	m_componentManager.UnregisterComponent<StaticComponent>();
 
 	// BUFFERS

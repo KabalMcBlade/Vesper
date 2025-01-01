@@ -331,6 +331,8 @@ void ViewerApp::LoadGameEntities()
 			{ glm::vec3(.9f, .9f, .9f), glm::vec3(.8f, .8f, .1f), glm::vec3(.9f, .6f, .1f), glm::vec3(.8f, .1f, .1f), glm::vec3(.1f, .1f, .8f), glm::vec3(.1f, .8f, .1f) }
 		);
 
+		cubeNoIndicesData->Material = std::make_unique<MaterialData>();
+
 		ecs::Entity cubeNoIndices = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
 
 		m_modelSystem->LoadModel(cubeNoIndices, std::move(cubeNoIndicesData));

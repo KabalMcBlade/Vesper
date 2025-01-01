@@ -54,12 +54,29 @@ struct NotIndexBufferComponent
 
 };
 
+
+// Pure struct, means is not registered and MUST not be registered.
+// Used as base structures for Materials
 struct MaterialComponent
 {
 	// store the descriptor set bound to the resource per presentation frame (1,2 or 3)
 	std::vector<VkDescriptorSet> BoundDescriptorSet;
 };
 
+// Special, to render without material
+struct NoMaterialComponent
+{
+};
+
+// used with PhongRenderSystem
+struct PhongMaterialComponent : public MaterialComponent
+{
+};
+
+// used with PBRRenderSystem
+struct PBRMaterialComponent : public MaterialComponent
+{
+};
 
 struct DynamicOffsetComponent
 {
