@@ -153,6 +153,9 @@
     <ClInclude Include="Utility\logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Systems\material_system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Backend\pipeline.cpp">
@@ -219,6 +222,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Utility\logger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Systems\material_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -13,6 +13,8 @@
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
 
+#include "vma/vk_mem_alloc.h"
+
 #include <vector>
 
 
@@ -40,5 +42,105 @@ struct ModelData
 	std::vector<uint32> Indices{};
 	bool IsStatic{false};
 };
+
+struct TextureData
+{
+	VmaAllocation AllocationMemory{ VK_NULL_HANDLE };	// Memory allocation handled by VMA
+	VkImage Image{ VK_NULL_HANDLE };					// The Vulkan image
+	VkImageView ImageView{ VK_NULL_HANDLE };			// The image view for shader access
+	VkSampler Sampler{ VK_NULL_HANDLE };				// The sampler for texture filtering
+};
+
+enum class MaterialType
+{
+	Phong,
+	PBR
+};
+
+struct MaterialData
+{
+	MaterialType Type;
+	bool bIsBound;
+
+	MaterialData(MaterialType _type) : Type(_type), bIsBound(false) {}
+
+	// only to force polymorphisms
+	virtual ~MaterialData() = default;
+};
+
+// This is used only to load from disk, has the texture paths
+struct MaterialDataPhong : public MaterialData
+{
+	MaterialDataPhong() : MaterialData(MaterialType::Phong) {}
+
+	glm::vec4 AmbientColor{ 1.0f, 1.0f, 1.0f, 1.0f };
+	glm::vec4 DiffuseColor{ 1.0f, 1.0f, 1.0f, 1.0f };
+	glm::vec4 SpecularColor{ 1.0f, 1.0f, 1.0f, 1.0f };
+	glm::vec4 EmissionColor{ 1.0f, 1.0f, 1.0f, 1.0f };
+
+	float Shininess{ 0.0f };
+
+	std::string AmbientTexturePath;	
+	std::string DiffuseTexturePath;	
+	std::string SpecularTexturePath; 
+	std::string NormalTexturePath;
+};
+
+// This is used only to load from disk, has the texture paths
+struct MaterialDataPBR : public MaterialData
+{
+	MaterialDataPBR() : MaterialData(MaterialType::PBR) {}
+
+	float Roughness{ 0.0f };
+	float Metallic{ 0.0f };
+	float Sheen{ 0.0f };
+	float ClearcoatThickness{ 0.0f };
+	float ClearcoatRoughness{ 0.0f };
+	float Anisotropy{ 0.0f };
+	float AnisotropyRotation{ 0.0f };
+
+	std::string RoughnessTexturePath;
+	std::string MetallicTexturePath;
+	std::string SheenTexturePath;
+	std::string EmissiveTexturePath;
+	std::string NormalMapTexturePath;
+};
+
+struct MaterialPhong : public MaterialData
+{
+	MaterialPhong() : MaterialData(MaterialType::Phong) {}
+
+	glm::vec4 AmbientColor{ 1.0f, 1.0f, 1.0f, 1.0f };
+	glm::vec4 DiffuseColor{ 1.0f, 1.0f, 1.0f, 1.0f };
+	glm::vec4 SpecularColor{ 1.0f, 1.0f, 1.0f, 1.0f };
+	glm::vec4 EmissionColor{ 1.0f, 1.0f, 1.0f, 1.0f };
+
+	float Shininess{ 0.0f };
+
+	TextureData AmbientTexture;
+	TextureData DiffuseTexture;
+	TextureData SpecularTexture;
+	TextureData NormalTexture;
+};
+
+struct MaterialPBR : public MaterialData
+{
+	MaterialPBR() : MaterialData(MaterialType::PBR) {}
+
+	float Roughness{ 0.0f };
+	float Metallic{ 0.0f };
+	float Sheen{ 0.0f };
+	float ClearcoatThickness{ 0.0f };
+	float ClearcoatRoughness{ 0.0f };
+	float Anisotropy{ 0.0f };
+	float AnisotropyRotation{ 0.0f };
+
+	TextureData RoughnessTexture;
+	TextureData MetallicTexture;
+	TextureData SheenTexture;
+	TextureData EmissiveTexture;		// Should be combined already with DiffuseTexture
+	TextureData NormalMapTexture;
+};
+
 
 VESPERENGINE_NAMESPACE_END

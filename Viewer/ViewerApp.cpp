@@ -112,6 +112,7 @@ ViewerApp::ViewerApp(Config& _config) :
 
 	m_gameEntitySystem = std::make_unique<GameEntitySystem>(*this);
 	m_modelSystem = std::make_unique<ModelSystem>(*this, *m_device);
+	m_materialSystem = std::make_unique<MaterialSystem>(*this, *m_device);
 
 	m_simpleRenderSystem = std::make_unique<SimpleRenderSystem>(*this , *m_device, m_renderer->GetSwapChainRenderPass(),
 		m_globalSetLayout->GetDescriptorSetLayout(),
@@ -438,6 +439,7 @@ void ViewerApp::LoadGameEntities()
 
 void ViewerApp::UnloadGameEntities()
 {
+	m_materialSystem->Cleanup();
 	m_modelSystem->UnloadModels();
 	m_simpleRenderSystem->UnregisterEntities();
 	m_gameEntitySystem->DestroyGameEntities();

@@ -43,6 +43,7 @@ private:
 
 	std::unique_ptr<GameEntitySystem> m_gameEntitySystem;
 	std::unique_ptr<ModelSystem> m_modelSystem;
+	std::unique_ptr<MaterialSystem> m_materialSystem;
 	std::unique_ptr<SimpleRenderSystem> m_simpleRenderSystem;
 
 	std::unique_ptr<CameraSystem> m_cameraSystem;

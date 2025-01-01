@@ -83,6 +83,7 @@ public:
 	void EndSingleTimeCommands(VkCommandBuffer _commandBuffer);
 	void CopyBuffer(VkBuffer _srcBuffer, VkBuffer _dstBuffer, VkDeviceSize _size);
 	void CopyBufferToImage(VkBuffer _buffer, VkImage _image, uint32 _width, uint32 _height, uint32 _layerCount);
+	void TransitionImageLayout(VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout);
 
 private:
 	// VMA memory settings!

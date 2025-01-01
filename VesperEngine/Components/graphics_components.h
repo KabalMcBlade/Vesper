@@ -55,8 +55,9 @@ struct NotIndexBufferComponent
 
 struct MaterialComponent
 {
-	glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };	// opaque white
+	VkDescriptorSet DescriptorSet { VK_NULL_HANDLE };
 };
+
 
 struct DynamicOffsetComponent
 {
