@@ -54,8 +54,9 @@ public:
 
 		if (_minOffsetAlignment > 1)
 		{
-			bufferObject.Size = GetAlignment(_instanceSize, _minOffsetAlignment);
-			const VkDeviceSize bufferSize = bufferObject.Size * _instanceCount;
+			bufferObject.Size = _instanceSize;
+			bufferObject.AlignedSize = GetAlignment(_instanceSize, _minOffsetAlignment);
+			const VkDeviceSize bufferSize = bufferObject.AlignedSize * _instanceCount;
 			m_device.CreateBufferWithAlignment(
 				bufferSize,
 				_usageFlags,
@@ -63,13 +64,14 @@ public:
 				_allocationFlags,
 				bufferObject.Buffer,
 				bufferObject.AllocationMemory,
-				bufferObject.Size,
+				bufferObject.AlignedSize,
 				_isPersistent
 			);
 		}
 		else
 		{
 			bufferObject.Size = _instanceSize;
+			bufferObject.AlignedSize = _instanceSize;
 			const VkDeviceSize bufferSize = _instanceSize * _instanceCount;
 			m_device.CreateBuffer(
 				bufferSize,
@@ -93,10 +95,10 @@ public:
 
 	// NOT NEED IT FOR PERSISTENT BUFFER!
 	template<typename BufferType>
-	VkResult Map(BufferType& _buffer, void** _outMappedData)
+	VkResult Map(BufferType& _buffer)
 	{
 		assertMsgReturnValue(_buffer.Buffer && _buffer.AllocationMemory, "Called map on buffer before create", VK_ERROR_UNKNOWN);
-		return vmaMapMemory(m_device.GetAllocator(), _buffer.AllocationMemory, _outMappedData);
+		return vmaMapMemory(m_device.GetAllocator(), _buffer.AllocationMemory, &_buffer.MappedMemory);
 	}
 	
 	// NOT NEED IT FOR PERSISTENT BUFFER!
@@ -109,34 +111,34 @@ public:
 	
 	// PERSISTEN BUFFER VERSION
 	template<typename BufferType>
-	void WriteToBuffer(BufferType& _buffer, void* _outData)
+	void WriteToBuffer(BufferType& _buffer)
 	{
 		VmaAllocationInfo allocationInfo;
 		vmaGetAllocationInfo(m_device.GetAllocator(), _buffer.AllocationMemory, &allocationInfo);
 
-		WriteToBuffer(allocationInfo.pMappedData, _outData, _buffer.Size);
+		WriteToBuffer(allocationInfo.pMappedData, _buffer.MappedMemory, _buffer.AlignedSize);
 	}
 
 	// PERSISTEN BUFFER VERSION
 	template<typename BufferType>
-	void WriteToBufferWithOffset(BufferType& _buffer, void* _outData, VkDeviceSize _offset)
+	void WriteToBufferWithOffset(BufferType& _buffer, VkDeviceSize _offset)
 	{
 		VmaAllocationInfo allocationInfo;
 		vmaGetAllocationInfo(m_device.GetAllocator(), _buffer.AllocationMemory, &allocationInfo);
 
-		WriteToBufferWithOffset(allocationInfo.pMappedData, _outData, _buffer.Size, _offset);
+		WriteToBufferWithOffset(allocationInfo.pMappedData, _buffer.MappedMemory, _buffer.AlignedSize, _offset);
 	} 
 
 	template<typename BufferType>
 	VkResult Flush(BufferType& _buffer, VkDeviceSize _offset = 0)
 	{
-		return vmaFlushAllocation(m_device.GetAllocator(), _buffer.AllocationMemory, _offset, _buffer.Size);
+		return vmaFlushAllocation(m_device.GetAllocator(), _buffer.AllocationMemory, _offset, _buffer.AlignedSize);
 	}
 
 	template<typename BufferType>
 	VkResult Invalidate(BufferType& _buffer, VkDeviceSize _offset)
 	{
-		return vmaInvalidateAllocation(m_device.GetAllocator(), _buffer.AllocationMemory, _offset, _buffer.Size);
+		return vmaInvalidateAllocation(m_device.GetAllocator(), _buffer.AllocationMemory, _offset, _buffer.AlignedSize);
 	}
 
 	template<typename BufferType>
@@ -144,34 +146,34 @@ public:
 	{
 		return VkDescriptorBufferInfo
 		{
-			_buffer.Buffer,		// buffer
-			_offset,			// offset
-			_buffer.Size,		// range
+			_buffer.Buffer,			// buffer
+			_offset,				// offset
+			_buffer.AlignedSize,	// range
 		};
 	}
 
 	template<typename BufferType>
-	void WriteToIndex(BufferType& _buffer, void* _outData, int32 _index)
+	void WriteToIndex(BufferType& _buffer, int32 _index)
 	{
-		WriteToBufferWithOffset(_buffer, _outData, _index * _buffer.Size);
+		WriteToBufferWithOffset(_buffer, _index * _buffer.AlignedSize);
 	}
 
 	template<typename BufferType>
 	VkResult FlushIndex(BufferType& _buffer, int32 _index)
 	{
-		return Flush(_buffer, _index * _buffer.Size);
+		return Flush(_buffer, _index * _buffer.AlignedSize);
 	}
 
 	template<typename BufferType>
 	VkDescriptorBufferInfo GetDescriptorInfoForIndex(BufferType& _buffer, int32 _index)
 	{
-		return GetDescriptorInfo(_buffer, _index * _buffer.Size);
+		return GetDescriptorInfo(_buffer, _index * _buffer.AlignedSize);
 	}
 
 	template<typename BufferType>
 	VkResult InvalidateIndex(BufferType& _buffer, int32 _index)
 	{
-		return Invalidate(_buffer, _index * _buffer.Size);
+		return Invalidate(_buffer, _index * _buffer.AlignedSize);
 	}
 	
 	template<typename BufferTypeFrom, typename BufferTypeTo>

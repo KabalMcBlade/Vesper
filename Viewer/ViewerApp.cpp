@@ -262,10 +262,12 @@ void ViewerApp::Run()
 			sceneUBO.ProjectionMatrix = activeCameraComponent.ProjectionMatrix;
 			sceneUBO.ViewMatrix = activeCameraComponent.ViewMatrix;
 			
-			m_buffer->WriteToBuffer(sceneUboBuffers[frameIndex], &sceneUBO);
+			sceneUboBuffers[frameIndex].MappedMemory = &sceneUBO;
+			m_buffer->WriteToBuffer(sceneUboBuffers[frameIndex]);
 			m_buffer->Flush(sceneUboBuffers[frameIndex]);
 
-			m_buffer->WriteToBuffer(lightUboBuffers[frameIndex], &lightUBO);
+			lightUboBuffers[frameIndex].MappedMemory = &lightUBO;
+			m_buffer->WriteToBuffer(lightUboBuffers[frameIndex]);
 			m_buffer->Flush(lightUboBuffers[frameIndex]);
 
 			// For instance, add here before the swap chain:
@@ -282,7 +284,8 @@ void ViewerApp::Run()
 
 				objectUBO.ModelMatrix = renderComponent.ModelMatrix;
 				 
-				m_buffer->WriteToIndex(objectUboBuffers[frameIndex], &objectUBO, dynamicOffsetComponent.DynamicOffsetIndex);
+				objectUboBuffers[frameIndex].MappedMemory = &objectUBO;
+				m_buffer->WriteToIndex(objectUboBuffers[frameIndex], dynamicOffsetComponent.DynamicOffsetIndex);
 				m_buffer->FlushIndex(objectUboBuffers[frameIndex], dynamicOffsetComponent.DynamicOffsetIndex);
 			}
 

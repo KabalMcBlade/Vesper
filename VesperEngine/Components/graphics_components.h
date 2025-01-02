@@ -24,8 +24,10 @@ struct BufferComponent
 {
 	VmaAllocation AllocationMemory{ VK_NULL_HANDLE };	// value storing the allocation to map/unmap	
 	VkBuffer Buffer{ VK_NULL_HANDLE };					// value used to bind and draw
-	VkDeviceSize Size{ 0 };								// the size (aligned or not) of the current buffer
+	VkDeviceSize Size{ 0 };								// the actual size of the current buffer
+	VkDeviceSize AlignedSize{ 0 };						// Actual aligned size for uniform buffer, if is not required alignment, is equal to Size
 	uint32 Count{ 0 };									// instance count
+	void* MappedMemory{ nullptr };						// Pointer for mapped memory (if needed)
 };
 
 struct VertexBufferComponent : public BufferComponent

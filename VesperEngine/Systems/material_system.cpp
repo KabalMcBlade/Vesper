@@ -419,9 +419,8 @@ void MaterialSystem::CreateTextureImage(const uint8* _data, int32 _width, int32 
 		VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
 	);
 
-	void* bufferData;
-	m_buffer->Map(stagingBuffer, &bufferData);
-	m_buffer->WriteToBuffer(bufferData, (void*)_data, static_cast<size_t>(imageSize));
+	m_buffer->Map(stagingBuffer);
+	m_buffer->WriteToBuffer(stagingBuffer.MappedMemory, (void*)_data, static_cast<size_t>(imageSize));
 	m_buffer->Unmap(stagingBuffer);
 
 

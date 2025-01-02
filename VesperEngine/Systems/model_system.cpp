@@ -160,9 +160,8 @@ VertexBufferComponent ModelSystem::CreateVertexBuffers(const std::vector<Vertex>
 		VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
 	);
 
-	void* data;
-	m_buffer->Map(vertexBufferComponent, &data);
-	m_buffer->WriteToBuffer(data, (void*)_vertices.data(), static_cast<std::size_t>(bufferSize));
+	m_buffer->Map(vertexBufferComponent);
+	m_buffer->WriteToBuffer(vertexBufferComponent.MappedMemory, (void*)_vertices.data(), static_cast<std::size_t>(bufferSize));
 	m_buffer->Unmap(vertexBufferComponent);
 
 	return vertexBufferComponent;
@@ -183,9 +182,8 @@ IndexBufferComponent ModelSystem::CreateIndexBuffer(const std::vector<uint32>& _
 		VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
 	);
 
-	void* data;
-	m_buffer->Map(indexBufferComponent, &data);
-	m_buffer->WriteToBuffer(data, (void*)_indices.data(), static_cast<std::size_t>(bufferSize));
+	m_buffer->Map(indexBufferComponent);
+	m_buffer->WriteToBuffer(indexBufferComponent.MappedMemory, (void*)_indices.data(), static_cast<std::size_t>(bufferSize));
 	m_buffer->Unmap(indexBufferComponent);
 
 	return indexBufferComponent;
@@ -209,9 +207,8 @@ VertexBufferComponent ModelSystem::CreateVertexBuffersWithStagingBuffer(const st
 		VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
 	);
 
-	void* data;
-	m_buffer->Map(stagingBuffer, &data);
-	m_buffer->WriteToBuffer(data, (void*)_vertices.data(), static_cast<std::size_t>(bufferSize));
+	m_buffer->Map(stagingBuffer);
+	m_buffer->WriteToBuffer(stagingBuffer.MappedMemory, (void*)_vertices.data(), static_cast<std::size_t>(bufferSize));
 	m_buffer->Unmap(stagingBuffer);
 	
 	VertexBufferComponent vertexBufferComponent = m_buffer->Create<VertexBufferComponent>(
@@ -244,9 +241,8 @@ IndexBufferComponent ModelSystem::CreateIndexBufferWithStagingBuffer(const std::
 		VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
 	);
 
-	void* data;
-	m_buffer->Map(stagingBuffer, &data);
-	m_buffer->WriteToBuffer(data, (void*)_indices.data(), static_cast<std::size_t>(bufferSize));
+	m_buffer->Map(stagingBuffer);
+	m_buffer->WriteToBuffer(stagingBuffer.MappedMemory, (void*)_indices.data(), static_cast<std::size_t>(bufferSize));
 	m_buffer->Unmap(stagingBuffer);
 
 	IndexBufferComponent indexBufferComponent = m_buffer->Create<IndexBufferComponent>(
