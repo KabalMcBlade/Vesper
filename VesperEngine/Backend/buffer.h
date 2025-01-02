@@ -185,8 +185,8 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	// NON-TEMPLATE FUNCTIONS
 
-	void WriteToBuffer(void* _inMappedData, void* _outData, VkDeviceSize _size);
-	void WriteToBufferWithOffset(void* _inMappedData, void* _outData, VkDeviceSize _size, VkDeviceSize _offset);
+	void WriteToBuffer(void* _outMappedData, void* _inData, VkDeviceSize _size);
+	void WriteToBufferWithOffset(void* _outMappedData, void* _inData, VkDeviceSize _size, VkDeviceSize _offset);
 
 
 private:

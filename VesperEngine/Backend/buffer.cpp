@@ -11,20 +11,20 @@ Buffer::Buffer(Device& device) : m_device{ device }
 {
 }
 
-void Buffer::WriteToBuffer(void* _inMappedData, void* _outData, VkDeviceSize _size)
+void Buffer::WriteToBuffer(void* _outMappedData, void* _inData, VkDeviceSize _size)
 {
-	assertMsgReturnVoid(_inMappedData, "Cannot copy to unmapped buffer");
+	assertMsgReturnVoid(_outMappedData, "Cannot copy to unmapped buffer");
 
-	MemCpy(_inMappedData, _outData, _size);
+	MemCpy(_outMappedData, _inData, _size);
 }
 
-void Buffer::WriteToBufferWithOffset(void* _inMappedData, void* _outData, VkDeviceSize _size, VkDeviceSize _offset)
+void Buffer::WriteToBufferWithOffset(void* _outMappedData, void* _inData, VkDeviceSize _size, VkDeviceSize _offset)
 {
-	assertMsgReturnVoid(_inMappedData, "Cannot copy to unmapped buffer");
+	assertMsgReturnVoid(_outMappedData, "Cannot copy to unmapped buffer");
 
-	uint8* memOffset = (uint8*)_inMappedData;
+	uint8* memOffset = (uint8*)_outMappedData;
 	memOffset += _offset;
-	MemCpy(memOffset, _outData, _size);
+	MemCpy(memOffset, _inData, _size);
 }
 
 VESPERENGINE_NAMESPACE_END

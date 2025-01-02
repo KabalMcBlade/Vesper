@@ -58,19 +58,19 @@ VESPERENGINE_INLINE void MemCpySIMD(void* _dst, const void* _src, std::size_t _l
 #endif
 
 
-VESPERENGINE_INLINE void MemCpy(void* _ptr, const void* _src, std::size_t _len)
+VESPERENGINE_INLINE void MemCpy(void* _dst, const void* _src, std::size_t _len)
 {
 #ifdef VESPERENGINE_MEM_COPY_SIMD
-	if (VESPERENGINE_IS_ALIGNED(_ptr, 16) && VESPERENGINE_IS_ALIGNED(_src, 16))
+	if (VESPERENGINE_IS_ALIGNED(_dst, 16) && VESPERENGINE_IS_ALIGNED(_src, 16))
 	{
-		MemCpySIMD(_ptr, _src, _len);
+		MemCpySIMD(_dst, _src, _len);
 	}
 	else
 	{
-		memcpy(_ptr, _src, _len);
+		memcpy(_dst, _src, _len);
 	}
 #else
-	memcpy(_ptr, _src, _len);
+	memcpy(_dst, _src, _len);
 #endif
 }
 
