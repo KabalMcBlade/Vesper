@@ -1,34 +1,106 @@
 #include "model_system.h"
 
 #include "Core/memory_copy.h"
+
 #include "Backend/device.h"
 
 #include "App/vesper_app.h"
 
+#include "Utility/logger.h"
+
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-ModelSystem::ModelSystem(VesperApp& _app, Device& _device)
+ModelSystem::ModelSystem(VesperApp& _app, Device& _device, MaterialSystem& _materialSystem)
 	: m_app(_app)
 	, m_device{ _device }
+	, m_materialSystem{ _materialSystem }
 {
 	m_buffer = std::make_unique<Buffer>(m_device);
 }
 
 void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _data) const
 {
-	// add material component
+	// create real materials and store in the material system, once the model is getting loaded, so for each model
+	// create a new material, if the same material parameters don't exist, otherwise reuse a material with the same data
+	int32 materialIndex = -1;
+	if (_data->Material)
+	{
+		materialIndex = m_materialSystem.CreateMaterial(*_data->Material);
+
+		if (materialIndex == -1)
+		{
+			LOG(Logger::ERROR, "Material ", _data->Material->Name, " is present and valid, but couldn't create or retrieve it");
+		}
+	}
+			
+	// add material component and bind it
 	switch (_data->Material->Type)
 	{
 	case MaterialType::Phong:
-		m_app.GetComponentManager().AddComponent<PhongMaterialComponent>(_entity);
+		{
+			const auto material = m_materialSystem.GetMaterial(materialIndex);
+			auto materialPhong = std::dynamic_pointer_cast<MaterialPhong>(material);
+
+			m_app.GetComponentManager().AddComponent<PhongMaterialComponent>(_entity);
+			PhongMaterialComponent& phongMaterialComponent = m_app.GetComponentManager().GetComponent<PhongMaterialComponent>(_entity);
+			
+			phongMaterialComponent.DiffuseImageInfo.sampler = materialPhong->DiffuseTexture.Sampler;
+			phongMaterialComponent.DiffuseImageInfo.imageView = materialPhong->DiffuseTexture.ImageView;
+			phongMaterialComponent.DiffuseImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+			phongMaterialComponent.SpecularImageInfo.sampler = materialPhong->SpecularTexture.Sampler;
+			phongMaterialComponent.SpecularImageInfo.imageView = materialPhong->SpecularTexture.ImageView;
+			phongMaterialComponent.SpecularImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+			phongMaterialComponent.AmbientImageInfo.sampler = materialPhong->AmbientTexture.Sampler;
+			phongMaterialComponent.AmbientImageInfo.imageView = materialPhong->AmbientTexture.ImageView;
+			phongMaterialComponent.AmbientImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+			phongMaterialComponent.NormalImageInfo.sampler = materialPhong->NormalTexture.Sampler;
+			phongMaterialComponent.NormalImageInfo.imageView = materialPhong->NormalTexture.ImageView;
+			phongMaterialComponent.NormalImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+ 			phongMaterialComponent.UniformBufferInfo.buffer = materialPhong->UniformBuffer.Buffer;
+ 			phongMaterialComponent.UniformBufferInfo.offset = 0;
+ 			phongMaterialComponent.UniformBufferInfo.range = materialPhong->UniformBuffer.AlignedSize;
+		}
 		break;
 	case MaterialType::PBR:
-		m_app.GetComponentManager().AddComponent<PBRMaterialComponent>(_entity);
+		{
+			const auto material = m_materialSystem.GetMaterial(materialIndex);
+			auto materialPBR = std::dynamic_pointer_cast<MaterialPBR>(material);
+
+			m_app.GetComponentManager().AddComponent<PBRMaterialComponent>(_entity);
+			PBRMaterialComponent& pbrMaterialComponent = m_app.GetComponentManager().GetComponent<PBRMaterialComponent>(_entity);
+			
+			pbrMaterialComponent.RoughnessImageInfo.sampler = materialPBR->RoughnessTexture.Sampler;
+			pbrMaterialComponent.RoughnessImageInfo.imageView = materialPBR->RoughnessTexture.ImageView;
+			pbrMaterialComponent.RoughnessImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+			pbrMaterialComponent.MetallicImageInfo.sampler = materialPBR->MetallicTexture.Sampler;
+			pbrMaterialComponent.MetallicImageInfo.imageView = materialPBR->MetallicTexture.ImageView;
+			pbrMaterialComponent.MetallicImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+			pbrMaterialComponent.SheenImageInfo.sampler = materialPBR->SheenTexture.Sampler;
+			pbrMaterialComponent.SheenImageInfo.imageView = materialPBR->SheenTexture.ImageView;
+			pbrMaterialComponent.SheenImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+			pbrMaterialComponent.EmissiveImageInfo.sampler = materialPBR->EmissiveTexture.Sampler;
+			pbrMaterialComponent.EmissiveImageInfo.imageView = materialPBR->EmissiveTexture.ImageView;
+			pbrMaterialComponent.EmissiveImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+			pbrMaterialComponent.NormalImageInfo.sampler = materialPBR->NormalMapTexture.Sampler;
+			pbrMaterialComponent.NormalImageInfo.imageView = materialPBR->NormalMapTexture.ImageView;
+			pbrMaterialComponent.NormalImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+			pbrMaterialComponent.UniformBufferInfo.buffer = materialPBR->UniformBuffer.Buffer;
+			pbrMaterialComponent.UniformBufferInfo.offset = 0;
+			pbrMaterialComponent.UniformBufferInfo.range = materialPBR->UniformBuffer.AlignedSize;
+		}
 		break;
-	case MaterialType::Invalid:
 	default:
-		m_app.GetComponentManager().AddComponent<NoMaterialComponent>(_entity);
+		throw std::runtime_error("Unsupported material type");
 		break;
 	}
 
@@ -77,8 +149,6 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 	{
 		m_app.GetComponentManager().AddComponent<NotIndexBufferComponent>(_entity);
 	}
-
-	// material later
 }
 
 void ModelSystem::UnloadModel(ecs::Entity _entity) const

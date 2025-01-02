@@ -2,6 +2,8 @@
 
 #include "Core/core_defines.h"
 
+#include "Components/graphics_components.h"
+
 #include "vulkan/vulkan.h"
 
 #define GLM_FORCE_INTRINSICS
@@ -47,7 +49,6 @@ struct TextureData
 
 enum class MaterialType : uint32
 {
-	Invalid,
 	Phong,
 	PBR
 };
@@ -56,11 +57,10 @@ struct MaterialData
 {
 	MaterialType Type;
 	std::string Name;
-	bool bIsBound;
 
-	MaterialData() : Type(MaterialType::Invalid), Name(""), bIsBound(false) {}
-	MaterialData(MaterialType _type) : Type(_type), Name(""), bIsBound(false) {}
-	MaterialData(MaterialType _type, const std::string& _name) : Type(_type), Name(_name), bIsBound(false) {}
+	MaterialData() : Type(MaterialType::Phong), Name("") {}
+	MaterialData(MaterialType _type) : Type(_type), Name("") {}
+	MaterialData(MaterialType _type, const std::string& _name) : Type(_type), Name(_name) {}
 
 	// only to force polymorphisms
 	virtual ~MaterialData() = default;
@@ -115,27 +115,29 @@ struct MaterialDataPBR : public MaterialData
 	std::string NormalMapTexturePath;
 };
 
-struct MaterialPhong : public MaterialData
+struct MaterialPhongValues
 {
-	MaterialPhong() : MaterialData(MaterialType::Phong) {}
-
 	glm::vec4 AmbientColor{ 1.0f, 1.0f, 1.0f, 1.0f };
 	glm::vec4 DiffuseColor{ 1.0f, 1.0f, 1.0f, 1.0f };
 	glm::vec4 SpecularColor{ 1.0f, 1.0f, 1.0f, 1.0f };
 	glm::vec4 EmissionColor{ 1.0f, 1.0f, 1.0f, 1.0f };
 
 	float Shininess{ 0.0f };
+};
+
+struct MaterialPhong : public MaterialData
+{
+	MaterialPhong() : MaterialData(MaterialType::Phong){}
 
 	TextureData AmbientTexture;
 	TextureData DiffuseTexture;
 	TextureData SpecularTexture;
 	TextureData NormalTexture;
+	BufferComponent UniformBuffer; //colors/values
 };
 
-struct MaterialPBR : public MaterialData
+struct MaterialPBRValues
 {
-	MaterialPBR() : MaterialData(MaterialType::PBR) {}
-
 	float Roughness{ 0.0f };
 	float Metallic{ 0.0f };
 	float Sheen{ 0.0f };
@@ -143,12 +145,18 @@ struct MaterialPBR : public MaterialData
 	float ClearcoatRoughness{ 0.0f };
 	float Anisotropy{ 0.0f };
 	float AnisotropyRotation{ 0.0f };
+};
+
+struct MaterialPBR : public MaterialData
+{
+	MaterialPBR() : MaterialData(MaterialType::PBR) {}
 
 	TextureData RoughnessTexture;
 	TextureData MetallicTexture;
 	TextureData SheenTexture;
 	TextureData EmissiveTexture;		// Should be combined already with DiffuseTexture
 	TextureData NormalMapTexture;
+	BufferComponent UniformBuffer; //colors/values
 };
 
 

@@ -111,8 +111,8 @@ ViewerApp::ViewerApp(Config& _config) :
 		.Build();
 
 	m_gameEntitySystem = std::make_unique<GameEntitySystem>(*this);
-	m_modelSystem = std::make_unique<ModelSystem>(*this, *m_device);
 	m_materialSystem = std::make_unique<MaterialSystem>(*this, *m_device);
+	m_modelSystem = std::make_unique<ModelSystem>(*this, *m_device, *m_materialSystem);
 
 	m_simpleRenderSystem = std::make_unique<SimpleRenderSystem>(*this , *m_device, m_renderer->GetSwapChainRenderPass(),
 		m_globalSetLayout->GetDescriptorSetLayout(),
@@ -264,11 +264,9 @@ void ViewerApp::Run()
 			
 			sceneUboBuffers[frameIndex].MappedMemory = &sceneUBO;
 			m_buffer->WriteToBuffer(sceneUboBuffers[frameIndex]);
-			m_buffer->Flush(sceneUboBuffers[frameIndex]);
 
 			lightUboBuffers[frameIndex].MappedMemory = &lightUBO;
 			m_buffer->WriteToBuffer(lightUboBuffers[frameIndex]);
-			m_buffer->Flush(lightUboBuffers[frameIndex]);
 
 			// For instance, add here before the swap chain:
 			// begin off screen shadow pass
@@ -286,7 +284,6 @@ void ViewerApp::Run()
 				 
 				objectUboBuffers[frameIndex].MappedMemory = &objectUBO;
 				m_buffer->WriteToIndex(objectUboBuffers[frameIndex], dynamicOffsetComponent.DynamicOffsetIndex);
-				m_buffer->FlushIndex(objectUboBuffers[frameIndex], dynamicOffsetComponent.DynamicOffsetIndex);
 			}
 
 			m_simpleRenderSystem->Render(frameInfo);
@@ -333,8 +330,6 @@ void ViewerApp::LoadGameEntities()
 			{ 0.0f, 0.0f, 0.0f },
 			{ glm::vec3(.9f, .9f, .9f), glm::vec3(.8f, .8f, .1f), glm::vec3(.9f, .6f, .1f), glm::vec3(.8f, .1f, .1f), glm::vec3(.1f, .1f, .8f), glm::vec3(.1f, .8f, .1f) }
 		);
-
-		cubeNoIndicesData->Material = std::make_unique<MaterialData>();
 
 		ecs::Entity cubeNoIndices = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
 
@@ -440,7 +435,7 @@ void ViewerApp::LoadGameEntities()
 			m_simpleRenderSystem->RegisterEntity(quad);
 		}
 	}
-
+	
 	//////////////////////////////////////////////////////////////////////////
 	// BunkerHill
 	{

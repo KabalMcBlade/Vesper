@@ -26,7 +26,6 @@ size_t HashMaterialData(const MaterialData& _data)
 
 	hashCombine(_data.Name);
 	hashCombine(_data.Type);
-	hashCombine(_data.bIsBound);
 
 	if (_data.Type == MaterialType::Phong)
 	{
@@ -66,6 +65,23 @@ size_t HashMaterialData(const MaterialData& _data)
 	return hash;
 }
 
+
+// default material is Phong, with default texture and values
+std::unique_ptr<MaterialData> MaterialSystem::CreateDefaultMaterialData()
+{
+	auto defaultMaterial = std::make_unique<MaterialDataPhong>();
+	defaultMaterial->Type = MaterialType::Phong;
+	defaultMaterial->Name = "DefaultMaterial";
+
+	defaultMaterial->AmbientColor = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
+	defaultMaterial->DiffuseColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	defaultMaterial->SpecularColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	defaultMaterial->EmissionColor = glm::vec4(0.5f, 0.5f, 1.0f, 1.0f);
+
+	return defaultMaterial;
+}
+
+
 MaterialSystem::MaterialSystem(VesperApp& _app, Device& _device)
 	: m_app(_app)
 	, m_device(_device)
@@ -78,12 +94,6 @@ MaterialSystem::MaterialSystem(VesperApp& _app, Device& _device)
 
 int32 MaterialSystem::CreateMaterial(const MaterialData& _data) 
 {
-	if (_data.Type == MaterialType::Invalid)
-	{
-		LOG(Logger::WARNING, "Cannot create Material! Material passed is Invalid");
-		return -1;
-	}
-
 	const size_t hash = HashMaterialData(_data);
 
 	// Check if the material already exists
@@ -120,46 +130,73 @@ int32 MaterialSystem::CreatePhongMaterial(const MaterialData& _data)
 	{
 		auto phongMaterial = std::make_shared<MaterialPhong>();
 
-		phongMaterial->Shininess = phongData->Shininess;
-		phongMaterial->AmbientColor = phongData->AmbientColor;
-		phongMaterial->DiffuseColor = phongData->DiffuseColor;
-		phongMaterial->SpecularColor = phongData->SpecularColor;
-		phongMaterial->EmissionColor = phongData->EmissionColor;
+		const uint32 minUboAlignment = static_cast<uint32>(m_device.GetLimits().minUniformBufferOffsetAlignment);
+
+		// Load values in Uniform buffer
+		phongMaterial->UniformBuffer = m_buffer->Create<BufferComponent>(
+			sizeof(MaterialPhongValues),
+			1,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+			VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+			minUboAlignment,
+			true
+		);
+
+		MaterialPhongValues phongValues;
+		phongValues.Shininess = phongData->Shininess;
+		phongValues.AmbientColor = phongData->AmbientColor;
+		phongValues.DiffuseColor = phongData->DiffuseColor;
+		phongValues.SpecularColor = phongData->SpecularColor;
+		phongValues.EmissionColor = phongData->EmissionColor;
+
+		phongMaterial->UniformBuffer.MappedMemory = &phongValues;
+		m_buffer->WriteToBuffer(phongMaterial->UniformBuffer);
+
+		++m_uniformBufferReferenceCount[phongMaterial->UniformBuffer.Buffer];
 
 		// Load textures
 		if (!phongData->AmbientTexturePath.empty() && FileSystem::HasExtension(phongData->AmbientTexturePath))
 		{
 			phongMaterial->AmbientTexture = LoadTexture(phongData->AmbientTexturePath);
+			++m_textureReferenceCount[phongMaterial->AmbientTexture.Image];
 		}
 		if (!phongData->DiffuseTexturePath.empty() && FileSystem::HasExtension(phongData->DiffuseTexturePath))
 		{
 			phongMaterial->DiffuseTexture = LoadTexture(phongData->DiffuseTexturePath);
+			++m_textureReferenceCount[phongMaterial->DiffuseTexture.Image];
 		}
 		if (!phongData->SpecularTexturePath.empty() && FileSystem::HasExtension(phongData->SpecularTexturePath))
 		{
 			phongMaterial->SpecularTexture = LoadTexture(phongData->SpecularTexturePath);
+			++m_textureReferenceCount[phongMaterial->SpecularTexture.Image];
 		}
 		if (!phongData->NormalTexturePath.empty() && FileSystem::HasExtension(phongData->NormalTexturePath))
 		{
-			phongMaterial->SpecularTexture = LoadTexture(phongData->NormalTexturePath);
+			phongMaterial->NormalTexture = LoadTexture(phongData->NormalTexturePath);
+			++m_textureReferenceCount[phongMaterial->NormalTexture.Image];
 		}
 
 		// Load default textures if missing
-		if (phongMaterial->AmbientTexture.AllocationMemory == VK_NULL_HANDLE)
+		if (phongMaterial->AmbientTexture.Image == VK_NULL_HANDLE)
 		{
 			phongMaterial->AmbientTexture = m_defaultAmbientTexture;
+			++m_textureReferenceCount[phongMaterial->AmbientTexture.Image];
 		}
-		if (phongMaterial->DiffuseTexture.AllocationMemory == VK_NULL_HANDLE)
+		if (phongMaterial->DiffuseTexture.Image == VK_NULL_HANDLE)
 		{
 			phongMaterial->DiffuseTexture = m_defaultDiffuseTexture;
+			++m_textureReferenceCount[phongMaterial->DiffuseTexture.Image];
 		}
-		if (phongMaterial->SpecularTexture.AllocationMemory == VK_NULL_HANDLE)
+		if (phongMaterial->SpecularTexture.Image == VK_NULL_HANDLE)
 		{
 			phongMaterial->SpecularTexture = m_defaultSpecularTexture;
+			++m_textureReferenceCount[phongMaterial->SpecularTexture.Image];
 		}
-		if (phongMaterial->NormalTexture.AllocationMemory == VK_NULL_HANDLE)
+		if (phongMaterial->NormalTexture.Image == VK_NULL_HANDLE)
 		{
 			phongMaterial->NormalTexture = m_defaultNormalTexture;
+			++m_textureReferenceCount[phongMaterial->NormalTexture.Image];
 		}
 
 		m_materials.push_back(phongMaterial);
@@ -178,56 +215,85 @@ int32 MaterialSystem::CreatePBRMaterial(const MaterialData& _data)
 	{
 		auto pbrMaterial = std::make_shared<MaterialPBR>();
 
-		pbrMaterial->Roughness = pbrData->Roughness;
-		pbrMaterial->Metallic = pbrData->Metallic;
-		pbrMaterial->Sheen = pbrData->Sheen;
-		pbrMaterial->ClearcoatThickness = pbrData->ClearcoatThickness;
-		pbrMaterial->ClearcoatRoughness = pbrData->ClearcoatRoughness;
-		pbrMaterial->Anisotropy = pbrData->Anisotropy;
-		pbrMaterial->AnisotropyRotation = pbrData->AnisotropyRotation;
+		const uint32 minUboAlignment = static_cast<uint32>(m_device.GetLimits().minUniformBufferOffsetAlignment);
+
+		// Load values in Uniform buffer
+		pbrMaterial->UniformBuffer = m_buffer->Create<BufferComponent>(
+			sizeof(MaterialPBRValues),
+			1,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+			VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+			minUboAlignment,
+			true
+		);
+
+		MaterialPBRValues pbrValues;
+		pbrValues.Roughness = pbrData->Roughness;
+		pbrValues.Metallic = pbrData->Metallic;
+		pbrValues.Sheen = pbrData->Sheen;
+		pbrValues.ClearcoatThickness = pbrData->ClearcoatThickness;
+		pbrValues.ClearcoatRoughness = pbrData->ClearcoatRoughness;
+		pbrValues.Anisotropy = pbrData->Anisotropy;
+		pbrValues.AnisotropyRotation = pbrData->AnisotropyRotation;
+
+		pbrMaterial->UniformBuffer.MappedMemory = &pbrValues;
+		m_buffer->WriteToBuffer(pbrMaterial->UniformBuffer);
+
+		++m_uniformBufferReferenceCount[pbrMaterial->UniformBuffer.Buffer];
 
 		// Load textures
 		if (!pbrData->RoughnessTexturePath.empty() && FileSystem::HasExtension(pbrData->RoughnessTexturePath))
 		{
 			pbrMaterial->RoughnessTexture = LoadTexture(pbrData->RoughnessTexturePath);
+			++m_textureReferenceCount[pbrMaterial->RoughnessTexture.Image];
 		}
 		if (!pbrData->MetallicTexturePath.empty() && FileSystem::HasExtension(pbrData->MetallicTexturePath))
 		{
 			pbrMaterial->MetallicTexture = LoadTexture(pbrData->MetallicTexturePath);
+			++m_textureReferenceCount[pbrMaterial->MetallicTexture.Image];
 		}
 		if (!pbrData->SheenTexturePath.empty() && FileSystem::HasExtension(pbrData->SheenTexturePath))
 		{
 			pbrMaterial->SheenTexture = LoadTexture(pbrData->SheenTexturePath);
+			++m_textureReferenceCount[pbrMaterial->SheenTexture.Image];
 		}
 		if (!pbrData->EmissiveTexturePath.empty() && FileSystem::HasExtension(pbrData->EmissiveTexturePath))
 		{
 			pbrMaterial->EmissiveTexture = LoadTexture(pbrData->EmissiveTexturePath);
+			++m_textureReferenceCount[pbrMaterial->EmissiveTexture.Image];
 		}
 		if (!pbrData->NormalMapTexturePath.empty() && FileSystem::HasExtension(pbrData->NormalMapTexturePath))
 		{
 			pbrMaterial->NormalMapTexture = LoadTexture(pbrData->NormalMapTexturePath);
+			++m_textureReferenceCount[pbrMaterial->NormalMapTexture.Image];
 		}
 
 		// Load default textures if missing
-		if (pbrMaterial->RoughnessTexture.AllocationMemory == VK_NULL_HANDLE)
+		if (pbrMaterial->RoughnessTexture.Image == VK_NULL_HANDLE)
 		{
 			pbrMaterial->RoughnessTexture = m_defaultRoughnessTexture;
+			++m_textureReferenceCount[pbrMaterial->RoughnessTexture.Image];
 		}
-		if (pbrMaterial->MetallicTexture.AllocationMemory == VK_NULL_HANDLE)
+		if (pbrMaterial->MetallicTexture.Image == VK_NULL_HANDLE)
 		{
 			pbrMaterial->MetallicTexture = m_defaultMetallicTexture;
+			++m_textureReferenceCount[pbrMaterial->MetallicTexture.Image];
 		}
-		if (pbrMaterial->SheenTexture.AllocationMemory == VK_NULL_HANDLE)
+		if (pbrMaterial->SheenTexture.Image == VK_NULL_HANDLE)
 		{
 			pbrMaterial->SheenTexture = m_defaultSheenTexture;
+			++m_textureReferenceCount[pbrMaterial->SheenTexture.Image];
 		}
-		if (pbrMaterial->EmissiveTexture.AllocationMemory == VK_NULL_HANDLE)
+		if (pbrMaterial->EmissiveTexture.Image == VK_NULL_HANDLE)
 		{
 			pbrMaterial->EmissiveTexture = m_defaultEmissiveTexture;
+			++m_textureReferenceCount[pbrMaterial->EmissiveTexture.Image];
 		}
-		if (pbrMaterial->NormalMapTexture.AllocationMemory == VK_NULL_HANDLE)
+		if (pbrMaterial->NormalMapTexture.Image == VK_NULL_HANDLE)
 		{
 			pbrMaterial->NormalMapTexture = m_defaultNormalMapTexture;
+			++m_textureReferenceCount[pbrMaterial->NormalMapTexture.Image];
 		}
 
 		m_materials.push_back(pbrMaterial);
@@ -239,6 +305,33 @@ int32 MaterialSystem::CreatePBRMaterial(const MaterialData& _data)
 	}
 }
 
+void MaterialSystem::DestroyTextureIfUnused(TextureData& _texture)
+{
+	if (--m_textureReferenceCount[_texture.Image] <= 0)
+	{
+		if (_texture.Image != VK_NULL_HANDLE)
+		{
+			vkDestroyImageView(m_device.GetDevice(), _texture.ImageView, nullptr);
+			vkDestroySampler(m_device.GetDevice(), _texture.Sampler, nullptr);
+			vmaDestroyImage(m_device.GetAllocator(), _texture.Image, _texture.AllocationMemory);
+		}
+
+		m_textureReferenceCount.erase(_texture.Image);
+	}
+}
+
+void MaterialSystem::DestroyUniformBufferIfUnused(BufferComponent& _buffer)
+{
+	if (--m_uniformBufferReferenceCount[_buffer.Buffer] <= 0)
+	{
+		if (_buffer.Buffer != VK_NULL_HANDLE)
+		{
+			m_buffer->Destroy(_buffer);
+		}
+
+		m_uniformBufferReferenceCount.erase(_buffer.Buffer);
+	}
+}
 
 void MaterialSystem::Cleanup() 
 {
@@ -248,107 +341,38 @@ void MaterialSystem::Cleanup()
 		{
 			auto phongMaterial = std::dynamic_pointer_cast<MaterialPhong>(material);
 
-			if (phongMaterial->AmbientTexture.Image != VK_NULL_HANDLE) 
-			{
-				vkDestroyImageView(m_device.GetDevice(), phongMaterial->AmbientTexture.ImageView, nullptr);
-				vkDestroySampler(m_device.GetDevice(), phongMaterial->AmbientTexture.Sampler, nullptr);
-				vmaDestroyImage(m_device.GetAllocator(), phongMaterial->AmbientTexture.Image, phongMaterial->AmbientTexture.AllocationMemory);
-			}
-
-			if (phongMaterial->DiffuseTexture.Image != VK_NULL_HANDLE) 
-			{
-				vkDestroyImageView(m_device.GetDevice(), phongMaterial->DiffuseTexture.ImageView, nullptr);
-				vkDestroySampler(m_device.GetDevice(), phongMaterial->DiffuseTexture.Sampler, nullptr);
-				vmaDestroyImage(m_device.GetAllocator(), phongMaterial->DiffuseTexture.Image, phongMaterial->DiffuseTexture.AllocationMemory);
-			}
-
-			if (phongMaterial->NormalTexture.Image != VK_NULL_HANDLE)
-			{
-				vkDestroyImageView(m_device.GetDevice(), phongMaterial->NormalTexture.ImageView, nullptr);
-				vkDestroySampler(m_device.GetDevice(), phongMaterial->NormalTexture.Sampler, nullptr);
-				vmaDestroyImage(m_device.GetAllocator(), phongMaterial->NormalTexture.Image, phongMaterial->NormalTexture.AllocationMemory);
-			}
-
-			if (phongMaterial->SpecularTexture.Image != VK_NULL_HANDLE) 
-			{
-				vkDestroyImageView(m_device.GetDevice(), phongMaterial->SpecularTexture.ImageView, nullptr);
-				vkDestroySampler(m_device.GetDevice(), phongMaterial->SpecularTexture.Sampler, nullptr);
-				vmaDestroyImage(m_device.GetAllocator(), phongMaterial->SpecularTexture.Image, phongMaterial->SpecularTexture.AllocationMemory);
-			}
+			DestroyTextureIfUnused(phongMaterial->AmbientTexture);
+			DestroyTextureIfUnused(phongMaterial->DiffuseTexture);
+			DestroyTextureIfUnused(phongMaterial->NormalTexture);
+			DestroyTextureIfUnused(phongMaterial->SpecularTexture);
+			DestroyUniformBufferIfUnused(phongMaterial->UniformBuffer);
 		}
 		else if (material->Type == MaterialType::PBR) 
 		{
 			auto pbrMaterial = std::dynamic_pointer_cast<MaterialPBR>(material);
 
-			if (pbrMaterial->RoughnessTexture.Image != VK_NULL_HANDLE) 
-			{
-				vkDestroyImageView(m_device.GetDevice(), pbrMaterial->RoughnessTexture.ImageView, nullptr);
-				vkDestroySampler(m_device.GetDevice(), pbrMaterial->RoughnessTexture.Sampler, nullptr);
-				vmaDestroyImage(m_device.GetAllocator(), pbrMaterial->RoughnessTexture.Image, pbrMaterial->RoughnessTexture.AllocationMemory);
-			}
-
-			if (pbrMaterial->MetallicTexture.Image != VK_NULL_HANDLE) 
-			{
-				vkDestroyImageView(m_device.GetDevice(), pbrMaterial->MetallicTexture.ImageView, nullptr);
-				vkDestroySampler(m_device.GetDevice(), pbrMaterial->MetallicTexture.Sampler, nullptr);
-				vmaDestroyImage(m_device.GetAllocator(), pbrMaterial->MetallicTexture.Image, pbrMaterial->MetallicTexture.AllocationMemory);
-			}
-
-			if (pbrMaterial->EmissiveTexture.Image != VK_NULL_HANDLE) 
-			{
-				vkDestroyImageView(m_device.GetDevice(), pbrMaterial->EmissiveTexture.ImageView, nullptr);
-				vkDestroySampler(m_device.GetDevice(), pbrMaterial->EmissiveTexture.Sampler, nullptr);
-				vmaDestroyImage(m_device.GetAllocator(), pbrMaterial->EmissiveTexture.Image, pbrMaterial->EmissiveTexture.AllocationMemory);
-			}
-
-			if (pbrMaterial->NormalMapTexture.Image != VK_NULL_HANDLE) 
-			{
-				vkDestroyImageView(m_device.GetDevice(), pbrMaterial->NormalMapTexture.ImageView, nullptr);
-				vkDestroySampler(m_device.GetDevice(), pbrMaterial->NormalMapTexture.Sampler, nullptr);
-				vmaDestroyImage(m_device.GetAllocator(), pbrMaterial->NormalMapTexture.Image, pbrMaterial->NormalMapTexture.AllocationMemory);
-			}
+			DestroyTextureIfUnused(pbrMaterial->RoughnessTexture);
+			DestroyTextureIfUnused(pbrMaterial->MetallicTexture);
+			DestroyTextureIfUnused(pbrMaterial->SheenTexture);
+			DestroyTextureIfUnused(pbrMaterial->EmissiveTexture);
+			DestroyTextureIfUnused(pbrMaterial->NormalMapTexture);
+			DestroyUniformBufferIfUnused(pbrMaterial->UniformBuffer);
 		}
 	}
 
-
 	// Destroy default textures - Phong
-	vkDestroyImageView(m_device.GetDevice(), m_defaultDiffuseTexture.ImageView, nullptr);
-	vkDestroySampler(m_device.GetDevice(), m_defaultDiffuseTexture.Sampler, nullptr);
-	vmaDestroyImage(m_device.GetAllocator(), m_defaultDiffuseTexture.Image, m_defaultDiffuseTexture.AllocationMemory);
-
-	vkDestroyImageView(m_device.GetDevice(), m_defaultSpecularTexture.ImageView, nullptr);
-	vkDestroySampler(m_device.GetDevice(), m_defaultSpecularTexture.Sampler, nullptr);
-	vmaDestroyImage(m_device.GetAllocator(), m_defaultSpecularTexture.Image, m_defaultSpecularTexture.AllocationMemory);
-
-	vkDestroyImageView(m_device.GetDevice(), m_defaultNormalTexture.ImageView, nullptr);
-	vkDestroySampler(m_device.GetDevice(), m_defaultNormalTexture.Sampler, nullptr);
-	vmaDestroyImage(m_device.GetAllocator(), m_defaultNormalTexture.Image, m_defaultNormalTexture.AllocationMemory);
-
-	vkDestroyImageView(m_device.GetDevice(), m_defaultAmbientTexture.ImageView, nullptr);
-	vkDestroySampler(m_device.GetDevice(), m_defaultAmbientTexture.Sampler, nullptr);
-	vmaDestroyImage(m_device.GetAllocator(), m_defaultAmbientTexture.Image, m_defaultAmbientTexture.AllocationMemory);
+	DestroyTextureIfUnused(m_defaultDiffuseTexture);
+	DestroyTextureIfUnused(m_defaultSpecularTexture);
+	DestroyTextureIfUnused(m_defaultNormalTexture);
+	DestroyTextureIfUnused(m_defaultAmbientTexture);
 
 
 	// Destroy default textures - PBR
-	vkDestroyImageView(m_device.GetDevice(), m_defaultRoughnessTexture.ImageView, nullptr);
-	vkDestroySampler(m_device.GetDevice(), m_defaultRoughnessTexture.Sampler, nullptr);
-	vmaDestroyImage(m_device.GetAllocator(), m_defaultRoughnessTexture.Image, m_defaultRoughnessTexture.AllocationMemory);
-
-	vkDestroyImageView(m_device.GetDevice(), m_defaultMetallicTexture.ImageView, nullptr);
-	vkDestroySampler(m_device.GetDevice(), m_defaultMetallicTexture.Sampler, nullptr);
-	vmaDestroyImage(m_device.GetAllocator(), m_defaultMetallicTexture.Image, m_defaultMetallicTexture.AllocationMemory);
-
-	vkDestroyImageView(m_device.GetDevice(), m_defaultSheenTexture.ImageView, nullptr);
-	vkDestroySampler(m_device.GetDevice(), m_defaultSheenTexture.Sampler, nullptr);
-	vmaDestroyImage(m_device.GetAllocator(), m_defaultSheenTexture.Image, m_defaultSheenTexture.AllocationMemory);
-
-	vkDestroyImageView(m_device.GetDevice(), m_defaultEmissiveTexture.ImageView, nullptr);
-	vkDestroySampler(m_device.GetDevice(), m_defaultEmissiveTexture.Sampler, nullptr);
-	vmaDestroyImage(m_device.GetAllocator(), m_defaultEmissiveTexture.Image, m_defaultEmissiveTexture.AllocationMemory);
-
-	vkDestroyImageView(m_device.GetDevice(), m_defaultNormalMapTexture.ImageView, nullptr);
-	vkDestroySampler(m_device.GetDevice(), m_defaultNormalMapTexture.Sampler, nullptr);
-	vmaDestroyImage(m_device.GetAllocator(), m_defaultNormalMapTexture.Image, m_defaultNormalMapTexture.AllocationMemory);
+	DestroyTextureIfUnused(m_defaultRoughnessTexture);
+	DestroyTextureIfUnused(m_defaultMetallicTexture);
+	DestroyTextureIfUnused(m_defaultSheenTexture);
+	DestroyTextureIfUnused(m_defaultEmissiveTexture);
+	DestroyTextureIfUnused(m_defaultNormalMapTexture);
 
 	m_materials.clear();
 	m_materialLookup.clear();
@@ -510,18 +534,22 @@ void MaterialSystem::CreateDefaultTexturesPhong()
 	// White diffuse texture
 	uint8 whiteData[4] = { 255, 255, 255, 255 }; // RGBA
 	m_defaultDiffuseTexture = LoadDefaultTexture(whiteData, 1, 1);
+	++m_textureReferenceCount[m_defaultDiffuseTexture.Image];
 
 	// Black specular texture
 	uint8 blackData[4] = { 0, 0, 0, 255 }; // RGBA
 	m_defaultSpecularTexture = LoadDefaultTexture(blackData, 1, 1);
+	++m_textureReferenceCount[m_defaultSpecularTexture.Image];
 
 	// Flat normal texture
 	uint8 normalData[4] = { 128, 128, 255, 255 }; // RGBA
 	m_defaultNormalTexture = LoadDefaultTexture(normalData, 1, 1);
+	++m_textureReferenceCount[m_defaultNormalTexture.Image];
 
 	// Grey ambient texture
 	uint8 greyData[4] = { 128, 128, 128, 255 }; // RGBA (50% grey)
 	m_defaultAmbientTexture = LoadDefaultTexture(greyData, 1, 1);
+	++m_textureReferenceCount[m_defaultAmbientTexture.Image];
 }
 
 void MaterialSystem::CreateDefaultTexturesPBR()
@@ -529,22 +557,27 @@ void MaterialSystem::CreateDefaultTexturesPBR()
 	// Default Roughness (White - fully rough)
 	uint8 whiteRoughnessData[4] = { 255, 255, 255, 255 }; // RGBA
 	m_defaultRoughnessTexture = LoadDefaultTexture(whiteRoughnessData, 1, 1);
+	++m_textureReferenceCount[m_defaultRoughnessTexture.Image];
 
 	// Default Metallic (Black - non-metallic)
 	uint8 blackMetallicData[4] = { 0, 0, 0, 255 }; // RGBA
 	m_defaultMetallicTexture = LoadDefaultTexture(blackMetallicData, 1, 1);
+	++m_textureReferenceCount[m_defaultMetallicTexture.Image];
 
 	// Default Sheen (Grey - 50%)
 	uint8 greySheenData[4] = { 128, 128, 128, 255 }; // RGBA
 	m_defaultSheenTexture = LoadDefaultTexture(greySheenData, 1, 1);
+	++m_textureReferenceCount[m_defaultSheenTexture.Image];
 
 	// Default Emissive (Black - no emissive lighting)
 	uint8 blackEmissiveData[4] = { 0, 0, 0, 255 }; // RGBA
 	m_defaultEmissiveTexture = LoadDefaultTexture(blackEmissiveData, 1, 1);
+	++m_textureReferenceCount[m_defaultEmissiveTexture.Image];
 
 	// Default Normal Map (Flat normal)
 	uint8 flatNormalData[4] = { 128, 128, 255, 255 }; // RGBA
 	m_defaultNormalMapTexture = LoadDefaultTexture(flatNormalData, 1, 1);
+	++m_textureReferenceCount[m_defaultNormalMapTexture.Image];
 }
 
 TextureData MaterialSystem::LoadDefaultTexture(const uint8* _data, int32 _width, int32 _height)

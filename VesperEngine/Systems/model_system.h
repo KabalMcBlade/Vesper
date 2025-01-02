@@ -11,6 +11,8 @@
 #include "Components/graphics_components.h"
 #include "Components/object_components.h"
 
+#include "Systems/material_system.h"
+
 #include "ECS/ECS/ecs.h"
 
 #include <vector>
@@ -24,7 +26,7 @@ class VesperApp;
 class VESPERENGINE_API ModelSystem
 {
 public:
-	ModelSystem(VesperApp& _app, Device& _device);
+	ModelSystem(VesperApp& _app, Device& _device, MaterialSystem& _materialSystem);
 	~ModelSystem() = default;
 
 	ModelSystem(const ModelSystem&) = delete;
@@ -44,6 +46,7 @@ private:
 private:
 	VesperApp& m_app;
 	Device& m_device;
+	MaterialSystem& m_materialSystem;
 	std::unique_ptr<Buffer> m_buffer;
 };
 

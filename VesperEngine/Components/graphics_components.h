@@ -73,11 +73,22 @@ struct NoMaterialComponent
 // used with PhongRenderSystem
 struct PhongMaterialComponent : public MaterialComponent
 {
+	VkDescriptorImageInfo DiffuseImageInfo{};
+	VkDescriptorImageInfo SpecularImageInfo{};
+	VkDescriptorImageInfo AmbientImageInfo{};
+	VkDescriptorImageInfo NormalImageInfo{};
+	VkDescriptorBufferInfo UniformBufferInfo{};	// colors/values
 };
 
 // used with PBRRenderSystem
 struct PBRMaterialComponent : public MaterialComponent
 {
+	VkDescriptorImageInfo RoughnessImageInfo{};
+	VkDescriptorImageInfo MetallicImageInfo{};
+	VkDescriptorImageInfo SheenImageInfo{};
+	VkDescriptorImageInfo EmissiveImageInfo{};
+	VkDescriptorImageInfo NormalImageInfo{};
+	VkDescriptorBufferInfo UniformBufferInfo{};	// colors/values
 };
 
 struct DynamicOffsetComponent

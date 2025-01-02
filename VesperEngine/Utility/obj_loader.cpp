@@ -3,6 +3,8 @@
 #include "App/vesper_app.h"
 #include "App/config.h"
 
+#include "Systems/material_system.h"
+
 #include "Utility/hash.h"
 #include "Utility/logger.h"
 
@@ -50,9 +52,9 @@ bool IsPBRMaterial(const tinyobj::material_t& _material)
 		_material.anisotropy_rotation > epsilon);
 }
 
-
-std::unique_ptr<MaterialData> CreateMaterial(const tinyobj::material_t& _tinyMaterial, const Config& _config)
+std::unique_ptr<MaterialData> CreateMaterialData(const tinyobj::material_t& _tinyMaterial, const Config& _config)
 {
+	// for now we support only Phong and PBR
 	auto materialType = IsPBRMaterial(_tinyMaterial) ? MaterialType::PBR : MaterialType::Phong;
 
 	if (materialType == MaterialType::Phong)
@@ -97,14 +99,13 @@ std::unique_ptr<MaterialData> CreateMaterial(const tinyobj::material_t& _tinyMat
 
 		return pbrMaterial;
 	}
+	else
+	{
+		// Fallback to a default MaterialData if material type is invalid
+		auto defaultMaterial = MaterialSystem::CreateDefaultMaterialData();
 
-	// Fallback to a default MaterialData if material type is invalid
-	auto defaultMaterial = std::make_unique<MaterialData>();
-	defaultMaterial->Type = MaterialType::Invalid;
-	defaultMaterial->Name = "DefaultMaterial";
-	defaultMaterial->bIsBound = false;
-
-	return defaultMaterial;
+		return defaultMaterial;
+	}
 }
 
 
@@ -160,17 +161,17 @@ std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& 
 				if (materialID >= 0 && materialID < static_cast<int32>(materials.size()))
 				{
 					const auto& tinyMaterial = materials[materialID];
-					model->Material = CreateMaterial(tinyMaterial, m_app.GetConfig());
+					model->Material = CreateMaterialData(tinyMaterial, m_app.GetConfig());
 				}
 				else
 				{
-					LOG(Logger::ERROR, "MMaterial ID out of range for face: ", faceIndex);
+					LOG(Logger::ERROR, "Material ID out of range for face: ", faceIndex);
 				}
 			}
 			else
 			{
 				// No materials available; assign a default
-				model->Material = std::make_unique<MaterialData>();
+				model->Material = MaterialSystem::CreateDefaultMaterialData();
 			}
 			
 			for (int32 vertexIndex = 0; vertexIndex < 3; ++vertexIndex)

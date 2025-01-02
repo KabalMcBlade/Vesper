@@ -26,6 +26,9 @@ public:
 	MaterialSystem& operator=(const MaterialSystem&) = delete;
 
 public:
+	static std::unique_ptr<MaterialData> CreateDefaultMaterialData();
+
+public:
 	int32 CreateMaterial(const MaterialData& _data);
 
 	VESPERENGINE_INLINE std::shared_ptr<MaterialData> GetMaterial(int32 _index)
@@ -55,6 +58,9 @@ private:
 	void CreateDefaultTexturesPBR();
 	TextureData LoadDefaultTexture(const uint8* _data, int32 _width, int32 _height);
 
+	void DestroyTextureIfUnused(TextureData& _texture);
+	void DestroyUniformBufferIfUnused(BufferComponent& _buffer);
+
 private:
 	VesperApp& m_app;
 	Device& m_device;
@@ -62,6 +68,8 @@ private:
 
 	std::vector<std::shared_ptr<MaterialData>> m_materials;
 	std::unordered_map<size_t, int32> m_materialLookup;
+	std::unordered_map<VkImage, int32> m_textureReferenceCount;
+	std::unordered_map<VkBuffer, int32> m_uniformBufferReferenceCount;
 
 private:	
 	// Phong default textures
