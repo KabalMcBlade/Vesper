@@ -41,6 +41,7 @@
 #include "Utility/obj_loader.h"
 
 #include "App/config.h"
+#include "App/file_system.h"
 #include "App/window_handle.h"
 #include "App/vesper_app.h"
 

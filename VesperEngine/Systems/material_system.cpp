@@ -6,23 +6,14 @@
 #include "glm/gtx/hash.hpp"
 
 #include "App/vesper_app.h"
+#include "App/file_system.h"
+
 #include "Utility/logger.h"
 
 #include "../stb/stb_image.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN
-
-bool HasExtension(const std::string& filename) 
-{
-	// Find the last occurrence of the directory separator
-	size_t lastSlash = filename.find_last_of("/\\");
-	// Find the last occurrence of a period
-	size_t lastDot = filename.find_last_of('.');
-
-	// Check if the period comes after the last slash (if any)
-	return (lastDot != std::string::npos) && (lastDot > lastSlash);
-}
 
 size_t HashMaterialData(const MaterialData& _data) 
 {
@@ -136,19 +127,19 @@ int32 MaterialSystem::CreatePhongMaterial(const MaterialData& _data)
 		phongMaterial->EmissionColor = phongData->EmissionColor;
 
 		// Load textures
-		if (!phongData->AmbientTexturePath.empty() && HasExtension(phongData->AmbientTexturePath))
+		if (!phongData->AmbientTexturePath.empty() && FileSystem::HasExtension(phongData->AmbientTexturePath))
 		{
 			phongMaterial->AmbientTexture = LoadTexture(phongData->AmbientTexturePath);
 		}
-		if (!phongData->DiffuseTexturePath.empty() && HasExtension(phongData->DiffuseTexturePath))
+		if (!phongData->DiffuseTexturePath.empty() && FileSystem::HasExtension(phongData->DiffuseTexturePath))
 		{
 			phongMaterial->DiffuseTexture = LoadTexture(phongData->DiffuseTexturePath);
 		}
-		if (!phongData->SpecularTexturePath.empty() && HasExtension(phongData->SpecularTexturePath))
+		if (!phongData->SpecularTexturePath.empty() && FileSystem::HasExtension(phongData->SpecularTexturePath))
 		{
 			phongMaterial->SpecularTexture = LoadTexture(phongData->SpecularTexturePath);
 		}
-		if (!phongData->NormalTexturePath.empty() && HasExtension(phongData->NormalTexturePath))
+		if (!phongData->NormalTexturePath.empty() && FileSystem::HasExtension(phongData->NormalTexturePath))
 		{
 			phongMaterial->SpecularTexture = LoadTexture(phongData->NormalTexturePath);
 		}
@@ -196,23 +187,23 @@ int32 MaterialSystem::CreatePBRMaterial(const MaterialData& _data)
 		pbrMaterial->AnisotropyRotation = pbrData->AnisotropyRotation;
 
 		// Load textures
-		if (!pbrData->RoughnessTexturePath.empty() && HasExtension(pbrData->RoughnessTexturePath))
+		if (!pbrData->RoughnessTexturePath.empty() && FileSystem::HasExtension(pbrData->RoughnessTexturePath))
 		{
 			pbrMaterial->RoughnessTexture = LoadTexture(pbrData->RoughnessTexturePath);
 		}
-		if (!pbrData->MetallicTexturePath.empty() && HasExtension(pbrData->MetallicTexturePath))
+		if (!pbrData->MetallicTexturePath.empty() && FileSystem::HasExtension(pbrData->MetallicTexturePath))
 		{
 			pbrMaterial->MetallicTexture = LoadTexture(pbrData->MetallicTexturePath);
 		}
-		if (!pbrData->SheenTexturePath.empty() && HasExtension(pbrData->SheenTexturePath))
+		if (!pbrData->SheenTexturePath.empty() && FileSystem::HasExtension(pbrData->SheenTexturePath))
 		{
 			pbrMaterial->SheenTexture = LoadTexture(pbrData->SheenTexturePath);
 		}
-		if (!pbrData->EmissiveTexturePath.empty() && HasExtension(pbrData->EmissiveTexturePath))
+		if (!pbrData->EmissiveTexturePath.empty() && FileSystem::HasExtension(pbrData->EmissiveTexturePath))
 		{
 			pbrMaterial->EmissiveTexture = LoadTexture(pbrData->EmissiveTexturePath);
 		}
-		if (!pbrData->NormalMapTexturePath.empty() && HasExtension(pbrData->NormalMapTexturePath))
+		if (!pbrData->NormalMapTexturePath.empty() && FileSystem::HasExtension(pbrData->NormalMapTexturePath))
 		{
 			pbrMaterial->NormalMapTexture = LoadTexture(pbrData->NormalMapTexturePath);
 		}
