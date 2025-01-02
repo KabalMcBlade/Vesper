@@ -1,6 +1,7 @@
 #include "obj_loader.h"
 
 #include "App/vesper_app.h"
+#include "App/config.h"
 
 #include "Utility/hash.h"
 #include "Utility/logger.h"
@@ -50,6 +51,63 @@ bool IsPBRMaterial(const tinyobj::material_t& _material)
 }
 
 
+std::unique_ptr<MaterialData> CreateMaterial(const tinyobj::material_t& _tinyMaterial, const Config& _config)
+{
+	auto materialType = IsPBRMaterial(_tinyMaterial) ? MaterialType::PBR : MaterialType::Phong;
+
+	if (materialType == MaterialType::Phong)
+	{
+		auto phongMaterial = std::make_unique<MaterialDataPhong>();
+
+		phongMaterial->Type = MaterialType::Phong;
+		phongMaterial->Name = _tinyMaterial.name;
+		phongMaterial->Shininess = _tinyMaterial.shininess;
+
+		phongMaterial->AmbientColor = glm::vec4(_tinyMaterial.ambient[0], _tinyMaterial.ambient[1], _tinyMaterial.ambient[2], _tinyMaterial.dissolve);
+		phongMaterial->DiffuseColor = glm::vec4(_tinyMaterial.diffuse[0], _tinyMaterial.diffuse[1], _tinyMaterial.diffuse[2], _tinyMaterial.dissolve);
+		phongMaterial->SpecularColor = glm::vec4(_tinyMaterial.specular[0], _tinyMaterial.specular[1], _tinyMaterial.specular[2], _tinyMaterial.dissolve);
+		phongMaterial->EmissionColor = glm::vec4(_tinyMaterial.emission[0], _tinyMaterial.emission[1], _tinyMaterial.emission[2], _tinyMaterial.dissolve);
+
+		phongMaterial->AmbientTexturePath = _config.TexturesPath + _tinyMaterial.ambient_texname;
+		phongMaterial->DiffuseTexturePath = _config.TexturesPath + _tinyMaterial.diffuse_texname;
+		phongMaterial->SpecularTexturePath = _config.TexturesPath + _tinyMaterial.specular_texname;
+		phongMaterial->NormalTexturePath = _config.TexturesPath + _tinyMaterial.normal_texname;
+
+		return phongMaterial;
+	}
+	else if (materialType == MaterialType::PBR)
+	{
+		auto pbrMaterial = std::make_unique<MaterialDataPBR>();
+
+		pbrMaterial->Type = MaterialType::PBR;
+		pbrMaterial->Name = _tinyMaterial.name;
+		pbrMaterial->Roughness = _tinyMaterial.roughness;
+		pbrMaterial->Metallic = _tinyMaterial.metallic;
+		pbrMaterial->Sheen = _tinyMaterial.sheen;
+		pbrMaterial->ClearcoatThickness = _tinyMaterial.clearcoat_thickness;
+		pbrMaterial->ClearcoatRoughness = _tinyMaterial.clearcoat_roughness;
+		pbrMaterial->Anisotropy = _tinyMaterial.anisotropy;
+		pbrMaterial->AnisotropyRotation = _tinyMaterial.anisotropy_rotation;
+
+		pbrMaterial->RoughnessTexturePath = _config.TexturesPath + _tinyMaterial.roughness_texname;
+		pbrMaterial->MetallicTexturePath = _config.TexturesPath + _tinyMaterial.metallic_texname;
+		pbrMaterial->SheenTexturePath = _config.TexturesPath + _tinyMaterial.sheen_texname;
+		pbrMaterial->EmissiveTexturePath = _config.TexturesPath + _tinyMaterial.emissive_texname;
+		pbrMaterial->NormalMapTexturePath = _config.TexturesPath + _tinyMaterial.normal_texname;
+
+		return pbrMaterial;
+	}
+
+	// Fallback to a default MaterialData if material type is invalid
+	auto defaultMaterial = std::make_unique<MaterialData>();
+	defaultMaterial->Type = MaterialType::Invalid;
+	defaultMaterial->Name = "DefaultMaterial";
+	defaultMaterial->bIsBound = false;
+
+	return defaultMaterial;
+}
+
+
 ObjLoader::ObjLoader(VesperApp& _app, Device& _device)
 	: m_app(_app)
 	, m_device{_device}
@@ -95,9 +153,6 @@ std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& 
 
 		for (size_t faceIndex = 0; faceIndex < shape.mesh.indices.size() / 3; ++faceIndex)
 		{
-			// still creating an empty material here
-			auto material = std::make_unique<MaterialData>();
-
 			if (hasMaterials)
 			{
 				const int32 materialID = material_ids[faceIndex];
@@ -105,54 +160,18 @@ std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& 
 				if (materialID >= 0 && materialID < static_cast<int32>(materials.size()))
 				{
 					const auto& tinyMaterial = materials[materialID];
-
-					material->Type = IsPBRMaterial(tinyMaterial) ? MaterialType::PBR : MaterialType::Phong;
-					material->Name = tinyMaterial.name;
-					material->bIsBound = false;
-			
-					if (material->Type == MaterialType::Phong)
-					{
-						auto* phongData = dynamic_cast<MaterialDataPhong*>(material.get());
-
-						phongData->Shininess = tinyMaterial.shininess;
-
-						phongData->AmbientColor = glm::vec4(tinyMaterial.ambient[0], tinyMaterial.ambient[1], tinyMaterial.ambient[2], tinyMaterial.dissolve);
-						phongData->DiffuseColor = glm::vec4(tinyMaterial.diffuse[0], tinyMaterial.diffuse[1], tinyMaterial.diffuse[2], tinyMaterial.dissolve);
-						phongData->SpecularColor = glm::vec4(tinyMaterial.specular[0], tinyMaterial.specular[1], tinyMaterial.specular[2], tinyMaterial.dissolve);
-						phongData->EmissionColor = glm::vec4(tinyMaterial.emission[0], tinyMaterial.emission[1], tinyMaterial.emission[2], tinyMaterial.dissolve);
-
-						phongData->AmbientTexturePath = m_app.GetConfig().TexturesPath + tinyMaterial.ambient_texname;
-						phongData->DiffuseTexturePath = m_app.GetConfig().TexturesPath + tinyMaterial.diffuse_texname;
-						phongData->SpecularTexturePath = m_app.GetConfig().TexturesPath + tinyMaterial.specular_texname;
-						phongData->NormalTexturePath = m_app.GetConfig().TexturesPath + tinyMaterial.normal_texname;
-					}
-					else if (material->Type == MaterialType::PBR)
-					{
-						auto* pbrData = dynamic_cast<MaterialDataPBR*>(material.get());
-
-						pbrData->Roughness = tinyMaterial.roughness;	// can be derived by: 1.0f - tinyMaterial.specular[0];
-						pbrData->Metallic = tinyMaterial.metallic;		// can be derived by: (tinyMaterial.illum == 2) ? 1.0f : 0.0f;
-						pbrData->Sheen = tinyMaterial.sheen;
-						pbrData->ClearcoatThickness = tinyMaterial.clearcoat_thickness;
-						pbrData->ClearcoatRoughness = tinyMaterial.clearcoat_roughness;
-						pbrData->Anisotropy = tinyMaterial.anisotropy;
-						pbrData->AnisotropyRotation = tinyMaterial.anisotropy_rotation;
-
-						pbrData->RoughnessTexturePath = m_app.GetConfig().TexturesPath + tinyMaterial.roughness_texname;
-						pbrData->MetallicTexturePath = m_app.GetConfig().TexturesPath + tinyMaterial.metallic_texname;
-						pbrData->SheenTexturePath = m_app.GetConfig().TexturesPath + tinyMaterial.sheen_texname;
-						pbrData->EmissiveTexturePath = m_app.GetConfig().TexturesPath + tinyMaterial.emissive_texname;
-						pbrData->NormalMapTexturePath = m_app.GetConfig().TexturesPath + tinyMaterial.normal_texname;
-					}
-					else
-					{
-						LOG(Logger::ERROR, "Material exist by is not a valid type! (Type: %d)", static_cast<uint32>(material->Type));
-					}
+					model->Material = CreateMaterial(tinyMaterial, m_app.GetConfig());
+				}
+				else
+				{
+					LOG(Logger::ERROR, "MMaterial ID out of range for face: ", faceIndex);
 				}
 			}
-
-			// Assign material to the model
-			model->Material = std::move(material);
+			else
+			{
+				// No materials available; assign a default
+				model->Material = std::make_unique<MaterialData>();
+			}
 			
 			for (int32 vertexIndex = 0; vertexIndex < 3; ++vertexIndex)
 			{

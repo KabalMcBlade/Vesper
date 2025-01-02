@@ -437,6 +437,26 @@ void ViewerApp::LoadGameEntities()
 			m_simpleRenderSystem->RegisterEntity(quad);
 		}
 	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// BunkerHill
+	{
+		std::vector<std::unique_ptr<ModelData>> bunkerHillDataList = m_objLoader->LoadModel("BunkerHill.obj");
+		for (auto& bunkerHillData : bunkerHillDataList)
+		{
+			ecs::Entity bunkerHill = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
+
+			m_modelSystem->LoadModel(bunkerHill, std::move(bunkerHillData));
+
+			TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(bunkerHill);
+			transformComponent.Position = { 0.0f, 0.0f, 15.0f };
+			transformComponent.Scale = { 1.0f, 1.0f, 1.0f };
+			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
+			//transformComponent.Rotation = glm::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+			m_simpleRenderSystem->RegisterEntity(bunkerHill);
+		}
+	}
 }
 
 void ViewerApp::UnloadGameEntities()
