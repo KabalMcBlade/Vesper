@@ -36,6 +36,7 @@
 #define VESPERENGINE_MEMORY_ALIGNMENT(x)    __declspec(align(x))
 #define VESPERENGINE_IS_ALIGNED(ptr, alignment)    ((std::uintptr_t)ptr & (alignment - 1)) == 0
 #define VESPERENGINE_MEMORY_ALIGNED		VESPERENGINE_MEMORY_ALIGNMENT(VESPERENGINE_MEMORY_ALIGNMENT_SIZE)
+#define VESPERENGINE_ALIGN16 alignas(16)
 
 // BIT MANIPULATVESPERENGINE
 #define VESPERENGINE_BIT_SET(value, bitpos)          ((value) |= (1<<(bitpos)))

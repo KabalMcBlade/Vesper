@@ -21,7 +21,8 @@
 #endif
 
 
-#define DESCRIPTOR_SET_COUNT 2
+#define DESCRIPTOR_MAX_SET_COUNT 100
+#define DESCRIPTOR_SET_COUNT_PER_POOL 20
 
 #define GLOBAL_BINDING_SCENE 0
 #define GLOBAL_BINDING_LIGHT 1
@@ -40,22 +41,22 @@ struct RotationComponent
 
 
 // Scene Uniform Buffer Object
-struct SceneUBO
+struct VESPERENGINE_ALIGN16 SceneUBO
 {
 	glm::mat4 ProjectionMatrix{ 1.0f };
 	glm::mat4 ViewMatrix{ 1.0f };
-	glm::vec4 AmbientColor{ 1.0f, 1.0f, 1.0f, 0.5f };	// w is intensity
+	glm::vec4 AmbientColor{ 1.0f, 1.0f, 1.0f, 0.3f };	// w is intensity
 };
 
 // Light Uniform Buffer Object
-struct LightUBO
+struct VESPERENGINE_ALIGN16 LightUBO
 {
 	glm::vec4 LightPos{ 0.0f, -0.25f, 0.0f, 0.0f };
-	glm::vec4 LightColor{ 1.0f, 1.0f, 1.0f, 1.0f };
+	glm::vec4 LightColor{ 1.0f, 1.0f, 1.0f, 0.5f };
 };
 
 // Object Uniform Buffer Object
-struct ObjectUBO
+struct VESPERENGINE_ALIGN16 ObjectUBO
 {
 	glm::mat4 ModelMatrix{ 1.0f };
 };
@@ -76,9 +77,10 @@ ViewerApp::ViewerApp(Config& _config) :
 
 
 	m_globalPool = DescriptorPool::Builder(*m_device)
-		.SetMaxSets(SwapChain::kMaxFramesInFlight * DESCRIPTOR_SET_COUNT)
-		.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::kMaxFramesInFlight * DESCRIPTOR_SET_COUNT)
-		.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, SwapChain::kMaxFramesInFlight * DESCRIPTOR_SET_COUNT)
+		.SetMaxSets(SwapChain::kMaxFramesInFlight * DESCRIPTOR_MAX_SET_COUNT)
+		.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::kMaxFramesInFlight * DESCRIPTOR_SET_COUNT_PER_POOL)
+		.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, SwapChain::kMaxFramesInFlight * DESCRIPTOR_SET_COUNT_PER_POOL)
+		.AddPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, SwapChain::kMaxFramesInFlight * DESCRIPTOR_SET_COUNT_PER_POOL)
 		//.AddPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, SwapChain::kMaxFramesInFlight)
 		.Build();
 
@@ -114,7 +116,8 @@ ViewerApp::ViewerApp(Config& _config) :
 	m_materialSystem = std::make_unique<MaterialSystem>(*this, *m_device);
 	m_modelSystem = std::make_unique<ModelSystem>(*this, *m_device, *m_materialSystem);
 
-	m_simpleRenderSystem = std::make_unique<SimpleRenderSystem>(*this , *m_device, m_renderer->GetSwapChainRenderPass(),
+	m_simpleRenderSystem = std::make_unique<SimpleRenderSystem>(*this , *m_device, *m_globalPool,
+		m_renderer->GetSwapChainRenderPass(),
 		m_globalSetLayout->GetDescriptorSetLayout(),
 		m_groupSetLayout->GetDescriptorSetLayout(),
 		uboAlignedSize);
@@ -131,7 +134,7 @@ ViewerApp::ViewerApp(Config& _config) :
 	LOG_NL();
 
 	// test
-	GetComponentManager().RegisterComponent<RotationComponent>();
+	GetComponentManager().RegisterComponent<RotationComponent>(); 
 
 	LoadCameraEntities();
 	LoadGameEntities();
@@ -183,7 +186,7 @@ void ViewerApp::Run()
 			true
 		);
 	}
-
+	
 	std::vector<VkDescriptorSet> globalDescriptorSets(SwapChain::kMaxFramesInFlight);
 	for (int32 i = 0; i < SwapChain::kMaxFramesInFlight; ++i)
 	{
@@ -359,7 +362,7 @@ void ViewerApp::LoadGameEntities()
 		for (auto& coloredCubeData : coloredCubeDataList)
 		{
 			ecs::Entity coloredCube = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
-
+			
 			m_modelSystem->LoadModel(coloredCube, std::move(coloredCubeData));
 
 			TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(coloredCube);
@@ -444,17 +447,16 @@ void ViewerApp::LoadGameEntities()
 		{
 			ecs::Entity bunkerHill = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
 
-			m_modelSystem->LoadModel(bunkerHill, std::move(bunkerHillData));
+			m_modelSystem->LoadModel(bunkerHill, std::move(bunkerHillData)); 
 
 			TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(bunkerHill);
 			transformComponent.Position = { 0.0f, 0.0f, 15.0f };
-			transformComponent.Scale = { 1.0f, 1.0f, 1.0f };
-			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
-			//transformComponent.Rotation = glm::angleAxis(glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+			transformComponent.Scale = { 1.0f, 1.0f, 1.0f }; 
+			transformComponent.Rotation = glm::angleAxis(glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-			m_simpleRenderSystem->RegisterEntity(bunkerHill);
+			m_simpleRenderSystem->RegisterEntity(bunkerHill); 
 		}
-	}
+	} 
 }
 
 void ViewerApp::UnloadGameEntities()

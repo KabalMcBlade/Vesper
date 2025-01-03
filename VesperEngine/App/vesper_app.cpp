@@ -15,7 +15,7 @@ ecs::ComponentManager& VesperApp::GetComponentManager()
 
 ecs::EntityManager& VesperApp::GetEntityManager()
 { 
-	return m_entityManager; 
+	return m_entityManager;
 }
 
 VesperApp::VesperApp(Config& _config)

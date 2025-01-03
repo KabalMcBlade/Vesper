@@ -63,12 +63,12 @@ std::unique_ptr<MaterialData> CreateMaterialData(const tinyobj::material_t& _tin
 
 		phongMaterial->Type = MaterialType::Phong;
 		phongMaterial->Name = _tinyMaterial.name;
-		phongMaterial->Shininess = _tinyMaterial.shininess;
 
-		phongMaterial->AmbientColor = glm::vec4(_tinyMaterial.ambient[0], _tinyMaterial.ambient[1], _tinyMaterial.ambient[2], _tinyMaterial.dissolve);
+		phongMaterial->Shininess = _tinyMaterial.shininess;
+		phongMaterial->AmbientColor = glm::vec4(_tinyMaterial.ambient[0], _tinyMaterial.ambient[1], _tinyMaterial.ambient[2], 1.0f);
 		phongMaterial->DiffuseColor = glm::vec4(_tinyMaterial.diffuse[0], _tinyMaterial.diffuse[1], _tinyMaterial.diffuse[2], _tinyMaterial.dissolve);
-		phongMaterial->SpecularColor = glm::vec4(_tinyMaterial.specular[0], _tinyMaterial.specular[1], _tinyMaterial.specular[2], _tinyMaterial.dissolve);
-		phongMaterial->EmissionColor = glm::vec4(_tinyMaterial.emission[0], _tinyMaterial.emission[1], _tinyMaterial.emission[2], _tinyMaterial.dissolve);
+		phongMaterial->SpecularColor = glm::vec4(_tinyMaterial.specular[0],_tinyMaterial.specular[1],_tinyMaterial.specular[2],_tinyMaterial.dissolve);
+		phongMaterial->EmissionColor = glm::vec4(_tinyMaterial.emission[0], _tinyMaterial.emission[1], _tinyMaterial.emission[2], 1.0f);
 
 		phongMaterial->AmbientTexturePath = _config.TexturesPath + _tinyMaterial.ambient_texname;
 		phongMaterial->DiffuseTexturePath = _config.TexturesPath + _tinyMaterial.diffuse_texname;
@@ -83,6 +83,7 @@ std::unique_ptr<MaterialData> CreateMaterialData(const tinyobj::material_t& _tin
 
 		pbrMaterial->Type = MaterialType::PBR;
 		pbrMaterial->Name = _tinyMaterial.name;
+
 		pbrMaterial->Roughness = _tinyMaterial.roughness;
 		pbrMaterial->Metallic = _tinyMaterial.metallic;
 		pbrMaterial->Sheen = _tinyMaterial.sheen;
@@ -188,12 +189,19 @@ std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& 
 						attrib.vertices[3 * index.vertex_index + 2],
 					};
 
-					vertex.Color =
+					if (attrib.colors.size() > 0) 
 					{
-						attrib.colors[3 * index.vertex_index + 0],
-						attrib.colors[3 * index.vertex_index + 1],
-						attrib.colors[3 * index.vertex_index + 2],
-					};
+						vertex.Color = 
+						{
+							attrib.colors[3 * index.vertex_index + 0],
+							attrib.colors[3 * index.vertex_index + 1],
+							attrib.colors[3 * index.vertex_index + 2],
+						};
+					}
+					else 
+					{
+						vertex.Color = { 1.0f, 1.0f, 1.0f };
+					}
 				}
 
 				if (index.normal_index >= 0)
@@ -208,14 +216,41 @@ std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& 
 
 				if (index.texcoord_index >= 0)
 				{
+					/**
+					 * OBJ File Format: Texture coordinates in OBJ files are typically in the range [0, 1], 
+					 * but their origin is in the bottom-left corner of the texture.
+					 * Vulkan: The origin of Vulkan’s texture coordinate system is in the top-left corner of the texture. 
+					 * This discrepancy causes textures to appear flipped vertically when mapped onto your geometry.
+					 */
 					vertex.UV =
 					{
-						attrib.texcoords[2 * index.texcoord_index + 0],
-						attrib.texcoords[2 * index.texcoord_index + 1],
+// 						attrib.texcoords[2 * index.texcoord_index + 0],
+// 						attrib.texcoords[2 * index.texcoord_index + 1],
+						attrib.texcoords[2 * index.texcoord_index + 0],			// U-coordinate (unchanged)
+						1.0f - attrib.texcoords[2 * index.texcoord_index + 1]	// Invert V-coordinate
 					};
+
+					// Normalize UV coordinates to [0, 1]
+					vertex.UV.x = fmod(vertex.UV.x, 1.0f);
+					vertex.UV.y = fmod(vertex.UV.y, 1.0f);
+
+					// Ensure UVs are positive
+					if (vertex.UV.x < 0.0f) 
+					{
+						vertex.UV.x += 1.0f;
+					}
+					if (vertex.UV.y < 0.0f)
+					{
+						vertex.UV.y += 1.0f;
+					}
+				}
+				else 
+				{
+					vertex.UV = { 0.0f, 0.0f }; 
 				}
 
-				if (uniqueVertices.count(vertex) == 0)
+				auto it = uniqueVertices.find(vertex);
+				if (it == uniqueVertices.end()) 
 				{
 					uniqueVertices[vertex] = static_cast<uint32_t>(model->Vertices.size());
 					model->Vertices.push_back(vertex);

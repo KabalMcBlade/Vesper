@@ -5,14 +5,24 @@
 #include "Core/core_defines.h"
 #include "Backend/pipeline.h"
 #include "Backend/frame_info.h"
+#include "Backend/descriptors.h"
+
 #include "Components/camera_components.h"
+
 #include "Systems/base_render_system.h"
+
 #include "App/window_handle.h"
 
 #include <memory>
 
 #include "ECS/ECS/ecs.h"
 
+
+/// <summary>
+/// The SimpleRenderSystem is indeed a Phong renderer
+/// This will retain all the data in need to process correctly the shader.
+/// Will be renamed in next iteration!
+/// </summary>
 
 VESPERENGINE_NAMESPACE_BEGIN
 
@@ -21,7 +31,7 @@ class VesperApp;
 class VESPERENGINE_API SimpleRenderSystem final : public BaseRenderSystem
 {
 public:
-	SimpleRenderSystem(VesperApp& _app, Device& _device, VkRenderPass _renderPass,
+	SimpleRenderSystem(VesperApp& _app, Device& _device, DescriptorPool& _globalDescriptorPool, VkRenderPass _renderPass,
 		VkDescriptorSetLayout _globalDescriptorSetLayout,
 		VkDescriptorSetLayout _groupDescriptorSetLayout,
 		uint32 _alignedSizeUBO);
@@ -46,6 +56,8 @@ protected:
 
 private:
 	VesperApp& m_app;
+	DescriptorPool& m_globalDescriptorPool;
+	std::unique_ptr<DescriptorSetLayout> m_materialSetLayout;
 	uint32 m_alignedSizeUBO {0};
 	mutable uint32 m_internalCounter {0};
 };

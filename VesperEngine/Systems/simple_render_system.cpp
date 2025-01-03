@@ -15,22 +15,43 @@
 #include "glm/ext.hpp"
 #include "gtx/quaternion.hpp"
 
+#include "Backend/swap_chain.h"
+
 #include "Components/graphics_components.h"
 #include "Components/object_components.h"
 
 #include "App/vesper_app.h"
+#include "Utility/logger.h"
+
+
+#define MATERIAL_DIFFUSE_BINDING 0
+#define MATERIAL_SPECULAR_BINDING 1
+#define MATERIAL_AMBIENT_BINDING 2
+#define MATERIAL_NORMAL_BINDING 3
+#define MATERIAL_UNIFORM_BINDING 4
 
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-SimpleRenderSystem::SimpleRenderSystem(VesperApp& _app, Device& _device, VkRenderPass _renderPass,
+SimpleRenderSystem::SimpleRenderSystem(VesperApp& _app, Device& _device, DescriptorPool& _globalDescriptorPool, VkRenderPass _renderPass,
 	VkDescriptorSetLayout _globalDescriptorSetLayout,
 	VkDescriptorSetLayout _groupDescriptorSetLayout,
 	uint32 _alignedSizeUBO)
 	: m_app(_app)
 	, BaseRenderSystem{ _device }
+	, m_globalDescriptorPool(_globalDescriptorPool)
 {
-	CreatePipelineLayout(std::vector<VkDescriptorSetLayout>{ _globalDescriptorSetLayout, _groupDescriptorSetLayout });
+	m_materialSetLayout = DescriptorSetLayout::Builder(_device)
+		.AddBinding(MATERIAL_DIFFUSE_BINDING, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.AddBinding(MATERIAL_SPECULAR_BINDING, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.AddBinding(MATERIAL_AMBIENT_BINDING, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.AddBinding(MATERIAL_NORMAL_BINDING, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.AddBinding(MATERIAL_UNIFORM_BINDING, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		.Build();
+
+	CreatePipelineLayout(std::vector<VkDescriptorSetLayout>
+			{ _globalDescriptorSetLayout, _groupDescriptorSetLayout, m_materialSetLayout->GetDescriptorSetLayout() }
+		);
 	CreatePipeline(_renderPass);
 
 	m_alignedSizeUBO = _alignedSizeUBO;
@@ -56,6 +77,28 @@ void SimpleRenderSystem::RegisterEntity(ecs::Entity _entity) const
 	dynamicUniformBufferComponent.DynamicOffset = m_internalCounter * m_alignedSizeUBO;
 
 	++m_internalCounter;
+
+	// Material binding
+	if (m_app.GetComponentManager().HasComponents<PhongMaterialComponent>(_entity))
+	{
+		PhongMaterialComponent& materialComponent = m_app.GetComponentManager().GetComponent<PhongMaterialComponent>(_entity);
+		materialComponent.BoundDescriptorSet.resize(SwapChain::kMaxFramesInFlight);
+
+		for (int32 i = 0; i < SwapChain::kMaxFramesInFlight; ++i)
+		{
+			DescriptorWriter(*m_materialSetLayout, m_globalDescriptorPool)
+				.WriteImage(0, &materialComponent.DiffuseImageInfo)
+				.WriteImage(1, &materialComponent.SpecularImageInfo)
+				.WriteImage(2, &materialComponent.AmbientImageInfo)
+				.WriteImage(3, &materialComponent.NormalImageInfo)
+				.WriteBuffer(4, &materialComponent.UniformBufferInfo)
+				.Build(materialComponent.BoundDescriptorSet[i]);
+		}
+	}
+	else
+	{
+		LOG(Logger::ERROR, "Expected Material, but is missing!");
+	}
 }
 
 void SimpleRenderSystem::UnregisterEntity(ecs::Entity _entity) const
@@ -99,12 +142,14 @@ void SimpleRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
 	// 1. Render whatever has vertex buffers and index buffer
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent>(entityManager, componentManager))
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent, PhongMaterialComponent>(entityManager, componentManager))
 	{
 		const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(gameEntity);
 
 		const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(gameEntity);
 		const IndexBufferComponent& indexBufferComponent = componentManager.GetComponent<IndexBufferComponent>(gameEntity);
+
+		const PhongMaterialComponent& phongMaterialComponent = componentManager.GetComponent<PhongMaterialComponent>(gameEntity);
 
 		vkCmdBindDescriptorSets(
 			_frameInfo.CommandBuffer,
@@ -117,16 +162,30 @@ void SimpleRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 			&dynamicOffsetComponent.DynamicOffset
 		);
 
+		// not optimal, because same material can be shared per multiple entity, but for now is ok!
+		vkCmdBindDescriptorSets(
+			_frameInfo.CommandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			m_pipelineLayout,
+			2,
+			1,
+			&phongMaterialComponent.BoundDescriptorSet[_frameInfo.FrameIndex],
+			0,
+			nullptr
+		);
+
 		Bind(vertexBufferComponent, indexBufferComponent, _frameInfo.CommandBuffer);
 		Draw(indexBufferComponent, _frameInfo.CommandBuffer);
 	}
 
 	// 2. Render only entities having Vertex buffers only
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent>(entityManager, componentManager))
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent, PhongMaterialComponent>(entityManager, componentManager))
 	{
 		const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(gameEntity);
 
 		const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(gameEntity);
+
+		const PhongMaterialComponent& phongMaterialComponent = componentManager.GetComponent<PhongMaterialComponent>(gameEntity);
 
 		vkCmdBindDescriptorSets(
 			_frameInfo.CommandBuffer,
@@ -137,6 +196,18 @@ void SimpleRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 			&_frameInfo.GroupDescriptorSet,
 			1,
 			&dynamicOffsetComponent.DynamicOffset
+		);
+
+		// not optimal, because same material can be shared per multiple entity, but for now is ok!
+		vkCmdBindDescriptorSets(
+			_frameInfo.CommandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			m_pipelineLayout,
+			2,
+			1,
+			&phongMaterialComponent.BoundDescriptorSet[_frameInfo.FrameIndex],
+			0,
+			nullptr
 		);
 
 		Bind(vertexBufferComponent, _frameInfo.CommandBuffer);

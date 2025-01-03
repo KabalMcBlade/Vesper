@@ -1,5 +1,7 @@
 #include "Backend/descriptors.h"
 
+#include "Utility/logger.h"
+
 #include <cassert>
 
 
@@ -118,8 +120,28 @@ bool DescriptorPool::AllocateDescriptorSet(const VkDescriptorSetLayout _descript
 	allocInfo.descriptorSetCount = 1;
 
 	// Might want to create a "DescriptorPoolManager" class that handles this case, and builds a new pool whenever an old pool fills up.
-	if (vkAllocateDescriptorSets(m_device.GetDevice(), &allocInfo, &_descriptor) != VK_SUCCESS)
+	VkResult result = vkAllocateDescriptorSets(m_device.GetDevice(), &allocInfo, &_descriptor);
+	if (result != VK_SUCCESS)
 	{
+		switch (result) 
+		{
+		case VK_ERROR_OUT_OF_HOST_MEMORY:
+			LOG(Logger::ERROR, "Error: Out of host memory while allocating descriptor sets.");
+			break;
+		case VK_ERROR_OUT_OF_DEVICE_MEMORY:
+			LOG(Logger::ERROR, "Error: Out of device memory while allocating descriptor sets.");
+			break;
+		case VK_ERROR_OUT_OF_POOL_MEMORY:
+			LOG(Logger::ERROR, "Error: Descriptor pool ran out of memory.");
+			break;
+		case VK_ERROR_FRAGMENTATION:
+			LOG(Logger::ERROR, "Error: Fragmentation of pool memory while allocating descriptor sets.");
+			break;
+		default:
+			LOG(Logger::ERROR, "Error: vkAllocateDescriptorSets failed with unknown error: ", result);
+			break;
+		}
+
 		return false;
 	}
 	return true;
@@ -188,6 +210,8 @@ bool DescriptorWriter::Build(VkDescriptorSet& _set)
 	bool success = m_pool.AllocateDescriptorSet(m_setLayout.GetDescriptorSetLayout(), _set);
 	if (!success) 
 	{
+		LOG(Logger::ERROR, "Cannot build the descriptor set!");
+
 		return false;
 	}
 	Overwrite(_set);

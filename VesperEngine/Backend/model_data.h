@@ -115,14 +115,16 @@ struct MaterialDataPBR : public MaterialData
 	std::string NormalMapTexturePath;
 };
 
-struct MaterialPhongValues
+struct VESPERENGINE_ALIGN16 MaterialPhongValues
 {
 	glm::vec4 AmbientColor{ 1.0f, 1.0f, 1.0f, 1.0f };
 	glm::vec4 DiffuseColor{ 1.0f, 1.0f, 1.0f, 1.0f };
-	glm::vec4 SpecularColor{ 1.0f, 1.0f, 1.0f, 1.0f };
-	glm::vec4 EmissionColor{ 1.0f, 1.0f, 1.0f, 1.0f };
+	glm::vec4 SpecularColor{ 0.0f, 0.0f, 0.0f, 1.0f };
+	glm::vec4 EmissionColor{ 0.0f, 0.0f, 0.0f, 1.0f };
 
-	float Shininess{ 0.0f };
+	float Shininess{ 0.5f };
+
+	int32 TextureFlags{ 0 };      // 0: HasAmbientTexture, 1: HasDiffuseTexture, 2: HasSpecularTexture, 3: HasNormalTexture
 };
 
 struct MaterialPhong : public MaterialData
@@ -136,7 +138,7 @@ struct MaterialPhong : public MaterialData
 	BufferComponent UniformBuffer; //colors/values
 };
 
-struct MaterialPBRValues
+struct VESPERENGINE_ALIGN16 MaterialPBRValues
 {
 	float Roughness{ 0.0f };
 	float Metallic{ 0.0f };
@@ -145,6 +147,8 @@ struct MaterialPBRValues
 	float ClearcoatRoughness{ 0.0f };
 	float Anisotropy{ 0.0f };
 	float AnisotropyRotation{ 0.0f };
+
+	int32 TextureFlags{ 0 };      // 0: HasRoughnessTexture, 1: HasMetallicTexture, 2: HasSheenTexture, 3: HasEmissiveTexture, 4: NormalMapTexture
 };
 
 struct MaterialPBR : public MaterialData

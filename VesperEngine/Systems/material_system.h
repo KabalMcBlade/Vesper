@@ -54,6 +54,7 @@ private:
 	VkImageView CreateImageView(VkImage _image, VkFormat _format);
 	VkSampler CreateTextureSampler();
 
+	void CreateDefaultTexturesCommon();
 	void CreateDefaultTexturesPhong();
 	void CreateDefaultTexturesPBR();
 	TextureData LoadDefaultTexture(const uint8* _data, int32 _width, int32 _height);

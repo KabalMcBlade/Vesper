@@ -11,6 +11,7 @@
 #include "Utility/logger.h"
 
 #include "../stb/stb_image.h"
+#include <random>
 
 
 VESPERENGINE_NAMESPACE_BEGIN
@@ -73,10 +74,10 @@ std::unique_ptr<MaterialData> MaterialSystem::CreateDefaultMaterialData()
 	defaultMaterial->Type = MaterialType::Phong;
 	defaultMaterial->Name = "DefaultMaterial";
 
-	defaultMaterial->AmbientColor = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
+	defaultMaterial->AmbientColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	defaultMaterial->DiffuseColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	defaultMaterial->SpecularColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-	defaultMaterial->EmissionColor = glm::vec4(0.5f, 0.5f, 1.0f, 1.0f);
+	defaultMaterial->EmissionColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
 	return defaultMaterial;
 }
@@ -88,6 +89,7 @@ MaterialSystem::MaterialSystem(VesperApp& _app, Device& _device)
 {
 	m_buffer = std::make_unique<Buffer>(m_device);
 
+	CreateDefaultTexturesCommon();
 	CreateDefaultTexturesPhong();
 	CreateDefaultTexturesPBR();
 }
@@ -132,52 +134,36 @@ int32 MaterialSystem::CreatePhongMaterial(const MaterialData& _data)
 
 		const uint32 minUboAlignment = static_cast<uint32>(m_device.GetLimits().minUniformBufferOffsetAlignment);
 
-		// Load values in Uniform buffer
-		phongMaterial->UniformBuffer = m_buffer->Create<BufferComponent>(
-			sizeof(MaterialPhongValues),
-			1,
-			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
-			VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
-			minUboAlignment,
-			true
-		);
-
 		MaterialPhongValues phongValues;
-		phongValues.Shininess = phongData->Shininess;
-		phongValues.AmbientColor = phongData->AmbientColor;
-		phongValues.DiffuseColor = phongData->DiffuseColor;
-		phongValues.SpecularColor = phongData->SpecularColor;
-		phongValues.EmissionColor = phongData->EmissionColor;
-
-		phongMaterial->UniformBuffer.MappedMemory = &phongValues;
-		m_buffer->WriteToBuffer(phongMaterial->UniformBuffer);
-
-		++m_uniformBufferReferenceCount[phongMaterial->UniformBuffer.Buffer];
+		phongValues.TextureFlags = 0;	// 0: HasAmbientTexture, 1: HasDiffuseTexture, 2: HasSpecularTexture, 3: HasNormalTexture
 
 		// Load textures
 		if (!phongData->AmbientTexturePath.empty() && FileSystem::HasExtension(phongData->AmbientTexturePath))
 		{
+			phongValues.TextureFlags |= (1 << 0);
 			phongMaterial->AmbientTexture = LoadTexture(phongData->AmbientTexturePath);
 			++m_textureReferenceCount[phongMaterial->AmbientTexture.Image];
 		}
 		if (!phongData->DiffuseTexturePath.empty() && FileSystem::HasExtension(phongData->DiffuseTexturePath))
 		{
+			phongValues.TextureFlags |= (1 << 1);
 			phongMaterial->DiffuseTexture = LoadTexture(phongData->DiffuseTexturePath);
 			++m_textureReferenceCount[phongMaterial->DiffuseTexture.Image];
 		}
 		if (!phongData->SpecularTexturePath.empty() && FileSystem::HasExtension(phongData->SpecularTexturePath))
 		{
+			phongValues.TextureFlags |= (1 << 2);
 			phongMaterial->SpecularTexture = LoadTexture(phongData->SpecularTexturePath);
 			++m_textureReferenceCount[phongMaterial->SpecularTexture.Image];
 		}
 		if (!phongData->NormalTexturePath.empty() && FileSystem::HasExtension(phongData->NormalTexturePath))
 		{
+			phongValues.TextureFlags |= (1 << 3);
 			phongMaterial->NormalTexture = LoadTexture(phongData->NormalTexturePath);
 			++m_textureReferenceCount[phongMaterial->NormalTexture.Image];
 		}
 
-		// Load default textures if missing
+		// Load default textures if missing (only to avoid custom descriptors binding)
 		if (phongMaterial->AmbientTexture.Image == VK_NULL_HANDLE)
 		{
 			phongMaterial->AmbientTexture = m_defaultAmbientTexture;
@@ -199,6 +185,28 @@ int32 MaterialSystem::CreatePhongMaterial(const MaterialData& _data)
 			++m_textureReferenceCount[phongMaterial->NormalTexture.Image];
 		}
 
+		// Load values in Uniform buffer
+		phongMaterial->UniformBuffer = m_buffer->Create<BufferComponent>(
+			sizeof(MaterialPhongValues),
+			1,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+			VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+			minUboAlignment,
+			true
+		);
+
+		phongValues.Shininess = phongData->Shininess;
+		phongValues.AmbientColor = phongData->AmbientColor;
+		phongValues.DiffuseColor = phongData->DiffuseColor;
+		phongValues.SpecularColor = phongData->SpecularColor;
+		phongValues.EmissionColor = phongData->EmissionColor;
+
+		phongMaterial->UniformBuffer.MappedMemory = &phongValues;
+		m_buffer->WriteToBuffer(phongMaterial->UniformBuffer);
+
+		++m_uniformBufferReferenceCount[phongMaterial->UniformBuffer.Buffer];
+
 		m_materials.push_back(phongMaterial);
 		return static_cast<int32>(m_materials.size() - 1);
 	}
@@ -217,59 +225,42 @@ int32 MaterialSystem::CreatePBRMaterial(const MaterialData& _data)
 
 		const uint32 minUboAlignment = static_cast<uint32>(m_device.GetLimits().minUniformBufferOffsetAlignment);
 
-		// Load values in Uniform buffer
-		pbrMaterial->UniformBuffer = m_buffer->Create<BufferComponent>(
-			sizeof(MaterialPBRValues),
-			1,
-			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
-			VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
-			minUboAlignment,
-			true
-		);
-
 		MaterialPBRValues pbrValues;
-		pbrValues.Roughness = pbrData->Roughness;
-		pbrValues.Metallic = pbrData->Metallic;
-		pbrValues.Sheen = pbrData->Sheen;
-		pbrValues.ClearcoatThickness = pbrData->ClearcoatThickness;
-		pbrValues.ClearcoatRoughness = pbrData->ClearcoatRoughness;
-		pbrValues.Anisotropy = pbrData->Anisotropy;
-		pbrValues.AnisotropyRotation = pbrData->AnisotropyRotation;
-
-		pbrMaterial->UniformBuffer.MappedMemory = &pbrValues;
-		m_buffer->WriteToBuffer(pbrMaterial->UniformBuffer);
-
-		++m_uniformBufferReferenceCount[pbrMaterial->UniformBuffer.Buffer];
+		pbrValues.TextureFlags = 0;   // 0: HasRoughnessTexture, 1: HasMetallicTexture, 2: HasSheenTexture, 3: HasEmissiveTexture, 4: NormalMapTexture
 
 		// Load textures
 		if (!pbrData->RoughnessTexturePath.empty() && FileSystem::HasExtension(pbrData->RoughnessTexturePath))
 		{
+			pbrValues.TextureFlags |= (1 << 0);
 			pbrMaterial->RoughnessTexture = LoadTexture(pbrData->RoughnessTexturePath);
 			++m_textureReferenceCount[pbrMaterial->RoughnessTexture.Image];
 		}
 		if (!pbrData->MetallicTexturePath.empty() && FileSystem::HasExtension(pbrData->MetallicTexturePath))
 		{
+			pbrValues.TextureFlags |= (1 << 1);
 			pbrMaterial->MetallicTexture = LoadTexture(pbrData->MetallicTexturePath);
 			++m_textureReferenceCount[pbrMaterial->MetallicTexture.Image];
 		}
 		if (!pbrData->SheenTexturePath.empty() && FileSystem::HasExtension(pbrData->SheenTexturePath))
 		{
+			pbrValues.TextureFlags |= (1 << 2);
 			pbrMaterial->SheenTexture = LoadTexture(pbrData->SheenTexturePath);
 			++m_textureReferenceCount[pbrMaterial->SheenTexture.Image];
 		}
 		if (!pbrData->EmissiveTexturePath.empty() && FileSystem::HasExtension(pbrData->EmissiveTexturePath))
 		{
+			pbrValues.TextureFlags |= (1 << 3);
 			pbrMaterial->EmissiveTexture = LoadTexture(pbrData->EmissiveTexturePath);
 			++m_textureReferenceCount[pbrMaterial->EmissiveTexture.Image];
 		}
 		if (!pbrData->NormalMapTexturePath.empty() && FileSystem::HasExtension(pbrData->NormalMapTexturePath))
 		{
+			pbrValues.TextureFlags |= (1 << 4);
 			pbrMaterial->NormalMapTexture = LoadTexture(pbrData->NormalMapTexturePath);
 			++m_textureReferenceCount[pbrMaterial->NormalMapTexture.Image];
 		}
 
-		// Load default textures if missing
+		// Load default textures if missing (only to avoid custom descriptors binding)
 		if (pbrMaterial->RoughnessTexture.Image == VK_NULL_HANDLE)
 		{
 			pbrMaterial->RoughnessTexture = m_defaultRoughnessTexture;
@@ -292,9 +283,33 @@ int32 MaterialSystem::CreatePBRMaterial(const MaterialData& _data)
 		}
 		if (pbrMaterial->NormalMapTexture.Image == VK_NULL_HANDLE)
 		{
-			pbrMaterial->NormalMapTexture = m_defaultNormalMapTexture;
+			pbrMaterial->NormalMapTexture = m_defaultNormalTexture;
 			++m_textureReferenceCount[pbrMaterial->NormalMapTexture.Image];
 		}
+
+		// Load values in Uniform buffer
+		pbrMaterial->UniformBuffer = m_buffer->Create<BufferComponent>(
+			sizeof(MaterialPBRValues),
+			1,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+			VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+			minUboAlignment,
+			true
+		);
+
+		pbrValues.Roughness = pbrData->Roughness;
+		pbrValues.Metallic = pbrData->Metallic;
+		pbrValues.Sheen = pbrData->Sheen;
+		pbrValues.ClearcoatThickness = pbrData->ClearcoatThickness;
+		pbrValues.ClearcoatRoughness = pbrData->ClearcoatRoughness;
+		pbrValues.Anisotropy = pbrData->Anisotropy;
+		pbrValues.AnisotropyRotation = pbrData->AnisotropyRotation;
+
+		pbrMaterial->UniformBuffer.MappedMemory = &pbrValues;
+		m_buffer->WriteToBuffer(pbrMaterial->UniformBuffer);
+
+		++m_uniformBufferReferenceCount[pbrMaterial->UniformBuffer.Buffer];
 
 		m_materials.push_back(pbrMaterial);
 		return static_cast<int32>(m_materials.size() - 1);
@@ -360,10 +375,12 @@ void MaterialSystem::Cleanup()
 		}
 	}
 
+	// Destroy default texture - Commons
+	DestroyTextureIfUnused(m_defaultNormalTexture);
+
 	// Destroy default textures - Phong
 	DestroyTextureIfUnused(m_defaultDiffuseTexture);
 	DestroyTextureIfUnused(m_defaultSpecularTexture);
-	DestroyTextureIfUnused(m_defaultNormalTexture);
 	DestroyTextureIfUnused(m_defaultAmbientTexture);
 
 
@@ -372,7 +389,6 @@ void MaterialSystem::Cleanup()
 	DestroyTextureIfUnused(m_defaultMetallicTexture);
 	DestroyTextureIfUnused(m_defaultSheenTexture);
 	DestroyTextureIfUnused(m_defaultEmissiveTexture);
-	DestroyTextureIfUnused(m_defaultNormalMapTexture);
 
 	m_materials.clear();
 	m_materialLookup.clear();
@@ -508,9 +524,9 @@ VkSampler MaterialSystem::CreateTextureSampler()
 	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 	samplerInfo.magFilter = VK_FILTER_LINEAR;
 	samplerInfo.minFilter = VK_FILTER_LINEAR;
-	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;	// VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
+	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;	// VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
+	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;	// VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
 	samplerInfo.anisotropyEnable = VK_TRUE;
 	samplerInfo.maxAnisotropy = 16; // Adjust as per GPU capabilities
 	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
@@ -529,6 +545,14 @@ VkSampler MaterialSystem::CreateTextureSampler()
 }
 
 
+void MaterialSystem::CreateDefaultTexturesCommon()
+{
+	// Fake normal texture
+	uint8 flatGray[4] = { 128, 128, 255, 255 }; // RGBA
+	m_defaultNormalTexture = LoadDefaultTexture(flatGray, 1, 1);
+	++m_textureReferenceCount[m_defaultNormalTexture.Image];
+}
+
 void MaterialSystem::CreateDefaultTexturesPhong()
 {
 	// White diffuse texture
@@ -540,11 +564,6 @@ void MaterialSystem::CreateDefaultTexturesPhong()
 	uint8 blackData[4] = { 0, 0, 0, 255 }; // RGBA
 	m_defaultSpecularTexture = LoadDefaultTexture(blackData, 1, 1);
 	++m_textureReferenceCount[m_defaultSpecularTexture.Image];
-
-	// Flat normal texture
-	uint8 normalData[4] = { 128, 128, 255, 255 }; // RGBA
-	m_defaultNormalTexture = LoadDefaultTexture(normalData, 1, 1);
-	++m_textureReferenceCount[m_defaultNormalTexture.Image];
 
 	// Grey ambient texture
 	uint8 greyData[4] = { 128, 128, 128, 255 }; // RGBA (50% grey)
@@ -573,11 +592,6 @@ void MaterialSystem::CreateDefaultTexturesPBR()
 	uint8 blackEmissiveData[4] = { 0, 0, 0, 255 }; // RGBA
 	m_defaultEmissiveTexture = LoadDefaultTexture(blackEmissiveData, 1, 1);
 	++m_textureReferenceCount[m_defaultEmissiveTexture.Image];
-
-	// Default Normal Map (Flat normal)
-	uint8 flatNormalData[4] = { 128, 128, 255, 255 }; // RGBA
-	m_defaultNormalMapTexture = LoadDefaultTexture(flatNormalData, 1, 1);
-	++m_textureReferenceCount[m_defaultNormalMapTexture.Image];
 }
 
 TextureData MaterialSystem::LoadDefaultTexture(const uint8* _data, int32 _width, int32 _height)
