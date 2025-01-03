@@ -1,4 +1,4 @@
-#include "simple_render_system.h"
+#include "phong_render_system.h"
 
 #include <array>
 #include <stdexcept>
@@ -20,7 +20,6 @@
 #include "Components/graphics_components.h"
 #include "Components/object_components.h"
 
-#include "App/vesper_app.h"
 #include "Utility/logger.h"
 
 
@@ -33,7 +32,7 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-SimpleRenderSystem::SimpleRenderSystem(VesperApp& _app, Device& _device, DescriptorPool& _globalDescriptorPool, VkRenderPass _renderPass,
+PhongRenderSystem::PhongRenderSystem(VesperApp& _app, Device& _device, DescriptorPool& _globalDescriptorPool, VkRenderPass _renderPass,
 	VkDescriptorSetLayout _globalDescriptorSetLayout,
 	VkDescriptorSetLayout _groupDescriptorSetLayout,
 	uint32 _alignedSizeUBO)
@@ -57,11 +56,11 @@ SimpleRenderSystem::SimpleRenderSystem(VesperApp& _app, Device& _device, Descrip
 	m_alignedSizeUBO = _alignedSizeUBO;
 }
 
-SimpleRenderSystem::~SimpleRenderSystem()
+PhongRenderSystem::~PhongRenderSystem()
 {
 }
 
-void SimpleRenderSystem::RegisterEntity(ecs::Entity _entity) const
+void PhongRenderSystem::RegisterEntity(ecs::Entity _entity) const
 {
 	// just to ensure it has, but the RenderComponent should be already present
 	if (!m_app.GetComponentManager().HasComponents<RenderComponent>(_entity))
@@ -101,7 +100,7 @@ void SimpleRenderSystem::RegisterEntity(ecs::Entity _entity) const
 	}
 }
 
-void SimpleRenderSystem::UnregisterEntity(ecs::Entity _entity) const
+void PhongRenderSystem::UnregisterEntity(ecs::Entity _entity) const
 {
 	if (m_app.GetComponentManager().HasComponents<DynamicOffsetComponent>(_entity))
 	{
@@ -109,7 +108,7 @@ void SimpleRenderSystem::UnregisterEntity(ecs::Entity _entity) const
 	}
 }
 
-void SimpleRenderSystem::UnregisterEntities() const
+void PhongRenderSystem::UnregisterEntities() const
 {
 	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
@@ -120,7 +119,7 @@ void SimpleRenderSystem::UnregisterEntities() const
 	}
 }
 
-void SimpleRenderSystem::UpdateFrame(const FrameInfo& _frameInfo)
+void PhongRenderSystem::UpdateFrame(const FrameInfo& _frameInfo)
 {
 	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
@@ -136,7 +135,7 @@ void SimpleRenderSystem::UpdateFrame(const FrameInfo& _frameInfo)
 	}
 }
 
-void SimpleRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
+void PhongRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 {
 	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
@@ -215,11 +214,11 @@ void SimpleRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 	}
 }
 
-void SimpleRenderSystem::SetupPipeline(PipelineConfigInfo& _pipelineConfig)
+void PhongRenderSystem::SetupPipeline(PipelineConfigInfo& _pipelineConfig)
 {
 	m_pipeline = std::make_unique<Pipeline>(
 		m_device,
-		std::vector{ ShaderInfo{m_app.GetConfig().ShadersPath + "simple_shader.vert.spv", ShaderType::Vertex}, ShaderInfo{m_app.GetConfig().ShadersPath + "simple_shader.frag.spv", ShaderType::Fragment}, },
+		std::vector{ ShaderInfo{m_app.GetConfig().ShadersPath + "phong_shader.vert.spv", ShaderType::Vertex}, ShaderInfo{m_app.GetConfig().ShadersPath + "phong_shader.frag.spv", ShaderType::Fragment}, },
 		_pipelineConfig
 	);
 }

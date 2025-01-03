@@ -116,7 +116,7 @@ ViewerApp::ViewerApp(Config& _config) :
 	m_materialSystem = std::make_unique<MaterialSystem>(*this, *m_device);
 	m_modelSystem = std::make_unique<ModelSystem>(*this, *m_device, *m_materialSystem);
 
-	m_simpleRenderSystem = std::make_unique<SimpleRenderSystem>(*this , *m_device, *m_globalPool,
+	m_phongRenderSystem = std::make_unique<PhongRenderSystem>(*this , *m_device, *m_globalPool,
 		m_renderer->GetSwapChainRenderPass(),
 		m_globalSetLayout->GetDescriptorSetLayout(),
 		m_groupSetLayout->GetDescriptorSetLayout(),
@@ -178,11 +178,11 @@ void ViewerApp::Run()
 
 		objectUboBuffers[i] = m_buffer->Create<BufferComponent>(
 			sizeof(ObjectUBO),
-			m_simpleRenderSystem->GetObjectCount(),
+			m_phongRenderSystem->GetObjectCount(),
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, //| VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 			VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, //VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO,
 			VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
-			m_simpleRenderSystem->GetAlignedSizeUBO(),
+			m_phongRenderSystem->GetAlignedSizeUBO(),
 			true
 		);
 	}
@@ -257,7 +257,7 @@ void ViewerApp::Run()
 			}
 			//////////////////////////////////////////////////////////////////////////
 
-			m_simpleRenderSystem->Update(frameInfo);
+			m_phongRenderSystem->Update(frameInfo);
 			 
 			m_cameraSystem->Update(aspectRatio);
 			m_cameraSystem->GetActiveCameraData(0, activeCameraComponent, activeCameraTransformComponent);
@@ -289,7 +289,7 @@ void ViewerApp::Run()
 				m_buffer->WriteToIndex(objectUboBuffers[frameIndex], dynamicOffsetComponent.DynamicOffsetIndex);
 			}
 
-			m_simpleRenderSystem->Render(frameInfo);
+			m_phongRenderSystem->Render(frameInfo);
 
 			m_renderer->EndSwapChainRenderPass(commandBuffer);
 			m_renderer->EndFrame();
@@ -343,7 +343,7 @@ void ViewerApp::LoadGameEntities()
 		transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
 		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-		m_simpleRenderSystem->RegisterEntity(cubeNoIndices);
+		m_phongRenderSystem->RegisterEntity(cubeNoIndices);
 
 		// test
 		GetComponentManager().AddComponent<RotationComponent>(cubeNoIndices);
@@ -370,7 +370,7 @@ void ViewerApp::LoadGameEntities()
 			transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-			m_simpleRenderSystem->RegisterEntity(coloredCube);
+			m_phongRenderSystem->RegisterEntity(coloredCube);
 
 			// test
 			GetComponentManager().AddComponent<RotationComponent>(coloredCube);
@@ -397,7 +397,7 @@ void ViewerApp::LoadGameEntities()
 			transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-			m_simpleRenderSystem->RegisterEntity(flatVase);
+			m_phongRenderSystem->RegisterEntity(flatVase);
 		}
 	}
 
@@ -416,7 +416,7 @@ void ViewerApp::LoadGameEntities()
 			transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-			m_simpleRenderSystem->RegisterEntity(smoothVase);
+			m_phongRenderSystem->RegisterEntity(smoothVase);
 		}
 	}
 
@@ -435,7 +435,7 @@ void ViewerApp::LoadGameEntities()
 			transformComponent.Scale = { 3.0f, 1.0f, 3.0f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-			m_simpleRenderSystem->RegisterEntity(quad);
+			m_phongRenderSystem->RegisterEntity(quad);
 		}
 	}
 	
@@ -454,7 +454,7 @@ void ViewerApp::LoadGameEntities()
 			transformComponent.Scale = { 1.0f, 1.0f, 1.0f }; 
 			transformComponent.Rotation = glm::angleAxis(glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-			m_simpleRenderSystem->RegisterEntity(character);
+			m_phongRenderSystem->RegisterEntity(character);
 		}
 	} 
 }
@@ -463,6 +463,6 @@ void ViewerApp::UnloadGameEntities()
 {
 	m_materialSystem->Cleanup();
 	m_modelSystem->UnloadModels();
-	m_simpleRenderSystem->UnregisterEntities();
+	m_phongRenderSystem->UnregisterEntities();
 	m_gameEntitySystem->DestroyGameEntities();
 }

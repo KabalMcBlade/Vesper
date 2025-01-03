@@ -44,7 +44,7 @@ private:
 	std::unique_ptr<GameEntitySystem> m_gameEntitySystem;
 	std::unique_ptr<ModelSystem> m_modelSystem;
 	std::unique_ptr<MaterialSystem> m_materialSystem;
-	std::unique_ptr<SimpleRenderSystem> m_simpleRenderSystem;
+	std::unique_ptr<PhongRenderSystem> m_phongRenderSystem;
 
 	std::unique_ptr<CameraSystem> m_cameraSystem;
 	std::unique_ptr<ObjLoader> m_objLoader;

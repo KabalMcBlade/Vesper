@@ -3,6 +3,9 @@
 #include "vulkan/vulkan.h"
 
 #include "Core/core_defines.h"
+
+#include "App/vesper_app.h"
+
 #include "Backend/pipeline.h"
 #include "Backend/frame_info.h"
 #include "Backend/descriptors.h"
@@ -18,27 +21,19 @@
 #include "ECS/ECS/ecs.h"
 
 
-/// <summary>
-/// The SimpleRenderSystem is indeed a Phong renderer
-/// This will retain all the data in need to process correctly the shader.
-/// Will be renamed in next iteration!
-/// </summary>
-
 VESPERENGINE_NAMESPACE_BEGIN
 
-class VesperApp;
-
-class VESPERENGINE_API SimpleRenderSystem final : public BaseRenderSystem
+class VESPERENGINE_API PhongRenderSystem final : public BaseRenderSystem
 {
 public:
-	SimpleRenderSystem(VesperApp& _app, Device& _device, DescriptorPool& _globalDescriptorPool, VkRenderPass _renderPass,
+	PhongRenderSystem(VesperApp& _app, Device& _device, DescriptorPool& _globalDescriptorPool, VkRenderPass _renderPass,
 		VkDescriptorSetLayout _globalDescriptorSetLayout,
 		VkDescriptorSetLayout _groupDescriptorSetLayout,
 		uint32 _alignedSizeUBO);
-	~SimpleRenderSystem();
+	~PhongRenderSystem();
 
-	SimpleRenderSystem(const SimpleRenderSystem&) = delete;
-	SimpleRenderSystem& operator=(const SimpleRenderSystem&) = delete;
+	PhongRenderSystem(const PhongRenderSystem&) = delete;
+	PhongRenderSystem& operator=(const PhongRenderSystem&) = delete;
 
 public:
 	VESPERENGINE_INLINE uint32 GetObjectCount() const { return m_internalCounter; }

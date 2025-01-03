@@ -51,9 +51,6 @@
     <ClInclude Include="Systems\game_entity_system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Systems\simple_render_system.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Components\graphics_components.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -159,6 +156,9 @@
     <ClInclude Include="App\file_system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Systems\phong_render_system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Backend\pipeline.cpp">
@@ -183,9 +183,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Systems\game_entity_system.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Systems\simple_render_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Backend\model_data.cpp">
@@ -233,10 +230,13 @@
     <ClCompile Include="App\file_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Systems\phong_render_system.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\Shaders\simple_shader.vert" />
-    <None Include="Assets\Shaders\simple_shader.frag" />
+    <None Include="Assets\Shaders\phong_shader.vert" />
+    <None Include="Assets\Shaders\phong_shader.frag" />
     <None Include="compile_shaders.bat">
       <Filter>Source Files</Filter>
     </None>

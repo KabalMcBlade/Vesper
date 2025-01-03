@@ -32,7 +32,7 @@
 #include "Systems/material_system.h"
 #include "Systems/base_render_system.h"
 #include "Systems/push_constant_render_system.h"
-#include "Systems/simple_render_system.h"
+#include "Systems/phong_render_system.h"
 #include "Systems/camera_system.h"
 
 #include "Utility/hash.h"
