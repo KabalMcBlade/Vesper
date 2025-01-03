@@ -10,17 +10,34 @@ bool FileSystem::IsAbsolutePath(const std::string& _filePath)
 	return std::filesystem::path(_filePath).is_absolute();
 }
 
-std::string FileSystem::GetDirectoryPath(const std::string& _filePath)
+bool FileSystem::IsFilePath(const std::string& _filePath)
+{
+	return !std::filesystem::path(_filePath).parent_path().empty();
+}
+
+std::string FileSystem::GetDirectoryPath(const std::string& _filePath, bool _removeRightmostFolder)
 {
 	std::filesystem::path path(_filePath);
-	std::string directory = path.parent_path().string();
+	std::filesystem::path directory = path.parent_path();
 
-	if (!directory.empty() && directory.back() != '/' && directory.back() != '\\')
+	if (_removeRightmostFolder) 
 	{
-		directory += '/';
+		directory = directory.parent_path();
 	}
 
-	return directory;
+	std::string directoryStr = directory.string();
+	if (!directoryStr.empty() && directoryStr.back() != '/' && directoryStr.back() != '\\') 
+	{
+		directoryStr += '/';
+	}
+
+	return directoryStr;
+}
+
+std::string FileSystem::GetFileName(const std::string& _filePath, bool _withExtension)
+{
+	std::filesystem::path path(_filePath);
+	return _withExtension ? path.filename().string() : path.stem().string();
 }
 
 bool FileSystem::HasExtension(const std::string& _filename)

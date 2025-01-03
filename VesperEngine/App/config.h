@@ -19,9 +19,13 @@ struct Config
 	uint16 MaxComponentsPerEntity = 32;
 
 	// Asset
-	std::string ShadersPath = "Assets/Shaders/";
-	std::string ModelsPath = "Assets/Models/";
-	std::string TexturesPath = "Assets/Textures/";
+	std::string ShadersFolderName = "Shaders/";
+	std::string ModelsFolderName = "Models/";
+	std::string TexturesFolderName = "Textures/";
+
+	std::string ShadersPath = "Assets/" + ShadersFolderName;
+	std::string ModelsPath = "Assets/" + ModelsFolderName;
+	std::string TexturesPath = "Assets/" + TexturesFolderName;
 };
 
 VESPERENGINE_NAMESPACE_END

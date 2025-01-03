@@ -2,6 +2,7 @@
 
 #include "App/vesper_app.h"
 #include "App/config.h"
+#include "App/file_system.h"
 
 #include "Systems/material_system.h"
 
@@ -52,7 +53,7 @@ bool IsPBRMaterial(const tinyobj::material_t& _material)
 		_material.anisotropy_rotation > epsilon);
 }
 
-std::unique_ptr<MaterialData> CreateMaterialData(const tinyobj::material_t& _tinyMaterial, const Config& _config)
+std::unique_ptr<MaterialData> CreateMaterialData(const tinyobj::material_t& _tinyMaterial, const std::string& _texturePath)
 {
 	// for now we support only Phong and PBR
 	auto materialType = IsPBRMaterial(_tinyMaterial) ? MaterialType::PBR : MaterialType::Phong;
@@ -70,10 +71,10 @@ std::unique_ptr<MaterialData> CreateMaterialData(const tinyobj::material_t& _tin
 		phongMaterial->SpecularColor = glm::vec4(_tinyMaterial.specular[0],_tinyMaterial.specular[1],_tinyMaterial.specular[2],_tinyMaterial.dissolve);
 		phongMaterial->EmissionColor = glm::vec4(_tinyMaterial.emission[0], _tinyMaterial.emission[1], _tinyMaterial.emission[2], 1.0f);
 
-		phongMaterial->AmbientTexturePath = _config.TexturesPath + _tinyMaterial.ambient_texname;
-		phongMaterial->DiffuseTexturePath = _config.TexturesPath + _tinyMaterial.diffuse_texname;
-		phongMaterial->SpecularTexturePath = _config.TexturesPath + _tinyMaterial.specular_texname;
-		phongMaterial->NormalTexturePath = _config.TexturesPath + _tinyMaterial.normal_texname;
+		phongMaterial->AmbientTexturePath = _texturePath + _tinyMaterial.ambient_texname;
+		phongMaterial->DiffuseTexturePath = _texturePath + _tinyMaterial.diffuse_texname;
+		phongMaterial->SpecularTexturePath = _texturePath + _tinyMaterial.specular_texname;
+		phongMaterial->NormalTexturePath = _texturePath + _tinyMaterial.normal_texname;
 
 		return phongMaterial;
 	}
@@ -92,11 +93,11 @@ std::unique_ptr<MaterialData> CreateMaterialData(const tinyobj::material_t& _tin
 		pbrMaterial->Anisotropy = _tinyMaterial.anisotropy;
 		pbrMaterial->AnisotropyRotation = _tinyMaterial.anisotropy_rotation;
 
-		pbrMaterial->RoughnessTexturePath = _config.TexturesPath + _tinyMaterial.roughness_texname;
-		pbrMaterial->MetallicTexturePath = _config.TexturesPath + _tinyMaterial.metallic_texname;
-		pbrMaterial->SheenTexturePath = _config.TexturesPath + _tinyMaterial.sheen_texname;
-		pbrMaterial->EmissiveTexturePath = _config.TexturesPath + _tinyMaterial.emissive_texname;
-		pbrMaterial->NormalMapTexturePath = _config.TexturesPath + _tinyMaterial.normal_texname;
+		pbrMaterial->RoughnessTexturePath = _texturePath + _tinyMaterial.roughness_texname;
+		pbrMaterial->MetallicTexturePath = _texturePath + _tinyMaterial.metallic_texname;
+		pbrMaterial->SheenTexturePath = _texturePath + _tinyMaterial.sheen_texname;
+		pbrMaterial->EmissiveTexturePath = _texturePath + _tinyMaterial.emissive_texname;
+		pbrMaterial->NormalMapTexturePath = _texturePath + _tinyMaterial.normal_texname;
 
 		return pbrMaterial;
 	}
@@ -119,13 +120,19 @@ ObjLoader::ObjLoader(VesperApp& _app, Device& _device)
 
 std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& _fileName, bool _isStatic)
 {
+	const bool bIsFilepath = FileSystem::IsFilePath(_fileName);
+
+	const std::string modelPath = bIsFilepath ? FileSystem::GetDirectoryPath(_fileName) : m_app.GetConfig().ModelsPath;
+	const std::string texturePath = bIsFilepath ? FileSystem::GetDirectoryPath(_fileName, true) + m_app.GetConfig().TexturesFolderName : m_app.GetConfig().TexturesPath;
+	const std::string actualFilename = bIsFilepath ? FileSystem::GetFileName(_fileName) : _fileName;
+
 	std::vector<std::unique_ptr<ModelData>> models;
 
 	tinyobj::ObjReaderConfig readerConfig;
-	readerConfig.mtl_search_path = m_app.GetConfig().ModelsPath;
+	readerConfig.mtl_search_path = modelPath;
 
 	tinyobj::ObjReader reader;
-	if (!reader.ParseFromFile(m_app.GetConfig().ModelsPath + _fileName, readerConfig))
+	if (!reader.ParseFromFile(modelPath + actualFilename, readerConfig))
 	{
 		throw std::runtime_error(reader.Warning() + reader.Error());
 	}
@@ -162,7 +169,7 @@ std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& 
 				if (materialID >= 0 && materialID < static_cast<int32>(materials.size()))
 				{
 					const auto& tinyMaterial = materials[materialID];
-					model->Material = CreateMaterialData(tinyMaterial, m_app.GetConfig());
+					model->Material = CreateMaterialData(tinyMaterial, texturePath);
 				}
 				else
 				{
