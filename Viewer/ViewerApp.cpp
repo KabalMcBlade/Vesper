@@ -312,7 +312,7 @@ void ViewerApp::LoadCameraEntities()
 		ecs::Entity camera = m_gameEntitySystem->CreateGameEntity(EntityType::Camera);
 
 		CameraTransformComponent& transformComponent = GetComponentManager().GetComponent<CameraTransformComponent>(camera);
-		transformComponent.Position = { 0.0f, 0.0f, -3.0f };
+		transformComponent.Position = { 0.0f, -0.5f, -3.5f };
 
 		CameraComponent& cameraComponent = GetComponentManager().GetComponent<CameraComponent>(camera);
 
@@ -339,7 +339,7 @@ void ViewerApp::LoadGameEntities()
 		m_modelSystem->LoadModel(cubeNoIndices, std::move(cubeNoIndicesData));
 
 		TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(cubeNoIndices);
-		transformComponent.Position = { 0.0f, -1.0f, 0.0f };
+		transformComponent.Position = { -1.0f, -1.0f, 0.0f };
 		transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
 		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
@@ -366,7 +366,7 @@ void ViewerApp::LoadGameEntities()
 			m_modelSystem->LoadModel(coloredCube, std::move(coloredCubeData));
 
 			TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(coloredCube);
-			transformComponent.Position = { 0.0f, 0.0f, 0.0f };
+			transformComponent.Position = { 1.0f, -1.5f, 0.0f };
 			transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
@@ -440,21 +440,21 @@ void ViewerApp::LoadGameEntities()
 	}
 	
 	//////////////////////////////////////////////////////////////////////////
-	// BunkerHill
+	// A_blonde_twintailed_g_1228205950_texture
 	{
-		std::vector<std::unique_ptr<ModelData>> bunkerHillDataList = m_objLoader->LoadModel("BunkerHill.obj");
-		for (auto& bunkerHillData : bunkerHillDataList)
+		std::vector<std::unique_ptr<ModelData>> characterDataList = m_objLoader->LoadModel("A_blonde_twintailed_g_1228205950_texture.obj");
+		for (auto& characterData : characterDataList)
 		{
-			ecs::Entity bunkerHill = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
+			ecs::Entity character = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
 
-			m_modelSystem->LoadModel(bunkerHill, std::move(bunkerHillData)); 
+			m_modelSystem->LoadModel(character, std::move(characterData));
 
-			TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(bunkerHill);
-			transformComponent.Position = { 0.0f, 0.0f, 15.0f };
+			TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(character);
+			transformComponent.Position = { 0.0f, 0.0f, 1.0f };
 			transformComponent.Scale = { 1.0f, 1.0f, 1.0f }; 
 			transformComponent.Rotation = glm::angleAxis(glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-			m_simpleRenderSystem->RegisterEntity(bunkerHill); 
+			m_simpleRenderSystem->RegisterEntity(character);
 		}
 	} 
 }

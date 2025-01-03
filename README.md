@@ -44,8 +44,11 @@ The different settings for linkage are, in Windows and Visual Studio 2022:<br />
 I will post screenshots here as new features are added and when there’s something significant to show.
 
 
-First render from the engine, using the ECS core.
-<img src="./Screenshots/first.png">
+First render from the engine.
+<img src="./Screenshots/1.png">
+
+Second render from the engine, OBJ loaded.
+<img src="./Screenshots/2.png">
 
 
 ## Viewer
@@ -56,8 +59,10 @@ It will evolve into a proper viewer in the future.
 
 ## LICENSE
 
-GPL-3.0
+- **Vesper Engine and Viewer**: GPL-3.0
 
+- Assets:
+	- **A_blonde_twintailed_g_1228205950_texture** is downloadable from FAB store (https://www.fab.com/listings/e8be1218-232d-45a7-94cc-71ad83750803) under Creative Commons Attribution (CC BY 4.0): https://creativecommons.org/licenses/by/4.0/
 
 # Build Status
 
