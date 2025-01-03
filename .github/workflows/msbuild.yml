@@ -1,0 +1,84 @@
+name: Build and Compile
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v1
+
+      - name: Install NuGet
+        uses: NuGet/setup-nuget@v1
+
+      - name: Restore NuGet packages
+        run: nuget restore Vesper.sln
+
+      - name: Install Vulkan SDK
+        uses: humbletim/install-vulkan-sdk@v1.1.1
+        with:
+          version: 1.3.261.1
+          cache: true
+  
+      - name: Debug Vulkan SDK Installation
+        run: |
+          echo "Checking Vulkan SDK installation directory..."
+          ls -l D:/a/Vesper/Vesper/VULKAN_SDK || echo "Installation path not found!"
+  
+      - name: Set VULKAN_SDK Environment Variable
+        run: echo "VULKAN_SDK=D:/a/Vesper/Vesper/VULKAN_SDK" >> $GITHUB_ENV
+      
+      - name: Force Reload Environment Variables
+        run: env
+         
+      - name: Verify VULKAN_SDK Environment Variable
+        run: |
+          echo "Verifying Vulkan SDK..."
+          echo "VULKAN_SDK=$env:VULKAN_SDK"
+          ls -l $env:VULKAN_SDK || echo "VULKAN_SDK path is incorrect!"
+  
+      - name: Debug VULKAN_SDK Variable
+        run: echo "VULKAN_SDK=$env:VULKAN_SDK"
+
+      - name: Download Vulkan Memory Allocator
+        run: |
+          echo "Downloading Vulkan Memory Allocator header..."
+          mkdir -p $env:VULKAN_SDK/Include/vma
+          curl -L https://raw.githubusercontent.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/master/include/vk_mem_alloc.h -o $env:VULKAN_SDK/Include/vma/vk_mem_alloc.h
+      
+      - name: Download GLM Math Library
+        run: |
+          echo "Cloning GLM Math Library..."
+          mkdir -p $env:VULKAN_SDK/Include/glm
+          git clone --depth 1 https://github.com/g-truc/glm.git temp_glm
+          cp -r temp_glm/glm/* $env:VULKAN_SDK/Include/glm
+          Remove-Item temp_glm -Recurse -Force
+      
+      - name: Verify VMA and GLM Headers in Vulkan SDK
+        run: |
+          echo "Checking VMA and GLM headers in Vulkan SDK..."
+          ls -l $env:VULKAN_SDK/Include/vma || echo "VMA header not found!"
+          ls -l $env:VULKAN_SDK/Include/glm || echo "GLM headers not found!"
+
+      - name: Build solution
+        run: |
+          msbuild Vesper.sln /p:Configuration=Release /m
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Build
+          path: |
+            **/bin/
+            **/obj/

@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{3b10da60-6969-4920-a863-a5c5efdadd68}</ProjectGuid>
+    <RootNamespace>VesperEngine</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;ECS_DLL_EXPORT;VESPERENGINE_DLL_EXPORT;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(VULKAN_SDK)\Include\glm;$(VULKAN_SDK)\Include\vma;$(ProjectDir);$(ProjectDir)ThirdParty\TinyObjLoader;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+    <PostBuildEvent>
+      <Command>call "$(ProjectDir)compile_shaders.bat" $(ProjectDir)
+
+call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;ECS_DLL_EXPORT;VESPERENGINE_DLL_EXPORT;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(VULKAN_SDK)\Include\glm;$(VULKAN_SDK)\Include\vma;$(ProjectDir);$(ProjectDir)ThirdParty\TinyObjLoader;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+    <PostBuildEvent>
+      <Command>call "$(ProjectDir)compile_shaders.bat" $(ProjectDir)
+
+call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="App\config.h" />
+    <ClInclude Include="App\file_system.h" />
+    <ClInclude Include="Backend\buffer.h" />
+    <ClInclude Include="Backend\frame_info.h" />
+    <ClInclude Include="Backend\model_data.h" />
+    <ClInclude Include="Backend\descriptors.h" />
+    <ClInclude Include="ECS\ECS\component_manager.h" />
+    <ClInclude Include="ECS\ECS\ecs.h" />
+    <ClInclude Include="ECS\ECS\entity.h" />
+    <ClInclude Include="ECS\ECS\entity_collector.h" />
+    <ClInclude Include="ECS\ECS\entity_manager.h" />
+    <ClInclude Include="ECS\ECS\hash.h" />
+    <ClInclude Include="ECS\ECS\iterate_entities_with_all.h" />
+    <ClInclude Include="ECS\ECS\iterate_entities_with_any.h" />
+    <ClInclude Include="ECS\ECS\iterate_entities_with_not.h" />
+    <ClInclude Include="ECS\ECS\types.h" />
+    <ClInclude Include="ECS\ECS\utility.h" />
+    <ClInclude Include="Systems\material_system.h" />
+    <ClInclude Include="Systems\push_constant_render_system.h" />
+    <ClInclude Include="ThirdParty\stb\stb_image.h" />
+    <ClInclude Include="ThirdParty\stb\stb_image_resize2.h" />
+    <ClInclude Include="ThirdParty\stb\stb_image_write.h" />
+    <ClInclude Include="ThirdParty\stb\stb_perlin.h" />
+    <ClInclude Include="ThirdParty\stb\stb_truetype.h" />
+    <ClInclude Include="Utility\hash.h" />
+    <ClInclude Include="Utility\logger.h" />
+    <ClInclude Include="Utility\obj_loader.h" />
+    <ClInclude Include="Systems\model_system.h" />
+    <ClInclude Include="ThirdParty\TinyObjLoader\mapbox\earcut.hpp" />
+    <ClInclude Include="ThirdParty\TinyObjLoader\tiny_obj_loader.h" />
+    <ClInclude Include="Utility\primitive_factory.h" />
+    <ClInclude Include="Systems\camera_system.h" />
+    <ClInclude Include="Components\camera_components.h" />
+    <ClInclude Include="Components\object_components.h" />
+    <ClInclude Include="Core\core_defines.h" />
+    <ClInclude Include="Core\memory_copy.h" />
+    <ClInclude Include="Backend\renderer.h" />
+    <ClInclude Include="Components\graphics_components.h" />
+    <ClInclude Include="Backend\device.h" />
+    <ClInclude Include="framework.h" />
+    <ClInclude Include="Backend\pipeline.h" />
+    <ClInclude Include="Backend\swap_chain.h" />
+    <ClInclude Include="Systems\base_render_system.h" />
+    <ClInclude Include="Systems\game_entity_system.h" />
+    <ClInclude Include="Systems\simple_render_system.h" />
+    <ClInclude Include="vesper.h" />
+    <ClInclude Include="App\window_handle.h" />
+    <ClInclude Include="App\vesper_app.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="App\file_system.cpp" />
+    <ClCompile Include="Backend\buffer.cpp" />
+    <ClCompile Include="Backend\renderer.cpp" />
+    <ClCompile Include="Backend\model_data.cpp" />
+    <ClCompile Include="Backend\descriptors.cpp" />
+    <ClCompile Include="ECS\ECS\component_manager.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="ECS\ECS\entity_manager.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Systems\material_system.cpp" />
+    <ClCompile Include="Systems\push_constant_render_system.cpp" />
+    <ClCompile Include="Utility\logger.cpp" />
+    <ClCompile Include="Utility\obj_loader.cpp" />
+    <ClCompile Include="Systems\model_system.cpp" />
+    <ClCompile Include="Utility\primitive_factory.cpp" />
+    <ClCompile Include="Systems\camera_system.cpp" />
+    <ClCompile Include="Backend\device.cpp" />
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="Backend\pipeline.cpp" />
+    <ClCompile Include="App\window_handle.cpp" />
+    <ClCompile Include="Backend\swap_chain.cpp" />
+    <ClCompile Include="Systems\base_render_system.cpp" />
+    <ClCompile Include="Systems\game_entity_system.cpp" />
+    <ClCompile Include="Systems\simple_render_system.cpp" />
+    <ClCompile Include="App\vesper_app.cpp" />
+    <ClCompile Include="Utility\stb_loader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\Shaders\push_constant_shader.frag" />
+    <None Include="Assets\Shaders\push_constant_shader.vert" />
+    <None Include="Assets\Shaders\simple_shader.frag" />
+    <None Include="Assets\Shaders\simple_shader.vert" />
+    <None Include="compile_shaders.bat" />
+    <None Include="copy_assets.bat" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
