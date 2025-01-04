@@ -117,7 +117,7 @@ void Pipeline::DefaultPipelineConfiguration(PipelineConfigInfo& _outConfigInfo)
 	};
 	_outConfigInfo.DynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 	_outConfigInfo.DynamicStateInfo.pDynamicStates = _outConfigInfo.DynamicStateEnables.data();
-	_outConfigInfo.DynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(_outConfigInfo.DynamicStateEnables.size());
+	_outConfigInfo.DynamicStateInfo.dynamicStateCount = static_cast<uint32>(_outConfigInfo.DynamicStateEnables.size());
 	_outConfigInfo.DynamicStateInfo.flags = 0;
 
 	_outConfigInfo.BindingDescriptions = Vertex::GetBindingDescriptions();

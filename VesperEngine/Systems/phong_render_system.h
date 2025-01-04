@@ -4,8 +4,6 @@
 
 #include "Core/core_defines.h"
 
-#include "App/vesper_app.h"
-
 #include "Backend/pipeline.h"
 #include "Backend/frame_info.h"
 #include "Backend/descriptors.h"
@@ -14,6 +12,7 @@
 
 #include "Systems/base_render_system.h"
 
+#include "App/vesper_app.h"
 #include "App/window_handle.h"
 
 #include <memory>

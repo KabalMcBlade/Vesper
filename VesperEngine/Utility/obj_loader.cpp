@@ -156,7 +156,7 @@ std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& 
 	for (const auto& shape : shapes)
 	{
 		auto model = std::make_unique<ModelData>();
-		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+		std::unordered_map<Vertex, uint32> uniqueVertices{};
 
 		const auto& material_ids = shape.mesh.material_ids;
 
@@ -259,7 +259,7 @@ std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& 
 				auto it = uniqueVertices.find(vertex);
 				if (it == uniqueVertices.end()) 
 				{
-					uniqueVertices[vertex] = static_cast<uint32_t>(model->Vertices.size());
+					uniqueVertices[vertex] = static_cast<uint32>(model->Vertices.size());
 					model->Vertices.push_back(vertex);
 				}
 

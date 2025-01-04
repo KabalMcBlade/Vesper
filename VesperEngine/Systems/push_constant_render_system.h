@@ -3,10 +3,15 @@
 #include "vulkan/vulkan.h"
 
 #include "Core/core_defines.h"
+
 #include "Backend/pipeline.h"
 #include "Backend/frame_info.h"
+
 #include "Components/camera_components.h"
+
 #include "Systems/base_render_system.h"
+
+#include "App/vesper_app.h"
 #include "App/window_handle.h"
 
 #include <memory>
@@ -16,7 +21,6 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-class VesperApp;
 
 class VESPERENGINE_API PushConstantRenderSystem final : public BaseRenderSystem
 {
