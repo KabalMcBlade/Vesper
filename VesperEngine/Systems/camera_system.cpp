@@ -48,8 +48,7 @@ void CameraSystem::SetCurrentActiveCamera(ecs::Entity _activeCamera)
 
 void CameraSystem::SwitchActiveCamera()
 {
-	std::vector<ecs::Entity> cameras;
-	ecs::EntityCollector::CollectEntitiesWithAll<CameraTransformComponent>(m_app.GetEntityManager(), m_app.GetComponentManager(), cameras);
+	std::vector<ecs::Entity> cameras = ecs::EntityCollector::CollectEntitiesWithAll<CameraTransformComponent>(m_app.GetEntityManager(), m_app.GetComponentManager());
 
 	const int32 cameraCount = static_cast<int32>(cameras.size());
 	for (int32 i = 0; i < cameraCount; ++i)
@@ -87,8 +86,7 @@ void CameraSystem::Update(const float _aspectRatio)
 
 void CameraSystem::GetActiveCameraData(const uint32 _activeCameraIndex, CameraComponent& _outCameraComponent, CameraTransformComponent& _outCameraTransform)
 {
-	std::vector<ecs::Entity> cameras;
-	ecs::EntityCollector::CollectEntitiesWithAny<CameraActive, CameraComponent, CameraTransformComponent>(m_app.GetEntityManager(), m_app.GetComponentManager(), cameras);
+	std::vector<ecs::Entity> cameras = ecs::EntityCollector::CollectEntitiesWithAny<CameraActive, CameraComponent, CameraTransformComponent>(m_app.GetEntityManager(), m_app.GetComponentManager());
 
 	assertMsgReturnVoid(cameras.size() > 0, "There is no active camera!");
 	assertMsgReturnVoid(_activeCameraIndex >= 0 && _activeCameraIndex < cameras.size(), "Active camera index is out of bound!");
