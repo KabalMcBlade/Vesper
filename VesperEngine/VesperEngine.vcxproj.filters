@@ -248,5 +248,6 @@
     <None Include="Assets\Shaders\cubemap_shader.vert" />
     <None Include="Assets\Shaders\irradiance_convolution_shader.frag" />
     <None Include="Assets\Shaders\pre_filtered_environment_map.frag" />
+    <None Include="Assets\Shaders\brdf_lut_shader.frag" />
   </ItemGroup>
 </Project>

@@ -194,6 +194,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
     <ClCompile Include="Utility\stb_loader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Shaders\brdf_lut_shader.frag" />
     <None Include="Assets\Shaders\cubemap_shader.vert" />
     <None Include="Assets\Shaders\irradiance_convolution_shader.frag" />
     <None Include="Assets\Shaders\pre_filtered_environment_map.frag" />
