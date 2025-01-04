@@ -45,6 +45,8 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 			m_app.GetComponentManager().AddComponent<PhongMaterialComponent>(_entity);
 			PhongMaterialComponent& phongMaterialComponent = m_app.GetComponentManager().GetComponent<PhongMaterialComponent>(_entity);
 			
+			phongMaterialComponent.Index = materialIndex;
+
 			phongMaterialComponent.DiffuseImageInfo.sampler = materialPhong->DiffuseTexture.Sampler;
 			phongMaterialComponent.DiffuseImageInfo.imageView = materialPhong->DiffuseTexture.ImageView;
 			phongMaterialComponent.DiffuseImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -73,7 +75,9 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 
 			m_app.GetComponentManager().AddComponent<PBRMaterialComponent>(_entity);
 			PBRMaterialComponent& pbrMaterialComponent = m_app.GetComponentManager().GetComponent<PBRMaterialComponent>(_entity);
-			
+
+			pbrMaterialComponent.Index = materialIndex;
+
 			pbrMaterialComponent.RoughnessImageInfo.sampler = materialPBR->RoughnessTexture.Sampler;
 			pbrMaterialComponent.RoughnessImageInfo.imageView = materialPBR->RoughnessTexture.ImageView;
 			pbrMaterialComponent.RoughnessImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;

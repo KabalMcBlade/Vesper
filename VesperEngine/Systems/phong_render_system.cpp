@@ -141,27 +141,13 @@ void PhongRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
 	// 1. Render whatever has vertex buffers and index buffer
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent, PhongMaterialComponent>(entityManager, componentManager))
+	auto entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent>(entityManager, componentManager, &PhongMaterialComponent::Index);
+
+	for (const auto& [key, entities] : entitiesGroupedAndCollected)
 	{
-		const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(gameEntity);
+		// From the first one and only, we can the material and we bind it.
+		const PhongMaterialComponent& phongMaterialComponent = componentManager.GetComponent<PhongMaterialComponent>(entities[0]);
 
-		const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(gameEntity);
-		const IndexBufferComponent& indexBufferComponent = componentManager.GetComponent<IndexBufferComponent>(gameEntity);
-
-		const PhongMaterialComponent& phongMaterialComponent = componentManager.GetComponent<PhongMaterialComponent>(gameEntity);
-
-		vkCmdBindDescriptorSets(
-			_frameInfo.CommandBuffer,
-			VK_PIPELINE_BIND_POINT_GRAPHICS,	// for now is only graphics, in future we want also the compute version
-			m_pipelineLayout,
-			1,
-			1,
-			&_frameInfo.GroupDescriptorSet,
-			1,
-			&dynamicOffsetComponent.DynamicOffset
-		);
-
-		// not optimal, because same material can be shared per multiple entity, but for now is ok!
 		vkCmdBindDescriptorSets(
 			_frameInfo.CommandBuffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -173,31 +159,41 @@ void PhongRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 			nullptr
 		);
 
-		Bind(vertexBufferComponent, indexBufferComponent, _frameInfo.CommandBuffer);
-		Draw(indexBufferComponent, _frameInfo.CommandBuffer);
+		for (const auto& entityCollected : entities)
+		{
+			const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(entityCollected);
+
+			const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(entityCollected);
+			const IndexBufferComponent& indexBufferComponent = componentManager.GetComponent<IndexBufferComponent>(entityCollected);
+
+			vkCmdBindDescriptorSets(
+				_frameInfo.CommandBuffer,
+				VK_PIPELINE_BIND_POINT_GRAPHICS,	// for now is only graphics, in future we want also the compute version
+				m_pipelineLayout,
+				1,
+				1,
+				&_frameInfo.GroupDescriptorSet,
+				1,
+				&dynamicOffsetComponent.DynamicOffset
+			);
+
+			Bind(vertexBufferComponent, indexBufferComponent, _frameInfo.CommandBuffer);
+			Draw(indexBufferComponent, _frameInfo.CommandBuffer);
+		}
 	}
+
+	entitiesGroupedAndCollected.clear();
+
+
 
 	// 2. Render only entities having Vertex buffers only
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent, PhongMaterialComponent>(entityManager, componentManager))
+	entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent>(entityManager, componentManager, &PhongMaterialComponent::Index);
+
+	for (const auto& [key, entities] : entitiesGroupedAndCollected)
 	{
-		const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(gameEntity);
+		// From the first one and only, we can the material and we bind it.
+		const PhongMaterialComponent& phongMaterialComponent = componentManager.GetComponent<PhongMaterialComponent>(entities[0]);
 
-		const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(gameEntity);
-
-		const PhongMaterialComponent& phongMaterialComponent = componentManager.GetComponent<PhongMaterialComponent>(gameEntity);
-
-		vkCmdBindDescriptorSets(
-			_frameInfo.CommandBuffer,
-			VK_PIPELINE_BIND_POINT_GRAPHICS,	// for now is only graphics, in future we want also the compute version
-			m_pipelineLayout,
-			1,
-			1,
-			&_frameInfo.GroupDescriptorSet,
-			1,
-			&dynamicOffsetComponent.DynamicOffset
-		);
-
-		// not optimal, because same material can be shared per multiple entity, but for now is ok!
 		vkCmdBindDescriptorSets(
 			_frameInfo.CommandBuffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -209,9 +205,29 @@ void PhongRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 			nullptr
 		);
 
-		Bind(vertexBufferComponent, _frameInfo.CommandBuffer);
-		Draw(vertexBufferComponent, _frameInfo.CommandBuffer);
+		for (const auto& entityCollected : entities)
+		{
+			const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(entityCollected);
+
+			const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(entityCollected);
+
+			vkCmdBindDescriptorSets(
+				_frameInfo.CommandBuffer,
+				VK_PIPELINE_BIND_POINT_GRAPHICS,	// for now is only graphics, in future we want also the compute version
+				m_pipelineLayout,
+				1,
+				1,
+				&_frameInfo.GroupDescriptorSet,
+				1,
+				&dynamicOffsetComponent.DynamicOffset
+			);
+
+			Bind(vertexBufferComponent, _frameInfo.CommandBuffer);
+			Draw(vertexBufferComponent, _frameInfo.CommandBuffer);
+		}
 	}
+
+	entitiesGroupedAndCollected.clear();
 }
 
 void PhongRenderSystem::SetupPipeline(PipelineConfigInfo& _pipelineConfig)

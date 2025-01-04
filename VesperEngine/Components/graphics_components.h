@@ -61,6 +61,9 @@ struct NotIndexBufferComponent
 // Used as base structures for Materials
 struct MaterialComponent
 {
+	using FieldType = int32;
+	int32 Index{ -1 };
+
 	// store the descriptor set bound to the resource per presentation frame (1,2 or 3)
 	std::vector<VkDescriptorSet> BoundDescriptorSet;
 };
