@@ -61,8 +61,11 @@ It will evolve into a proper viewer in the future.
 
 - **Vesper Engine and Viewer**: GPL-3.0
 
-- Assets:
+- Assets (if not mine):
 	- **A_blonde_twintailed_g_1228205950_texture** is downloadable from FAB store (https://www.fab.com/listings/e8be1218-232d-45a7-94cc-71ad83750803) under Creative Commons Attribution (CC BY 4.0): https://creativecommons.org/licenses/by/4.0/
+
+- Shaders (if not mine):
+	- **brdf_lut_shader.frag** source code is Copyright (c) 2018-2023, Sascha Willems - under MIT
 
 # Build Status
 
