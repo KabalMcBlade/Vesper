@@ -42,6 +42,7 @@ public:
 	void EndFrame();
 
 	void BeginSwapChainRenderPass(VkCommandBuffer _commandBuffer);
+	void BeginSwapChainRenderPass(VkCommandBuffer _commandBuffer, VkViewport _viewport, VkRect2D _scissor);
 	void EndSwapChainRenderPass(VkCommandBuffer _commandBuffer);
 
 private:

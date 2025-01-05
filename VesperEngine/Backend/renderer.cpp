@@ -202,6 +202,41 @@ void Renderer::BeginSwapChainRenderPass(VkCommandBuffer _commandBuffer)
 	vkCmdSetScissor(_commandBuffer, 0, 1, &scissor);
 }
 
+void Renderer::BeginSwapChainRenderPass(VkCommandBuffer _commandBuffer, VkViewport _viewport, VkRect2D _scissor)
+{
+	assertMsgReturnVoid(IsFrameStarted(), "Cannot call BeginSwapChainRenderPass while the frame is not in progress");
+	assertMsgReturnVoid(_commandBuffer == GetCurrentCommandBuffer(), "Cannot begin render pass on command buffer from a different frame");
+
+	// we record the render pass to begin with
+	VkRenderPassBeginInfo renderPassInfo{};
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderPassInfo.renderPass = m_swapChain->GetRenderPass();
+
+	// we need to say which frame buffer this render pass is writing in
+	renderPassInfo.framebuffer = m_swapChain->GetFrameBuffer(m_currentImageIndex);
+
+	// define the area where the shader loads and stores will take place
+	renderPassInfo.renderArea.offset = { 0, 0 };
+	renderPassInfo.renderArea.extent = m_swapChain->GetSwapChainExtent();
+
+	// clear values, which are the initial values of the frame buffer attachments
+	std::array<VkClearValue, 2> clearValues{};
+	clearValues[0].color = { 0.01f, 0.01f, 0.01f, 1.0f };	// in the render pass, the attachment 0 is the color buffer
+	clearValues[1].depthStencil = { 1.0f, 0 };			// in the render pass, the attachment 1 is the depth buffer
+
+	renderPassInfo.clearValueCount = static_cast<uint32>(clearValues.size());
+	renderPassInfo.pClearValues = clearValues.data();
+
+	// Now record this command buffer to begin this render pass
+	// VK_SUBPASS_CONTENTS_INLINE is signaling that the subsequent render pass commands 
+	// will be directly embedded in the primary command buffer itself and no secondary command buffer will be used
+	// So cannot be mixed, or the render pass is only from primary or is only from secondary
+	vkCmdBeginRenderPass(_commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+	vkCmdSetViewport(_commandBuffer, 0, 1, &_viewport);
+	vkCmdSetScissor(_commandBuffer, 0, 1, &_scissor);
+}
+
 void Renderer::EndSwapChainRenderPass(VkCommandBuffer _commandBuffer)
 {
 	assertMsgReturnVoid(IsFrameStarted(), "Cannot call EndSwapChainRenderPass while the frame is not in progress");
