@@ -1,6 +1,13 @@
 #version 450
 
-layout(location = 0) out vec2 outBRDF;
+//layout(location = 0) in vec2 texCoord;
+
+layout(location = 0) out vec4 outBRDF;
+
+layout(std140, push_constant) uniform Push 
+{
+    vec2 Resolution;
+} push;
 
 const float PI = 3.14159265359;
 
@@ -94,7 +101,12 @@ vec2 IntegrateBRDF(float NdotV, float roughness)
 
 void main() 
 {
-    float NdotV = gl_FragCoord.x / 512.0;
-    float roughness = gl_FragCoord.y / 512.0;
-    outBRDF = IntegrateBRDF(NdotV, roughness);
+    //outBRDF = vec4(texCoord, 0.0, 1.0); // Map texCoord to colors
+    //outBRDF = vec4(NdotV, roughness, 0.0, 1.0);
+
+    float NdotV = gl_FragCoord.x / push.Resolution.x;
+    float roughness = gl_FragCoord.y / push.Resolution.y;
+    vec2 brdf = IntegrateBRDF(NdotV, roughness);
+    
+    outBRDF = vec4(brdf, 0.0, 1.0); // Fill remaining channels with appropriate values
 }

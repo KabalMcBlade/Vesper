@@ -19,8 +19,10 @@
 #include "Backend/device.h"
 #include "Backend/buffer.h"
 #include "Backend/swap_chain.h"
+#include "Backend/offscreen_swap_chain.h"
 #include "Backend/descriptors.h"
 #include "Backend/renderer.h"
+#include "Backend/offscreen_renderer.h"
 #include "Backend/frame_info.h"
 
 #include "Components/graphics_components.h"
@@ -30,10 +32,12 @@
 #include "Systems/game_entity_system.h"
 #include "Systems/model_system.h"
 #include "Systems/material_system.h"
+#include "Systems/core_render_system.h"
 #include "Systems/base_render_system.h"
 #include "Systems/push_constant_render_system.h"
 #include "Systems/phong_render_system.h"
 #include "Systems/camera_system.h"
+#include "Systems/brdf_lut_generation_system.h"
 
 #include "Utility/hash.h"
 #include "Utility/logger.h"

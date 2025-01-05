@@ -43,11 +43,16 @@ public:
 
 	void Cleanup();
 
+	// _path is where to load and to save in case does not yet exist.
+	void GenerateOrLoadBRDFLutTexture(const std::string& _path, VkExtent2D _extent);
+
 private:
 	int32 CreatePhongMaterial(const MaterialData& _data);
 	int32 CreatePBRMaterial(const MaterialData& _data);
 
-	TextureData LoadTexture(const std::string& _path);
+	// if _overrideFormat is different from VK_FORMAT_UNDEFINED, it uses whatever has been passed, otherwise use channels definition
+	// to figure out what format to use
+	TextureData LoadTexture(const std::string& _path, VkFormat _overrideFormat = VK_FORMAT_UNDEFINED);
 	uint8* LoadTextureData(const std::string& _path, int32& _width, int32& _height, int32& _channels, int32 _desired_channels);
 	void FreeTextureData(uint8* _data);
 	void CreateTextureImage(const uint8* _data, int32 _width, int32 _height, VkFormat _format, VkImage& _image, VmaAllocation& _allocation);
@@ -85,6 +90,9 @@ private:
 	TextureData m_defaultSheenTexture;
 	TextureData m_defaultEmissiveTexture;
 	TextureData m_defaultNormalMapTexture;
+
+	// Generated/loaded textures
+	TextureData m_brdfLutTexture;
 };
 
 /*

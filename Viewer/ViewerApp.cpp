@@ -130,8 +130,17 @@ ViewerApp::ViewerApp(Config& _config) :
 
 	m_mouseController = std::make_unique<MouseLookCameraController>();
 	m_mouseController->SetMouseCallback(this, m_window->GetWindow());
-
+	
 	LOG_NL();
+
+	// BRDF LUT TEXTURE
+	LOG(Logger::INFO, "Generating or loading BRDF LUT texture");
+	const std::string brdfLutPath = GetConfig().TexturesPath + "brdf_lut.png";
+	VkExtent2D extent;
+	extent.width = 512;
+	extent.height = 512;
+	m_materialSystem->GenerateOrLoadBRDFLutTexture(brdfLutPath, extent);
+	LOG(Logger::INFO, "BRDF LUT texture generated/loaded at ", brdfLutPath);
 
 	// test
 	GetComponentManager().RegisterComponent<RotationComponent>(); 

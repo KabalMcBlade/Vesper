@@ -120,6 +120,8 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
     <ClInclude Include="Backend\frame_info.h" />
     <ClInclude Include="Backend\model_data.h" />
     <ClInclude Include="Backend\descriptors.h" />
+    <ClInclude Include="Backend\offscreen_renderer.h" />
+    <ClInclude Include="Backend\offscreen_swap_chain.h" />
     <ClInclude Include="ECS\ECS\component_manager.h" />
     <ClInclude Include="ECS\ECS\ecs.h" />
     <ClInclude Include="ECS\ECS\entity.h" />
@@ -131,6 +133,8 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
     <ClInclude Include="ECS\ECS\iterate_entities_with_not.h" />
     <ClInclude Include="ECS\ECS\types.h" />
     <ClInclude Include="ECS\ECS\utility.h" />
+    <ClInclude Include="Systems\brdf_lut_generation_system.h" />
+    <ClInclude Include="Systems\core_render_system.h" />
     <ClInclude Include="Systems\material_system.h" />
     <ClInclude Include="Systems\push_constant_render_system.h" />
     <ClInclude Include="ThirdParty\stb\stb_image.h" />
@@ -166,6 +170,8 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
   <ItemGroup>
     <ClCompile Include="App\file_system.cpp" />
     <ClCompile Include="Backend\buffer.cpp" />
+    <ClCompile Include="Backend\offscreen_renderer.cpp" />
+    <ClCompile Include="Backend\offscreen_swap_chain.cpp" />
     <ClCompile Include="Backend\renderer.cpp" />
     <ClCompile Include="Backend\model_data.cpp" />
     <ClCompile Include="Backend\descriptors.cpp" />
@@ -175,6 +181,8 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
     <ClCompile Include="ECS\ECS\entity_manager.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Systems\brdf_lut_generation_system.cpp" />
+    <ClCompile Include="Systems\core_render_system.cpp" />
     <ClCompile Include="Systems\material_system.cpp" />
     <ClCompile Include="Systems\push_constant_render_system.cpp" />
     <ClCompile Include="Utility\logger.cpp" />
@@ -196,6 +204,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
   <ItemGroup>
     <None Include="Assets\Shaders\brdf_lut_shader.frag" />
     <None Include="Assets\Shaders\cubemap_shader.vert" />
+    <None Include="Assets\Shaders\fullscreen.vert" />
     <None Include="Assets\Shaders\irradiance_convolution_shader.frag" />
     <None Include="Assets\Shaders\pre_filtered_environment_map.frag" />
     <None Include="Assets\Shaders\push_constant_shader.frag" />

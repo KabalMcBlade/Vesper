@@ -77,12 +77,21 @@ public:
 	void CreateImageWithInfo(
 		const VkImageCreateInfo& _imageInfo,
 		VkImage& _image,
-		VmaAllocation& _allocation);
+		VmaAllocation& _allocation,
+		VmaMemoryUsage _memoryUsage = VMA_MEMORY_USAGE_AUTO);
+
 
 	VkCommandBuffer BeginSingleTimeCommands();
 	void EndSingleTimeCommands(VkCommandBuffer _commandBuffer);
+	// The below methods can be executed all withing the same command buffer, so they can be all executed in one command together if need it
+	void CopyBuffer(VkCommandBuffer _commandBuffer, VkBuffer _srcBuffer, VkBuffer _dstBuffer, VkDeviceSize _size);
+	void CopyBufferToImage(VkCommandBuffer _commandBuffer, VkBuffer _buffer, VkImage _image, uint32 _width, uint32 _height, uint32 _layerCount);
+	void CopyImageToBuffer(VkCommandBuffer _commandBuffer, VkImage _image, VkBuffer _buffer, uint32 _width, uint32 _height, uint32 _layerCount);
+	void TransitionImageLayout(VkCommandBuffer _commandBuffer, VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout);
+	// The below methods are executed withing a single time command buffer, so they are atomic
 	void CopyBuffer(VkBuffer _srcBuffer, VkBuffer _dstBuffer, VkDeviceSize _size);
 	void CopyBufferToImage(VkBuffer _buffer, VkImage _image, uint32 _width, uint32 _height, uint32 _layerCount);
+	void CopyImageToBuffer(VkImage _image, VkBuffer _buffer, uint32 _width, uint32 _height, uint32 _layerCount);
 	void TransitionImageLayout(VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout);
 
 private:
@@ -107,6 +116,11 @@ private:
 	void CreateCommandPool();
 	void CreateVma();
 
+	void RecordCopyBuffer(VkCommandBuffer _commandBuffer, VkBuffer _srcBuffer, VkBuffer _dstBuffer, VkDeviceSize _size);
+	void RecordCopyBufferToImage(VkCommandBuffer _commandBuffer, VkBuffer _buffer, VkImage _image, uint32 _width, uint32 _height, uint32 _layerCount);
+	void RecordCopyImageToBuffer(VkCommandBuffer _commandBuffer, VkImage _image, VkBuffer _buffer, uint32 _width, uint32 _height, uint32 _layerCount);
+	void RecordTransitionImageLayout(VkCommandBuffer _commandBuffer, VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout);
+
 	// helper functions
 	bool IsDeviceSuitable(VkPhysicalDevice _device);
 	bool CcheckValidationLayerSupport();
@@ -117,6 +131,7 @@ private:
 	SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice _device);
 	constexpr uint32 GetVulkanApiVersion();
 
+private:
 	VkInstance m_instance;
 	VkDebugUtilsMessengerEXT m_debugMessenger;
 	VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;

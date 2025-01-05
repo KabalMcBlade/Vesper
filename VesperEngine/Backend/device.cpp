@@ -684,10 +684,11 @@ void Device::CreateBufferWithAlignment(
 void Device::CreateImageWithInfo(
 	const VkImageCreateInfo& _imageInfo,
 	VkImage& _image,
-	VmaAllocation& _allocation)
+	VmaAllocation& _allocation,
+	VmaMemoryUsage _memoryUsage)
 {
 	VmaAllocationCreateInfo createInfo{};
-	createInfo.usage = VMA_MEMORY_USAGE_AUTO;
+	createInfo.usage = _memoryUsage;
 
 	if (vmaCreateImage(m_allocator, &_imageInfo, &createInfo, &_image, &_allocation, nullptr) != VK_SUCCESS)
 	{
@@ -752,52 +753,94 @@ void Device::EndSingleTimeCommands(VkCommandBuffer _commandBuffer)
 	vkQueueWaitIdle(m_graphicsQueue);
 
 	vkFreeCommandBuffers(m_device, m_commandPool, 1, &_commandBuffer);
+
+	/*
+	vkEndCommandBuffer(_commandBuffer);
+
+	// Create a fence for synchronization
+	VkFence fence;
+	VkFenceCreateInfo fenceInfo{};
+	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	vkCreateFence(m_device, &fenceInfo, nullptr, &fence);
+
+	// Submit the command buffer
+	VkSubmitInfo submitInfo{};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &_commandBuffer;
+
+	vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, fence);
+
+	// Wait for the fence
+	vkWaitForFences(m_device, 1, &fence, VK_TRUE, UINT64_MAX);
+
+	// Destroy the fence
+	vkDestroyFence(m_device, fence, nullptr);
+
+	// Free the command buffer
+	vkFreeCommandBuffers(m_device, m_commandPool, 1, &_commandBuffer);
+	*/
 }
 
-void Device::CopyBuffer(VkBuffer _srcBuffer, VkBuffer _dstBuffer, VkDeviceSize _size) 
-{
-	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
+
+void Device::RecordCopyBuffer(VkCommandBuffer _commandBuffer, VkBuffer _srcBuffer, VkBuffer _dstBuffer, VkDeviceSize _size)
+{
 	VkBufferCopy copyRegion{};
-	copyRegion.srcOffset = 0;  // Optional
-	copyRegion.dstOffset = 0;  // Optional
+	copyRegion.srcOffset = 0;
+	copyRegion.dstOffset = 0;
 	copyRegion.size = _size;
-	vkCmdCopyBuffer(commandBuffer, _srcBuffer, _dstBuffer, 1, &copyRegion);
-	
-	EndSingleTimeCommands(commandBuffer);
+	vkCmdCopyBuffer(_commandBuffer, _srcBuffer, _dstBuffer, 1, &copyRegion);
 }
 
-void Device::CopyBufferToImage(VkBuffer _buffer, VkImage _image, uint32 _width, uint32 _height, uint32 _layerCount) 
+void Device::RecordCopyBufferToImage(VkCommandBuffer _commandBuffer, VkBuffer _buffer, VkImage _image, uint32 _width, uint32 _height, uint32 _layerCount)
 {
-	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
-
 	VkBufferImageCopy region{};
 	region.bufferOffset = 0;
 	region.bufferRowLength = 0;
 	region.bufferImageHeight = 0;
-
 	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	region.imageSubresource.mipLevel = 0;
 	region.imageSubresource.baseArrayLayer = 0;
 	region.imageSubresource.layerCount = _layerCount;
-
 	region.imageOffset = { 0, 0, 0 };
 	region.imageExtent = { _width, _height, 1 };
-	
-	vkCmdCopyBufferToImage(
-		commandBuffer,
-		_buffer,
-		_image,
-		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-		1,
-		&region);
-	EndSingleTimeCommands(commandBuffer);
+	vkCmdCopyBufferToImage(_commandBuffer, _buffer, _image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 }
 
-void Device::TransitionImageLayout(VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout)
+void Device::RecordCopyImageToBuffer(VkCommandBuffer _commandBuffer, VkImage _image, VkBuffer _buffer, uint32 _width, uint32 _height, uint32 _layerCount)
 {
-	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+	VkBufferImageCopy region{};
+	region.bufferOffset = 0;
+	region.bufferRowLength = 0;
+	region.bufferImageHeight = 0;
+	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	region.imageSubresource.mipLevel = 0;
+	region.imageSubresource.baseArrayLayer = 0;
+	region.imageSubresource.layerCount = _layerCount;
+	region.imageOffset = { 0, 0, 0 };
+	region.imageExtent = { _width, _height, 1 };
+	vkCmdCopyImageToBuffer(_commandBuffer, _image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, _buffer, 1, &region);
+}
 
+/**
+ * EXAMPLE TRANSITIONS:
+ *
+ * Transition for Rendering:
+ * m_device.TransitionImageLayout(Image, Format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+ *
+ * Transition for Saving / copy to staging buffer:
+ * m_device.TransitionImageLayout(Image, Format, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+ *
+ * Transition for Sampling in the Shader
+ * m_device.TransitionImageLayout(Image, Format, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+ *
+ * Transition for general Destination
+ * m_device.TransitionImageLayout(Image, Format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+ *
+ */
+void Device::RecordTransitionImageLayout(VkCommandBuffer _commandBuffer, VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout)
+{
 	VkImageMemoryBarrier barrier{};
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	barrier.oldLayout = _oldLayout;
@@ -827,9 +870,10 @@ void Device::TransitionImageLayout(VkImage _image, VkFormat _format, VkImageLayo
 	barrier.subresourceRange.baseArrayLayer = 0;
 	barrier.subresourceRange.layerCount = 1;
 
-	VkPipelineStageFlags sourceStage;
-	VkPipelineStageFlags destinationStage;
+	VkPipelineStageFlags sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+	VkPipelineStageFlags destinationStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
 
+	// Handle layout transitions
 	if (_oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && _newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
 	{
 		barrier.srcAccessMask = 0;
@@ -846,22 +890,109 @@ void Device::TransitionImageLayout(VkImage _image, VkFormat _format, VkImageLayo
 		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 		destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 	}
+	else if (_oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && _newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+	{
+		barrier.srcAccessMask = 0;
+		barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	}
+	else if (_oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && _newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
+	{
+		barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+		sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	}
+	else if (_oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && _newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+	{
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	}
+	else if (_oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && _newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+	{
+		barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+		sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	}
+	else if (_oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && _newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL)
+	{
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	}
+
 	else
 	{
 		throw std::invalid_argument("Unsupported layout transition!");
 	}
 
 	vkCmdPipelineBarrier(
-		commandBuffer,
+		_commandBuffer,
 		sourceStage, destinationStage,
 		0,
 		0, nullptr,
 		0, nullptr,
 		1, &barrier
 	);
+}
 
+
+void Device::CopyBuffer(VkBuffer _srcBuffer, VkBuffer _dstBuffer, VkDeviceSize _size)
+{
+	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+	RecordCopyBuffer(commandBuffer, _srcBuffer, _dstBuffer, _size);
 	EndSingleTimeCommands(commandBuffer);
 }
 
+void Device::CopyBuffer(VkCommandBuffer _commandBuffer, VkBuffer _srcBuffer, VkBuffer _dstBuffer, VkDeviceSize _size)
+{
+	RecordCopyBuffer(_commandBuffer, _srcBuffer, _dstBuffer, _size);
+}
+
+void Device::CopyBufferToImage(VkBuffer _buffer, VkImage _image, uint32 _width, uint32 _height, uint32 _layerCount)
+{
+	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+	RecordCopyBufferToImage(commandBuffer, _buffer, _image, _width, _height, _layerCount);
+	EndSingleTimeCommands(commandBuffer);
+}
+
+void Device::CopyBufferToImage(VkCommandBuffer _commandBuffer, VkBuffer _buffer, VkImage _image, uint32 _width, uint32 _height, uint32 _layerCount)
+{
+	RecordCopyBufferToImage(_commandBuffer, _buffer, _image, _width, _height, _layerCount);
+}
+
+void Device::CopyImageToBuffer(VkImage _image, VkBuffer _buffer, uint32 _width, uint32 _height, uint32 _layerCount)
+{
+	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+	RecordCopyImageToBuffer(commandBuffer, _image, _buffer, _width, _height, _layerCount);
+	EndSingleTimeCommands(commandBuffer);
+}
+
+void Device::CopyImageToBuffer(VkCommandBuffer _commandBuffer, VkImage _image, VkBuffer _buffer, uint32 _width, uint32 _height, uint32 _layerCount)
+{
+	RecordCopyImageToBuffer(_commandBuffer, _image, _buffer, _width, _height, _layerCount);
+}
+
+void Device::TransitionImageLayout(VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout)
+{
+	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+	RecordTransitionImageLayout(commandBuffer, _image, _format, _oldLayout, _newLayout);
+	EndSingleTimeCommands(commandBuffer);
+}
+
+void Device::TransitionImageLayout(VkCommandBuffer _commandBuffer, VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout)
+{
+	RecordTransitionImageLayout(_commandBuffer, _image, _format, _oldLayout, _newLayout);
+}
 
 VESPERENGINE_NAMESPACE_END

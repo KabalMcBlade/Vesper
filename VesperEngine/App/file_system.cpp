@@ -15,6 +15,11 @@ bool FileSystem::IsFilePath(const std::string& _filePath)
 	return !std::filesystem::path(_filePath).parent_path().empty();
 }
 
+bool FileSystem::IsFileExists(const std::string& _filePath)
+{
+	return std::filesystem::exists(_filePath) && std::filesystem::is_regular_file(_filePath);
+}
+
 std::string FileSystem::GetDirectoryPath(const std::string& _filePath, bool _removeRightmostFolder)
 {
 	std::filesystem::path path(_filePath);

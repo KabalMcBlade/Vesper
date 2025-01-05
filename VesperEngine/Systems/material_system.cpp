@@ -1,16 +1,21 @@
 #include "material_system.h"
 
-#include "Utility/hash.h"
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include "glm/gtx/hash.hpp"
+#include "Backend/offscreen_renderer.h"
 
 #include "App/vesper_app.h"
 #include "App/file_system.h"
 
+#include "Systems/brdf_lut_generation_system.h"
+
+#include "Utility/hash.h"
 #include "Utility/logger.h"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/gtx/hash.hpp"
+
+
 #include "../stb/stb_image.h"
+
 #include <random>
 
 
@@ -390,11 +395,38 @@ void MaterialSystem::Cleanup()
 	DestroyTextureIfUnused(m_defaultSheenTexture);
 	DestroyTextureIfUnused(m_defaultEmissiveTexture);
 
+	// Destroy generated textures
+	DestroyTextureIfUnused(m_brdfLutTexture);
+
 	m_materials.clear();
 	m_materialLookup.clear();
 }
 
-TextureData MaterialSystem::LoadTexture(const std::string& _path)
+void MaterialSystem::GenerateOrLoadBRDFLutTexture(const std::string& _path, VkExtent2D _extent)
+{
+	if (!FileSystem::IsFileExists(_path))
+	{
+		std::unique_ptr<OffscreenRenderer> offscreenRenderer = std::make_unique<OffscreenRenderer>(m_device, _extent, VK_FORMAT_R8G8B8A8_UNORM);
+		std::unique_ptr<BRDFLUTGenerationSystem> m_brdfLutGenerationSystem = std::make_unique<BRDFLUTGenerationSystem>(m_app, m_device, offscreenRenderer->GetOffscreenSwapChainRenderPass());
+
+		auto commandBuffer = offscreenRenderer->BeginFrame();
+		offscreenRenderer->BeginOffscreenSwapChainRenderPass(commandBuffer);
+
+		m_brdfLutGenerationSystem->Generate(commandBuffer, _extent.width, _extent.height);
+
+		offscreenRenderer->EndOffscreenSwapChainRenderPass(commandBuffer);
+
+		BufferComponent stagingBuffer = offscreenRenderer->PrepareImageCopy(commandBuffer);
+
+		offscreenRenderer->EndFrame();
+
+		offscreenRenderer->FlushBufferToFile(_path, stagingBuffer);
+	}
+
+	m_brdfLutTexture = LoadTexture(_path, VK_FORMAT_R8G8B8A8_UNORM);
+}
+
+TextureData MaterialSystem::LoadTexture(const std::string& _path, VkFormat _overrideFormat)
 {
 	TextureData textureComponent;
 
@@ -408,13 +440,20 @@ TextureData MaterialSystem::LoadTexture(const std::string& _path)
 
 	// Step 2: Determine Vulkan format
 	VkFormat format = VK_FORMAT_R8G8B8A8_SRGB; // Default to SRGB 4 channels
-	if (channels == 1) 
+	if (_overrideFormat == VK_FORMAT_UNDEFINED)
 	{
-		format = VK_FORMAT_R8_UNORM; // Single channel (gray-scale)
+		if (channels == 1) 
+		{
+			format = VK_FORMAT_R8_UNORM; // Single channel (gray-scale)
+		}
+		else if (channels == 3) 
+		{
+			format = VK_FORMAT_R8G8B8A8_SRGB; // Convert RGB to RGBA
+		}
 	}
-	else if (channels == 3) 
+	else
 	{
-		format = VK_FORMAT_R8G8B8A8_SRGB; // Convert RGB to RGBA
+		format = _overrideFormat;
 	}
 
 	// Step 3: Create Vulkan texture image
@@ -484,9 +523,13 @@ void MaterialSystem::CreateTextureImage(const uint8* _data, int32 _width, int32 
 	m_device.CreateImageWithInfo(imageInfo, _image, _allocation);
 
 	// Copy data from staging buffer to Vulkan image
-	m_device.TransitionImageLayout(_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-	m_device.CopyBufferToImage(stagingBuffer.Buffer, _image, _width, _height, 1);
-	m_device.TransitionImageLayout(_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	VkCommandBuffer commandBuffer = m_device.BeginSingleTimeCommands();
+
+	m_device.TransitionImageLayout(commandBuffer, _image, _format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	m_device.CopyBufferToImage(commandBuffer, stagingBuffer.Buffer, _image, _width, _height, 1);
+	m_device.TransitionImageLayout(commandBuffer, _image, _format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+	m_device.EndSingleTimeCommands(commandBuffer);
 
 	// Cleanup staging buffer
 	m_buffer->Destroy(stagingBuffer);
