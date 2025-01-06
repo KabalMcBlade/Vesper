@@ -47,14 +47,8 @@ I will post screenshots here as new features are added and when there’s someth
 First render from the engine.
 <img src="./Screenshots/1.png">
 
-Second render from the engine, OBJ loaded.
+Second render from the engine, OBJ loaded using Phong shader rendering.
 <img src="./Screenshots/2.png">
-
-
-## Viewer
-
-For now, the demo simply loads a couple of cubes and two OBJ vases, adding a point light. 
-It will evolve into a proper viewer in the future.
 
 
 ## LICENSE
