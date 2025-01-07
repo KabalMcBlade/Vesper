@@ -28,12 +28,6 @@ public:
 			uint32 _count = 1);
 		std::unique_ptr<DescriptorSetLayout> Build() const;
 
-		// convenient conversion operator
-// 		operator Builder& () const
-// 		{
-// 			return Build();
-// 		}
-
 	private:
 		Device& m_device;
 		std::unordered_map<uint32, VkDescriptorSetLayoutBinding> m_bindings{};

@@ -104,7 +104,7 @@ std::unique_ptr<MaterialData> CreateMaterialData(const tinyobj::material_t& _tin
 	else
 	{
 		// Fallback to a default MaterialData if material type is invalid
-		auto defaultMaterial = MaterialSystem::CreateDefaultMaterialData();
+		auto defaultMaterial = MaterialSystem::CreateDefaultPhongMaterialData();
 
 		return defaultMaterial;
 	}
@@ -179,7 +179,7 @@ std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& 
 			else
 			{
 				// No materials available; assign a default
-				model->Material = MaterialSystem::CreateDefaultMaterialData();
+				model->Material = MaterialSystem::CreateDefaultPhongMaterialData();
 			}
 			
 			for (int32 vertexIndex = 0; vertexIndex < 3; ++vertexIndex)

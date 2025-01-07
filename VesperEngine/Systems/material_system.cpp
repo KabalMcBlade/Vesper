@@ -73,7 +73,7 @@ size_t HashMaterialData(const MaterialData& _data)
 
 
 // default material is Phong, with default texture and values
-std::unique_ptr<MaterialData> MaterialSystem::CreateDefaultMaterialData()
+std::unique_ptr<MaterialData> MaterialSystem::CreateDefaultPhongMaterialData()
 {
 	auto defaultMaterial = std::make_unique<MaterialDataPhong>();
 	defaultMaterial->Type = MaterialType::Phong;

@@ -26,7 +26,7 @@ public:
 	MaterialSystem& operator=(const MaterialSystem&) = delete;
 
 public:
-	static std::unique_ptr<MaterialData> CreateDefaultMaterialData();
+	static std::unique_ptr<MaterialData> CreateDefaultPhongMaterialData();
 
 public:
 	int32 CreateMaterial(const MaterialData& _data);

@@ -21,7 +21,7 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateTriangleNoIndices(glm::vec3
 		v.Position += _offset;
 	}
 
-	data->Material = MaterialSystem::CreateDefaultMaterialData();
+	data->Material = MaterialSystem::CreateDefaultPhongMaterialData();
 
 	data->IsStatic = _isStatic;
 
@@ -55,7 +55,7 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateTriangle(glm::vec3 _offset,
 
 	data->Indices = { 0,  1,  2 };
 
-	data->Material = MaterialSystem::CreateDefaultMaterialData();
+	data->Material = MaterialSystem::CreateDefaultPhongMaterialData();
 
 	data->IsStatic = _isStatic;
 
@@ -137,7 +137,7 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateCubeNoIndices(glm::vec3 _of
 		v.Position += _offset;
 	}
 
-	data->Material = MaterialSystem::CreateDefaultMaterialData();
+	data->Material = MaterialSystem::CreateDefaultPhongMaterialData();
 
 	data->IsStatic = _isStatic;
 
@@ -211,7 +211,7 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateCube(glm::vec3 _offset, std
 	data->Indices = {0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
 					12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21 };
 
-	data->Material = MaterialSystem::CreateDefaultMaterialData();
+	data->Material = MaterialSystem::CreateDefaultPhongMaterialData();
 
 	data->IsStatic = _isStatic;
 
