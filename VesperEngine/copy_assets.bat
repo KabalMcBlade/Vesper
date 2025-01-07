@@ -8,64 +8,48 @@ echo:
 if "%~1"=="" goto :END_1
 if "%~2"=="" goto :END_2
 
-if not exist %~2Assets\Shaders (
-    echo Folder %~2Assets\Shaders not found, creating it.
-    mkdir "%~2Assets\Shaders"
+set SOURCE=%~1
+set DEST=%~2
+
+if not exist "%DEST%Assets\Shaders" (
+    echo Folder "%DEST%Assets\Shaders" not found, creating it.
+    mkdir "%DEST%Assets\Shaders"
 )
 
-if not exist %~2Assets\Models (
-    echo Folder %~2Assets\Models not found, creating it.
-    mkdir "%~2Assets\Models"
+if not exist "%DEST%Assets\Models" (
+    echo Folder "%DEST%Assets\Models" not found, creating it.
+    mkdir "%DEST%Assets\Models"
 )
 
-if not exist %~2Assets\Textures (
-    echo Folder %~2Assets\Textures not found, creating it.
-    mkdir "%~2Assets\Textures"
+if not exist "%DEST%Assets\Textures" (
+    echo Folder "%DEST%Assets\Textures" not found, creating it.
+    mkdir "%DEST%Assets\Textures"
 )
+
 echo:
+echo Copying shader files from "%SOURCE%Assets\Shaders" to "%DEST%Assets\Shaders":
+copy "%SOURCE%Assets\Shaders\*.spv" "%DEST%Assets\Shaders\"
 
+echo:
+echo Copying model files from "%SOURCE%Assets\Models" to "%DEST%Assets\Models":
+copy "%SOURCE%Assets\Models\*.*" "%DEST%Assets\Models\"
 
-
-for %%f in (%~1Assets\Shaders\*.spv) do (
-
-    echo Copying shaders files from %~1Assets\Shaders\ to %~2Assets\Shaders\:
-    copy %~1Assets\Shaders\*.spv %~2Assets\Shaders
-    echo:
-
-	goto :MODEL_FOLDER
-)
-
-:MODEL_FOLDER
-for %%f in (%~1Assets\Models\*.*) do (
-
-    echo Copying models files from %~1Assets\Models\ to %~2Assets\Models\:
-    copy %~1Assets\Models\*.* %~2Assets\Models
-    echo:
-
-	goto :TEXTURE_FOLDER
-)
-
-:TEXTURE_FOLDER
-for %%f in (%~1Assets\Textures\*.*) do (
-
-    echo Copying models files from %~1Assets\Textures\ to %~2Assets\Textures\:
-    copy %~1Assets\Textures\*.* %~2Assets\Textures
-    echo:
-
-	goto :END_OK
-)
-
+echo:
+echo Copying texture files from "%SOURCE%Assets\Textures" to "%DEST%Assets\Textures":
+copy "%SOURCE%Assets\Textures\*.*" "%DEST%Assets\Textures\"
 
 goto :END_OK
 
-
 :END_1
-echo No $(ProjectDir) provided as parameter!
+echo Error: No source directory provided as a parameter!
+goto :END
 
 :END_2
-echo No $(OutDir) provided as parameter!
-
+echo Error: No destination directory provided as a parameter!
+goto :END
 
 :END_OK
+echo Copy operation completed successfully!
+goto :END
 
-::exit
+:END

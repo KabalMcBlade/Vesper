@@ -74,9 +74,8 @@
       <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <PostBuildEvent>
-      <Command>call "$(ProjectDir)compile_shaders.bat" $(ProjectDir)
-
-call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
+      <Command>call "C:\Projects\Vesper\VesperEngine\compile_shaders.bat" C:\Projects\Vesper\VesperEngine\ || exit 0
+call "C:\Projects\Vesper\VesperEngine\copy_assets.bat" C:\Projects\Vesper\VesperEngine\ C:\Projects\Vesper\x64\Debug\ || exit 0</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -108,9 +107,8 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
       <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <PostBuildEvent>
-      <Command>call "$(ProjectDir)compile_shaders.bat" $(ProjectDir)
-
-call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
+      <Command>call "C:\Projects\Vesper\VesperEngine\compile_shaders.bat" C:\Projects\Vesper\VesperEngine\ || exit 0
+call "C:\Projects\Vesper\VesperEngine\copy_assets.bat" C:\Projects\Vesper\VesperEngine\ C:\Projects\Vesper\x64\Debug\ || exit 0</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -213,6 +211,9 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(OutDir)</Command>
     <None Include="Assets\Shaders\phong_shader.vert" />
     <None Include="compile_shaders.bat" />
     <None Include="copy_assets.bat" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Assets\Shaders\shader_flag_config.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

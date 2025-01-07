@@ -234,7 +234,7 @@ void PhongRenderSystem::SetupPipeline(PipelineConfigInfo& _pipelineConfig)
 {
 	m_pipeline = std::make_unique<Pipeline>(
 		m_device,
-		std::vector{ ShaderInfo{m_app.GetConfig().ShadersPath + "phong_shader.vert.spv", ShaderType::Vertex}, ShaderInfo{m_app.GetConfig().ShadersPath + "phong_shader.frag.spv", ShaderType::Fragment}, },
+		std::vector{ ShaderInfo{m_app.GetConfig().ShadersPath + "phong_shader.vert.spv", ShaderType::Vertex}, ShaderInfo{m_app.GetConfig().ShadersPath + "phong_shader_bindless0.frag.spv", ShaderType::Fragment}, },
 		_pipelineConfig
 	);
 }

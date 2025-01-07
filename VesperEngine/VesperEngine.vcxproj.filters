@@ -275,4 +275,7 @@
     <None Include="Assets\Shaders\brdf_lut_shader.frag" />
     <None Include="Assets\Shaders\fullscreen.vert" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="Assets\Shaders\shader_flag_config.txt" />
+  </ItemGroup>
 </Project>
