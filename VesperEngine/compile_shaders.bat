@@ -19,7 +19,7 @@ echo:
 
 echo Compiling fragment shader files:
 for %%f in (%~1Assets\Shaders\*.frag) do (
-	%VULKAN_SDK%\%VK_PLATFORM%\glslangValidator.exe -V -o %%f.spv %%f"
+	%VULKAN_SDK%\%VK_PLATFORM%\glslangValidator.exe -V -o %%f.spv %%f
 )
 
 goto :END_OK
