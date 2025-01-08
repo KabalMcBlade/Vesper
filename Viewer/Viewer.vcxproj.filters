@@ -52,8 +52,38 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <CustomBuild Include="@(ModelsFiles)" />
+    <CustomBuild Include="@(ModelsFiles)" />
+    <CustomBuild Include="@(ModelsFiles)" />
+    <CustomBuild Include="@(ModelsFiles)" />
+    <CustomBuild Include="@(ModelsFiles)" />
+    <CustomBuild Include="@(ModelsFiles)" />
+    <CustomBuild Include="@(ModelsFiles)" />
+    <CustomBuild Include="@(ShaderFiles)" />
+    <CustomBuild Include="@(ShaderFiles)" />
+    <CustomBuild Include="@(ShaderFiles)" />
+    <CustomBuild Include="@(ShaderFiles)" />
+    <CustomBuild Include="@(ShaderFiles)" />
+    <CustomBuild Include="@(ShaderFiles)" />
+    <CustomBuild Include="@(ShaderFiles)" />
+    <CustomBuild Include="@(ShaderFiles)" />
+    <CustomBuild Include="@(ShaderFiles)" />
+    <CustomBuild Include="@(ShaderFiles)" />
+    <CustomBuild Include="@(ShaderFiles)" />
+    <CustomBuild Include="@(TexturesFiles)" />
+    <CustomBuild Include="@(TexturesFiles)" />
+    <CustomBuild Include="$(ProjectDir)Assets\Models" />
+    <CustomBuild Include="$(ProjectDir)Assets\Shaders" />
+    <CustomBuild Include="$(ProjectDir)Assets\Textures" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="copy_locally.bat">
       <Filter>Source Files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Assets\Models\custombuild.txt" />
+    <Text Include="Assets\Shaders\custombuild.txt" />
+    <Text Include="Assets\Textures\custombuild.txt" />
   </ItemGroup>
 </Project>

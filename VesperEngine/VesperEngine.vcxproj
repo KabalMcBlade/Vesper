@@ -74,8 +74,8 @@
       <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <PostBuildEvent>
-      <Command>call "$(ProjectDir)compile_shaders.bat" $(ProjectDir) $(IntDirFullPath) || exit 0
-call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ || exit 0</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -107,8 +107,8 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ || exit 
       <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <PostBuildEvent>
-      <Command>call "$(ProjectDir)compile_shaders.bat" $(ProjectDir) $(IntDirFullPath) || exit 0
-call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ || exit 0</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -200,21 +200,27 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ || exit 
     <ClCompile Include="Utility\stb_loader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\Shaders\brdf_lut_shader.frag" />
-    <None Include="Assets\Shaders\cubemap_shader.vert" />
-    <None Include="Assets\Shaders\fullscreen.vert" />
-    <None Include="Assets\Shaders\irradiance_convolution_shader.frag" />
-    <None Include="Assets\Shaders\pre_filtered_environment_map.frag" />
-    <None Include="Assets\Shaders\push_constant_shader.frag" />
-    <None Include="Assets\Shaders\push_constant_shader.vert" />
-    <None Include="Assets\Shaders\phong_shader.frag" />
-    <None Include="Assets\Shaders\phong_shader.vert" />
-    <None Include="Assets\Shaders\test_multiflag_generation_phong_shader.frag" />
     <None Include="compile_shaders.bat" />
     <None Include="copy_assets.bat" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compile_shaders_config.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ShaderFiles Include="$(ProjectDir)Assets\Shaders\**\*.*" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="@(ShaderFiles)">
+      <Command>
+        call "$(ProjectDir)compile_shaders.bat" $(ProjectDir) $(IntDirFullPath) || exit 0
+        call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ || exit 0
+      </Command>
+      <Outputs>$(IntDirFullPath)shaders_last_build.timestamp</Outputs>
+      <Message>The shaders have been processed!</Message>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="$(ProjectDir)Assets\Shaders\**\*.*" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
