@@ -243,6 +243,8 @@ void PhongRenderSystem::SetupPipeline(PipelineConfigInfo& _pipelineConfig)
 	);
 	fragmentShader.AddSpecializationConstant(0, 2.0f);
 
+	Pipeline::OpaquePipelineConfiguration(_pipelineConfig);
+
 	m_pipeline = std::make_unique<Pipeline>(
 		m_device,
 		std::vector{ 

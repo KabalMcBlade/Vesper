@@ -131,6 +131,168 @@ void Pipeline::DefaultPipelineConfiguration(PipelineConfigInfo& _outConfigInfo)
 	_outConfigInfo.AttributeDescriptions = Vertex::GetAttributeDescriptions();
 }
 
+// Default pipeline for solid objects.
+void Pipeline::OpaquePipelineConfiguration(PipelineConfigInfo& _outConfigInfo)
+{
+	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
+	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_TRUE;
+	_outConfigInfo.DepthStencilInfo.depthWriteEnable = VK_TRUE;
+	_outConfigInfo.DepthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS;
+	_outConfigInfo.ColorBlendAttachment.blendEnable = VK_FALSE;  // No blending
+}
+
+// Renders objects with transparency.
+void Pipeline::TransparentPipelineConfiguration(PipelineConfigInfo& _outConfigInfo)
+{
+	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
+	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_TRUE;
+	_outConfigInfo.DepthStencilInfo.depthWriteEnable = VK_FALSE;  // Avoid depth overwrites
+	_outConfigInfo.DepthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS;
+
+	_outConfigInfo.ColorBlendAttachment.blendEnable = VK_TRUE;
+	_outConfigInfo.ColorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+	_outConfigInfo.ColorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	_outConfigInfo.ColorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+	_outConfigInfo.ColorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+	_outConfigInfo.ColorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+	_outConfigInfo.ColorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+}
+
+// Renders depth information to a shadow map.
+void Pipeline::CreateShadowPipelineConfig(PipelineConfigInfo& _outConfigInfo)
+{
+	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
+	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_TRUE;
+	_outConfigInfo.DepthStencilInfo.depthWriteEnable = VK_TRUE;
+	_outConfigInfo.DepthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS;
+
+	_outConfigInfo.ColorBlendAttachment.colorWriteMask = 0;  // Disable color writes
+	_outConfigInfo.ColorBlendAttachment.blendEnable = VK_FALSE;
+	_outConfigInfo.RasterizationInfo.cullMode = VK_CULL_MODE_FRONT_BIT;  // Cull front faces for directional lights
+}
+
+// Applies post-process effects to the rendered image.
+void Pipeline::CreatePostProcessingPipelineConfig(PipelineConfigInfo& _outConfigInfo)
+{
+	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
+	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_FALSE;  // No depth testing
+	_outConfigInfo.DepthStencilInfo.depthWriteEnable = VK_FALSE;
+
+	_outConfigInfo.ColorBlendAttachment.blendEnable = VK_FALSE;  // No blending
+}
+
+// Renders a cube map for the skybox.
+void Pipeline::CreateSkyboxPipelineConfig(PipelineConfigInfo& _outConfigInfo)
+{
+	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
+	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_TRUE;
+	_outConfigInfo.DepthStencilInfo.depthWriteEnable = VK_FALSE;  // Prevent depth overwrite
+
+	_outConfigInfo.RasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;  // Cull back faces
+	_outConfigInfo.RasterizationInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;  // Adjust for cube map orientation
+}
+
+// Renders 2D elements like UI or HUD.
+void Pipeline::CreateUIPipelineConfig(PipelineConfigInfo& _outConfigInfo)
+{
+	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
+	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_FALSE;  // No depth testing
+	_outConfigInfo.DepthStencilInfo.depthWriteEnable = VK_FALSE;
+
+	_outConfigInfo.ColorBlendAttachment.blendEnable = VK_TRUE;
+	_outConfigInfo.ColorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+	_outConfigInfo.ColorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	_outConfigInfo.ColorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+	_outConfigInfo.ColorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+	_outConfigInfo.ColorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+	_outConfigInfo.ColorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+}
+
+// Outputs GBuffer for lighting calculations in a separate pass.
+void Pipeline::CreateDeferredShadingPipelineConfig(PipelineConfigInfo& _outConfigInfo)
+{
+	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
+	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_TRUE;
+	_outConfigInfo.DepthStencilInfo.depthWriteEnable = VK_TRUE;
+
+	// Set up MRT for GBuffer
+	_outConfigInfo.ColorBlendAttachment.blendEnable = VK_FALSE;
+	_outConfigInfo.ColorBlendInfo.attachmentCount = 3;  // Example: Albedo, Normals, and Depth
+	// Add configuration for multiple render targets as needed
+}
+
+// Optimized for handling large numbers of lights using tiled or clustered rendering.
+void Pipeline::CreateForwardPlusPipelineConfig(PipelineConfigInfo& _outConfigInfo)
+{
+	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
+	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_TRUE;
+	_outConfigInfo.DepthStencilInfo.depthWriteEnable = VK_TRUE;
+
+	// Adjust the configuration to include light culling data
+	_outConfigInfo.DynamicStateEnables.push_back(VK_DYNAMIC_STATE_SCISSOR);
+	_outConfigInfo.DynamicStateInfo.dynamicStateCount = static_cast<uint32>(_outConfigInfo.DynamicStateEnables.size());
+}
+
+// Handles ray - traced lighting, shadows, and reflections.
+void Pipeline::CreateRayTracingPipelineConfig(PipelineConfigInfo& _outConfigInfo)
+{
+	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
+	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_FALSE;  // Usually integrated with rasterization
+	_outConfigInfo.DepthStencilInfo.depthWriteEnable = VK_FALSE;
+
+	// Specific settings for ray tracing pipelines depend on Vulkan RT extensions
+}
+
+// Renders volumetric effects like fog, light shafts, and clouds.
+void Pipeline::CreateVolumetricPipelineConfig(PipelineConfigInfo& _outConfigInfo)
+{
+	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
+	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_FALSE;
+	_outConfigInfo.DepthStencilInfo.depthWriteEnable = VK_FALSE;
+
+	_outConfigInfo.ColorBlendAttachment.blendEnable = VK_TRUE;
+	_outConfigInfo.ColorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+	_outConfigInfo.ColorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
+	_outConfigInfo.ColorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+}
+
+// Handles GPU compute tasks for physics, particles, or post-processing.
+void Pipeline::CreateComputePipelineConfig(PipelineConfigInfo& _outConfigInfo)
+{
+	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
+	// Compute pipelines do not use rasterization setting, so is fine the default
+}
+
+// Visualizes geometry in wireframe mode.
+void Pipeline::CreateWireframePipelineConfig(PipelineConfigInfo& _outConfigInfo)
+{
+	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
+	_outConfigInfo.RasterizationInfo.polygonMode = VK_POLYGON_MODE_LINE;
+	_outConfigInfo.RasterizationInfo.lineWidth = 1.0f;
+	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_TRUE;
+	_outConfigInfo.DepthStencilInfo.depthWriteEnable = VK_TRUE;
+}
+
+// Renders bounding boxes for objects.
+void Pipeline::CreateBoundingBoxPipelineConfig(PipelineConfigInfo& _outConfigInfo)
+{
+	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
+	_outConfigInfo.RasterizationInfo.polygonMode = VK_POLYGON_MODE_LINE;
+	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_TRUE;
+	_outConfigInfo.DepthStencilInfo.depthWriteEnable = VK_FALSE;  // Ensure transparency for debugging
+}
+
+// Visualizes normals by color-coding the geometry.
+void Pipeline::CreateNormalsVisualizationPipelineConfig(PipelineConfigInfo& _outConfigInfo)
+{
+	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
+	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_TRUE;
+	_outConfigInfo.DepthStencilInfo.depthWriteEnable = VK_TRUE;
+
+	// Use custom shaders to color-code normals
+}
+
+
 Pipeline::Pipeline(Device& _device, const std::vector<ShaderInfo>& _shadersInfo, const PipelineConfigInfo& _configInfo)
  : m_device{_device}
 {

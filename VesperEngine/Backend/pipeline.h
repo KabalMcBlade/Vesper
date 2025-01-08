@@ -77,7 +77,29 @@ struct ShaderInfo
 class VESPERENGINE_API Pipeline final
 {
 public:
+	// Base settings for all pipelines
 	static void DefaultPipelineConfiguration(PipelineConfigInfo& _outConfigInfo);
+
+	// Core pipelines
+	static void OpaquePipelineConfiguration(PipelineConfigInfo& _outConfigInfo);
+	static void TransparentPipelineConfiguration(PipelineConfigInfo& _outConfigInfo);
+	static void CreateShadowPipelineConfig(PipelineConfigInfo& _outConfigInfo);
+	static void CreatePostProcessingPipelineConfig(PipelineConfigInfo& _outConfigInfo);
+	static void CreateSkyboxPipelineConfig(PipelineConfigInfo& _outConfigInfo);
+	static void CreateUIPipelineConfig(PipelineConfigInfo& _outConfigInfo);
+
+	// Advance pipelines
+	static void CreateDeferredShadingPipelineConfig(PipelineConfigInfo& _outConfigInfo);	// NOT YET IMPLEMENTED!
+	static void CreateForwardPlusPipelineConfig(PipelineConfigInfo& _outConfigInfo);		// NOT YET IMPLEMENTED!
+	static void CreateRayTracingPipelineConfig(PipelineConfigInfo& _outConfigInfo);			// NOT YET IMPLEMENTED!
+	static void CreateVolumetricPipelineConfig(PipelineConfigInfo& _outConfigInfo);
+	static void CreateComputePipelineConfig(PipelineConfigInfo& _outConfigInfo);
+
+	// Debug pipelines
+	static void CreateWireframePipelineConfig(PipelineConfigInfo& _outConfigInfo);
+	static void CreateBoundingBoxPipelineConfig(PipelineConfigInfo& _outConfigInfo);
+	static void CreateNormalsVisualizationPipelineConfig(PipelineConfigInfo& _outConfigInfo);// CUSTOM SHADER NEED IT!
+
 
 public:
 	Pipeline(Device& _device, const std::vector<ShaderInfo>& _shadersInfo, const PipelineConfigInfo& _configInfo);
