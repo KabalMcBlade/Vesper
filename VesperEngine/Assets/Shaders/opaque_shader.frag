@@ -41,6 +41,12 @@ bool getFlag(int flags, int bitIndex)
     return ((flags >> bitIndex) & 1) != 0;
 }
 
+layout(push_constant) uniform PushConstants 
+{
+    vec3 colorTint;
+} pushConstants;
+
+
 // Specialization constant for brightness adjustment
 layout(constant_id = 0) const float kBrightnessFactor = 1.0;
 
@@ -109,6 +115,9 @@ void main()
 
     // Emission Contribution (Always Added)
     combinedLighting += material.EmissionColor;
+    
+    // Apply Color Tint
+    combinedLighting.rgb *= pushConstants.colorTint;
 
     // Clamp Final Result
     outColor = clamp(combinedLighting * kBrightnessFactor, 0.0, 1.0);

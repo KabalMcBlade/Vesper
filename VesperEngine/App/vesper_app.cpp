@@ -1,10 +1,12 @@
 #include "vesper_app.h"
 
 #include "Components/graphics_components.h"
+#include "Components/pipeline_components.h"
 #include "Components/object_components.h"
 #include "Components/camera_components.h"
 
 #include "ECS/ECS/ecs.h"
+
 
 VESPERENGINE_NAMESPACE_BEGIN
 
@@ -68,6 +70,21 @@ void VesperApp::RegisterDefaultComponents()
 	// RENDER
 	m_componentManager.RegisterComponent<RenderComponent>();
 	m_componentManager.RegisterComponent<DynamicOffsetComponent>();
+
+	// PIPELINES
+	m_componentManager.RegisterComponent<PipelineOpaqueComponent>();
+	m_componentManager.RegisterComponent<PipelineTransparentComponent>();
+	m_componentManager.RegisterComponent<PipelineShadowComponent>();
+	m_componentManager.RegisterComponent<PipelinePostProcessingComponent>();
+	m_componentManager.RegisterComponent<PipelineSkyboxComponent>();
+	m_componentManager.RegisterComponent<PipelineDeferredShadingComponent>();
+	m_componentManager.RegisterComponent<PipelineForwardPlusComponent>();
+	m_componentManager.RegisterComponent<PipelineRayTracingComponent>();
+	m_componentManager.RegisterComponent<PipelineVolumetricComponent>();
+	m_componentManager.RegisterComponent<PipelineComputeComponent>();
+	m_componentManager.RegisterComponent<PipelineWireframeComponent>();
+	m_componentManager.RegisterComponent<PipelineBoundingBoxComponent>();
+	m_componentManager.RegisterComponent<PipelineNormalsVisualizationComponent>();
 }
 
 void VesperApp::UnregisterDefaultComponent()
@@ -93,6 +110,21 @@ void VesperApp::UnregisterDefaultComponent()
 	// RENDER
 	m_componentManager.UnregisterComponent<RenderComponent>();
 	m_componentManager.UnregisterComponent<DynamicOffsetComponent>();
+
+	// PIPELINES
+	m_componentManager.UnregisterComponent<PipelineOpaqueComponent>();
+	m_componentManager.UnregisterComponent<PipelineTransparentComponent>();
+	m_componentManager.UnregisterComponent<PipelineShadowComponent>();
+	m_componentManager.UnregisterComponent<PipelinePostProcessingComponent>();
+	m_componentManager.UnregisterComponent<PipelineSkyboxComponent>();
+	m_componentManager.UnregisterComponent<PipelineDeferredShadingComponent>();
+	m_componentManager.UnregisterComponent<PipelineForwardPlusComponent>();
+	m_componentManager.UnregisterComponent<PipelineRayTracingComponent>();
+	m_componentManager.UnregisterComponent<PipelineVolumetricComponent>();
+	m_componentManager.UnregisterComponent<PipelineComputeComponent>();
+	m_componentManager.UnregisterComponent<PipelineWireframeComponent>();
+	m_componentManager.UnregisterComponent<PipelineBoundingBoxComponent>();
+	m_componentManager.UnregisterComponent<PipelineNormalsVisualizationComponent>();
 }
 
 VESPERENGINE_NAMESPACE_END

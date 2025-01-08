@@ -159,7 +159,7 @@ void Pipeline::TransparentPipelineConfiguration(PipelineConfigInfo& _outConfigIn
 }
 
 // Renders depth information to a shadow map.
-void Pipeline::CreateShadowPipelineConfig(PipelineConfigInfo& _outConfigInfo)
+void Pipeline::ShadowPipelineConfig(PipelineConfigInfo& _outConfigInfo)
 {
 	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
 	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_TRUE;
@@ -172,7 +172,7 @@ void Pipeline::CreateShadowPipelineConfig(PipelineConfigInfo& _outConfigInfo)
 }
 
 // Applies post-process effects to the rendered image.
-void Pipeline::CreatePostProcessingPipelineConfig(PipelineConfigInfo& _outConfigInfo)
+void Pipeline::PostProcessingPipelineConfig(PipelineConfigInfo& _outConfigInfo)
 {
 	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
 	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_FALSE;  // No depth testing
@@ -182,7 +182,7 @@ void Pipeline::CreatePostProcessingPipelineConfig(PipelineConfigInfo& _outConfig
 }
 
 // Renders a cube map for the skybox.
-void Pipeline::CreateSkyboxPipelineConfig(PipelineConfigInfo& _outConfigInfo)
+void Pipeline::SkyboxPipelineConfig(PipelineConfigInfo& _outConfigInfo)
 {
 	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
 	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_TRUE;
@@ -193,7 +193,7 @@ void Pipeline::CreateSkyboxPipelineConfig(PipelineConfigInfo& _outConfigInfo)
 }
 
 // Renders 2D elements like UI or HUD.
-void Pipeline::CreateUIPipelineConfig(PipelineConfigInfo& _outConfigInfo)
+void Pipeline::UIPipelineConfig(PipelineConfigInfo& _outConfigInfo)
 {
 	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
 	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_FALSE;  // No depth testing
@@ -209,7 +209,7 @@ void Pipeline::CreateUIPipelineConfig(PipelineConfigInfo& _outConfigInfo)
 }
 
 // Outputs GBuffer for lighting calculations in a separate pass.
-void Pipeline::CreateDeferredShadingPipelineConfig(PipelineConfigInfo& _outConfigInfo)
+void Pipeline::DeferredShadingPipelineConfig(PipelineConfigInfo& _outConfigInfo)
 {
 	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
 	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_TRUE;
@@ -222,7 +222,7 @@ void Pipeline::CreateDeferredShadingPipelineConfig(PipelineConfigInfo& _outConfi
 }
 
 // Optimized for handling large numbers of lights using tiled or clustered rendering.
-void Pipeline::CreateForwardPlusPipelineConfig(PipelineConfigInfo& _outConfigInfo)
+void Pipeline::ForwardPlusPipelineConfig(PipelineConfigInfo& _outConfigInfo)
 {
 	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
 	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_TRUE;
@@ -234,7 +234,7 @@ void Pipeline::CreateForwardPlusPipelineConfig(PipelineConfigInfo& _outConfigInf
 }
 
 // Handles ray - traced lighting, shadows, and reflections.
-void Pipeline::CreateRayTracingPipelineConfig(PipelineConfigInfo& _outConfigInfo)
+void Pipeline::RayTracingPipelineConfig(PipelineConfigInfo& _outConfigInfo)
 {
 	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
 	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_FALSE;  // Usually integrated with rasterization
@@ -244,7 +244,7 @@ void Pipeline::CreateRayTracingPipelineConfig(PipelineConfigInfo& _outConfigInfo
 }
 
 // Renders volumetric effects like fog, light shafts, and clouds.
-void Pipeline::CreateVolumetricPipelineConfig(PipelineConfigInfo& _outConfigInfo)
+void Pipeline::VolumetricPipelineConfig(PipelineConfigInfo& _outConfigInfo)
 {
 	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
 	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_FALSE;
@@ -257,14 +257,14 @@ void Pipeline::CreateVolumetricPipelineConfig(PipelineConfigInfo& _outConfigInfo
 }
 
 // Handles GPU compute tasks for physics, particles, or post-processing.
-void Pipeline::CreateComputePipelineConfig(PipelineConfigInfo& _outConfigInfo)
+void Pipeline::ComputePipelineConfig(PipelineConfigInfo& _outConfigInfo)
 {
 	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
 	// Compute pipelines do not use rasterization setting, so is fine the default
 }
 
 // Visualizes geometry in wireframe mode.
-void Pipeline::CreateWireframePipelineConfig(PipelineConfigInfo& _outConfigInfo)
+void Pipeline::WireframePipelineConfig(PipelineConfigInfo& _outConfigInfo)
 {
 	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
 	_outConfigInfo.RasterizationInfo.polygonMode = VK_POLYGON_MODE_LINE;
@@ -274,7 +274,7 @@ void Pipeline::CreateWireframePipelineConfig(PipelineConfigInfo& _outConfigInfo)
 }
 
 // Renders bounding boxes for objects.
-void Pipeline::CreateBoundingBoxPipelineConfig(PipelineConfigInfo& _outConfigInfo)
+void Pipeline::BoundingBoxPipelineConfig(PipelineConfigInfo& _outConfigInfo)
 {
 	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
 	_outConfigInfo.RasterizationInfo.polygonMode = VK_POLYGON_MODE_LINE;
@@ -283,7 +283,7 @@ void Pipeline::CreateBoundingBoxPipelineConfig(PipelineConfigInfo& _outConfigInf
 }
 
 // Visualizes normals by color-coding the geometry.
-void Pipeline::CreateNormalsVisualizationPipelineConfig(PipelineConfigInfo& _outConfigInfo)
+void Pipeline::NormalsVisualizationPipelineConfig(PipelineConfigInfo& _outConfigInfo)
 {
 	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
 	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_TRUE;

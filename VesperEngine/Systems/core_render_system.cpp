@@ -10,43 +10,25 @@ CoreRenderSystem::CoreRenderSystem(Device& _device)
 
 CoreRenderSystem::~CoreRenderSystem()
 {
-	vkDestroyPipelineLayout(m_device.GetDevice(), m_pipelineLayout, nullptr);
+	if (m_pipelineLayout != VK_NULL_HANDLE) 
+	{
+		vkDestroyPipelineLayout(m_device.GetDevice(), m_pipelineLayout, nullptr);
+	}
 }
 
 void CoreRenderSystem::CreatePipelineLayout(const std::vector<VkDescriptorSetLayout>& _descriptorSetLayouts)
 {
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-
-	// This is used to pass other than vertex data to the vertex and fragment shaders.
-	// This can include textures and uniform buffer objects (UBO)
 	pipelineLayoutInfo.setLayoutCount = static_cast<uint32>(_descriptorSetLayouts.size());
 	pipelineLayoutInfo.pSetLayouts = _descriptorSetLayouts.data();
-
-	// Push constants are a efficient way to send a small amount of data to the shader programs
 	pipelineLayoutInfo.pushConstantRangeCount = static_cast<uint32>(m_pushConstants.size());
 	pipelineLayoutInfo.pPushConstantRanges = m_pushConstants.data();
 
 	if (vkCreatePipelineLayout(m_device.GetDevice(), &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
 	{
-		throw std::runtime_error("failed to create pipeline layout!");
+		throw std::runtime_error("Failed to create pipeline layout!");
 	}
-}
-
-void CoreRenderSystem::CreatePipeline(VkRenderPass _renderPass)
-{
-	assertMsgReturnVoid(m_pipelineLayout != nullptr, "Cannot create pipeline before pipeline layout");
-
-	PipelineConfigInfo pipelineConfig{};
-	Pipeline::DefaultPipelineConfiguration(pipelineConfig);
-
-	// The render pass describes the structure and format of the frame buffer objects (FBOs) and their attachments
-	// Right now we have in location 0 the color buffer and in location 1 the depth buffer, check SwapChain::CreateRenderPass() -> attachments
-	// So we need to inform the shaders about these locations. If the render pass change, shaders must reflect it.
-	pipelineConfig.RenderPass = _renderPass;
-	pipelineConfig.PipelineLayout = m_pipelineLayout;
-
-	SetupPipeline(pipelineConfig);
 }
 
 void CoreRenderSystem::PushConstants(VkCommandBuffer _commandBuffer, const uint32 _pushConstantIndex, const void* _pushConstantValue) const

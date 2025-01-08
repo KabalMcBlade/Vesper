@@ -83,22 +83,22 @@ public:
 	// Core pipelines
 	static void OpaquePipelineConfiguration(PipelineConfigInfo& _outConfigInfo);
 	static void TransparentPipelineConfiguration(PipelineConfigInfo& _outConfigInfo);
-	static void CreateShadowPipelineConfig(PipelineConfigInfo& _outConfigInfo);
-	static void CreatePostProcessingPipelineConfig(PipelineConfigInfo& _outConfigInfo);
-	static void CreateSkyboxPipelineConfig(PipelineConfigInfo& _outConfigInfo);
-	static void CreateUIPipelineConfig(PipelineConfigInfo& _outConfigInfo);
+	static void ShadowPipelineConfig(PipelineConfigInfo& _outConfigInfo);
+	static void PostProcessingPipelineConfig(PipelineConfigInfo& _outConfigInfo);
+	static void SkyboxPipelineConfig(PipelineConfigInfo& _outConfigInfo);
+	static void UIPipelineConfig(PipelineConfigInfo& _outConfigInfo);
 
 	// Advance pipelines
-	static void CreateDeferredShadingPipelineConfig(PipelineConfigInfo& _outConfigInfo);	// NOT YET IMPLEMENTED!
-	static void CreateForwardPlusPipelineConfig(PipelineConfigInfo& _outConfigInfo);		// NOT YET IMPLEMENTED!
-	static void CreateRayTracingPipelineConfig(PipelineConfigInfo& _outConfigInfo);			// NOT YET IMPLEMENTED!
-	static void CreateVolumetricPipelineConfig(PipelineConfigInfo& _outConfigInfo);
-	static void CreateComputePipelineConfig(PipelineConfigInfo& _outConfigInfo);
+	static void DeferredShadingPipelineConfig(PipelineConfigInfo& _outConfigInfo);	// NOT YET IMPLEMENTED!
+	static void ForwardPlusPipelineConfig(PipelineConfigInfo& _outConfigInfo);		// NOT YET IMPLEMENTED!
+	static void RayTracingPipelineConfig(PipelineConfigInfo& _outConfigInfo);			// NOT YET IMPLEMENTED!
+	static void VolumetricPipelineConfig(PipelineConfigInfo& _outConfigInfo);
+	static void ComputePipelineConfig(PipelineConfigInfo& _outConfigInfo);
 
 	// Debug pipelines
-	static void CreateWireframePipelineConfig(PipelineConfigInfo& _outConfigInfo);
-	static void CreateBoundingBoxPipelineConfig(PipelineConfigInfo& _outConfigInfo);
-	static void CreateNormalsVisualizationPipelineConfig(PipelineConfigInfo& _outConfigInfo);// CUSTOM SHADER NEED IT!
+	static void WireframePipelineConfig(PipelineConfigInfo& _outConfigInfo);
+	static void BoundingBoxPipelineConfig(PipelineConfigInfo& _outConfigInfo);
+	static void NormalsVisualizationPipelineConfig(PipelineConfigInfo& _outConfigInfo);// CUSTOM SHADER NEED IT!
 
 
 public:

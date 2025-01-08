@@ -45,7 +45,7 @@
     <ClInclude Include="App\config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Systems\base_render_system.h">
+    <ClInclude Include="Systems\master_render_system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Systems\game_entity_system.h">
@@ -94,9 +94,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Backend\descriptors.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Systems\push_constant_render_system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ECS\ECS\utility.h">
@@ -171,6 +168,15 @@
     <ClInclude Include="Backend\offscreen_renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Systems\opaque_render_system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\hash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\pipeline_components.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Backend\pipeline.cpp">
@@ -191,7 +197,7 @@
     <ClCompile Include="Backend\renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Systems\base_render_system.cpp">
+    <ClCompile Include="Systems\master_render_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Systems\game_entity_system.cpp">
@@ -219,9 +225,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Backend\descriptors.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Systems\push_constant_render_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ECS\ECS\component_manager.cpp">
@@ -257,6 +260,9 @@
     <ClCompile Include="Backend\offscreen_renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Systems\opaque_render_system.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\phong_shader.vert" />
@@ -267,14 +273,14 @@
     <None Include="copy_assets.bat">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="Assets\Shaders\push_constant_shader.vert" />
-    <None Include="Assets\Shaders\push_constant_shader.frag" />
     <None Include="Assets\Shaders\cubemap_shader.vert" />
     <None Include="Assets\Shaders\irradiance_convolution_shader.frag" />
     <None Include="Assets\Shaders\pre_filtered_environment_map.frag" />
     <None Include="Assets\Shaders\brdf_lut_shader.frag" />
     <None Include="Assets\Shaders\fullscreen.vert" />
     <None Include="Assets\Shaders\test_multiflag_generation_phong_shader.frag" />
+    <None Include="Assets\Shaders\default_shader.vert" />
+    <None Include="Assets\Shaders\opaque_shader.frag" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compile_shaders_config.txt" />

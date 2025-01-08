@@ -55,22 +55,31 @@ void BRDFLUTGenerationSystem::Generate(VkCommandBuffer _commandBuffer, uint32 _w
 	Draw(m_quadVertexBufferComponent, _commandBuffer);
 }
 
-void BRDFLUTGenerationSystem::SetupPipeline(PipelineConfigInfo& _pipelineConfig)
+void BRDFLUTGenerationSystem::CreatePipeline(VkRenderPass _renderPass)
 {
-	_pipelineConfig.DepthStencilInfo.depthTestEnable = VK_FALSE;
-	_pipelineConfig.DepthStencilInfo.depthWriteEnable = VK_FALSE;
-	_pipelineConfig.DepthStencilInfo.stencilTestEnable = VK_FALSE;
+	assertMsgReturnVoid(m_pipelineLayout != nullptr, "Cannot create pipeline before pipeline layout");
 
-	_pipelineConfig.RasterizationInfo.cullMode = VK_CULL_MODE_NONE;
+	PipelineConfigInfo pipelineConfig{};
 
-	_pipelineConfig.InputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	Pipeline::DefaultPipelineConfiguration(pipelineConfig);
 
-	_pipelineConfig.RasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
+	pipelineConfig.RenderPass = _renderPass;
+	pipelineConfig.PipelineLayout = m_pipelineLayout;
+
+	pipelineConfig.DepthStencilInfo.depthTestEnable = VK_FALSE;
+	pipelineConfig.DepthStencilInfo.depthWriteEnable = VK_FALSE;
+	pipelineConfig.DepthStencilInfo.stencilTestEnable = VK_FALSE;
+
+	pipelineConfig.RasterizationInfo.cullMode = VK_CULL_MODE_NONE;
+
+	pipelineConfig.InputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+	pipelineConfig.RasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
 
 	m_pipeline = std::make_unique<Pipeline>(
 		m_device,
 		std::vector{ ShaderInfo{m_app.GetConfig().ShadersPath + "fullscreen.vert.spv", ShaderType::Vertex}, ShaderInfo{m_app.GetConfig().ShadersPath + "brdf_lut_shader.frag.spv", ShaderType::Fragment}, },
-		_pipelineConfig
+		pipelineConfig
 	);
 }
 

@@ -29,22 +29,22 @@ VESPERENGINE_NAMESPACE_BEGIN
  * 
  */
 
-class VESPERENGINE_API BaseRenderSystem : public CoreRenderSystem
+class VESPERENGINE_API MasterRenderSystem : public CoreRenderSystem
 {
 public:
-	BaseRenderSystem(Device& _device);
-	virtual ~BaseRenderSystem() = default;
+	// the _globalDescriptorSetLayout and _groupDescriptorSetLayout, should be managed by this class! REFACTORING!!
+	MasterRenderSystem(Device& _device, VkDescriptorSetLayout _globalDescriptorSetLayout, VkDescriptorSetLayout _groupDescriptorSetLayout);
+	virtual ~MasterRenderSystem() = default;
 
-	BaseRenderSystem(const BaseRenderSystem&) = delete;
-	BaseRenderSystem& operator=(const BaseRenderSystem&) = delete;
+	MasterRenderSystem(const MasterRenderSystem&) = delete;
+	MasterRenderSystem& operator=(const MasterRenderSystem&) = delete;
 	
 public:
-	void Update(const FrameInfo& _frameInfo);
-	void Render(const FrameInfo& _frameInfo);
+	void BindGlobalDescriptor(const FrameInfo& _frameInfo);
+	void Cleanup();
 
-protected:
-	virtual void UpdateFrame(const FrameInfo& _frameInfo) {}
-	virtual void RenderFrame(const FrameInfo& _frameInfo) {}
+public:
+	virtual void Update(const FrameInfo& _frameInfo) {}
 };
 
 VESPERENGINE_NAMESPACE_END

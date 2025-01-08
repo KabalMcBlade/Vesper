@@ -1,4 +1,4 @@
-#include "phong_render_system.h"
+#include "opaque_render_system.h"
 
 #include <array>
 #include <stdexcept>
@@ -19,6 +19,7 @@
 
 #include "Components/graphics_components.h"
 #include "Components/object_components.h"
+#include "Components/pipeline_components.h"
 
 #include "Utility/logger.h"
 
@@ -32,14 +33,22 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-PhongRenderSystem::PhongRenderSystem(VesperApp& _app, Device& _device, DescriptorPool& _globalDescriptorPool, VkRenderPass _renderPass,
+// TEST PUSH CONSTAT!
+struct ColorTintPushConstantData
+{
+	glm::vec3 ColorTint{ 1.0f };
+};
+
+OpaqueRenderSystem::OpaqueRenderSystem(VesperApp& _app, Device& _device, DescriptorPool& _globalDescriptorPool, VkRenderPass _renderPass,
 	VkDescriptorSetLayout _globalDescriptorSetLayout,
 	VkDescriptorSetLayout _groupDescriptorSetLayout,
 	uint32 _alignedSizeUBO)
-	: m_app(_app)
-	, BaseRenderSystem{ _device }
+	: CoreRenderSystem{ _device }
+	, m_app(_app)
 	, m_globalDescriptorPool(_globalDescriptorPool)
 {
+	m_app.GetComponentManager().RegisterComponent<ColorTintPushConstantData>();
+
 	m_materialSetLayout = DescriptorSetLayout::Builder(_device)
 		.AddBinding(MATERIAL_DIFFUSE_BINDING, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
 		.AddBinding(MATERIAL_SPECULAR_BINDING, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
@@ -47,6 +56,16 @@ PhongRenderSystem::PhongRenderSystem(VesperApp& _app, Device& _device, Descripto
 		.AddBinding(MATERIAL_NORMAL_BINDING, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
 		.AddBinding(MATERIAL_UNIFORM_BINDING, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
 		.Build();
+
+	// TEST PUSH CONSTANT!
+	// REMEMBER THAT TO TEST THIS WITH THIS PIPELINE AND LAYOUT ALSO THE MASTER RENDERER NEED TO HAVE!
+	// SINCE IS A TEST, REMEMBER TO REMOVE BOTH HERE AND IN MASTER RENDERER EVENTUALLY!
+	VkPushConstantRange pushConstantRange{};
+	pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstantRange.offset = 0;
+	pushConstantRange.size = sizeof(ColorTintPushConstantData);
+
+	m_pushConstants.push_back(pushConstantRange);
 
 	CreatePipelineLayout(std::vector<VkDescriptorSetLayout>
 			{ _globalDescriptorSetLayout, _groupDescriptorSetLayout, m_materialSetLayout->GetDescriptorSetLayout() }
@@ -56,16 +75,29 @@ PhongRenderSystem::PhongRenderSystem(VesperApp& _app, Device& _device, Descripto
 	m_alignedSizeUBO = _alignedSizeUBO;
 }
 
-PhongRenderSystem::~PhongRenderSystem()
+OpaqueRenderSystem::~OpaqueRenderSystem()
 {
+	m_app.GetComponentManager().UnregisterComponent<ColorTintPushConstantData>();
 }
 
-void PhongRenderSystem::RegisterEntity(ecs::Entity _entity) const
+void OpaqueRenderSystem::RegisterEntity(ecs::Entity _entity) const
 {
 	// just to ensure it has, but the RenderComponent should be already present
 	if (!m_app.GetComponentManager().HasComponents<RenderComponent>(_entity))
 	{
 		m_app.GetComponentManager().AddComponent<RenderComponent>(_entity);
+	}
+
+	// Add opaque pipeline component if missing
+	if (!m_app.GetComponentManager().HasComponents<PipelineOpaqueComponent>(_entity))
+	{
+		m_app.GetComponentManager().AddComponent<PipelineOpaqueComponent>(_entity);
+	}
+
+	// Add push constant component if missing
+	if (!m_app.GetComponentManager().HasComponents<ColorTintPushConstantData>(_entity))
+	{
+		m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(_entity);
 	}
 
 	// don't add a check here, so we avoid to add twice the same entity, it will trigger an assert
@@ -100,31 +132,32 @@ void PhongRenderSystem::RegisterEntity(ecs::Entity _entity) const
 	}
 }
 
-void PhongRenderSystem::UnregisterEntity(ecs::Entity _entity) const
+void OpaqueRenderSystem::UnregisterEntity(ecs::Entity _entity) const
 {
-	if (m_app.GetComponentManager().HasComponents<DynamicOffsetComponent>(_entity))
+	if (m_app.GetComponentManager().HasComponents<PipelineOpaqueComponent, ColorTintPushConstantData>(_entity))
 	{
-		m_app.GetComponentManager().RemoveComponent<DynamicOffsetComponent>(_entity);
+		m_app.GetComponentManager().RemoveComponent<PipelineOpaqueComponent>(_entity);
+		m_app.GetComponentManager().RemoveComponent<ColorTintPushConstantData>(_entity);
 	}
 }
 
-void PhongRenderSystem::UnregisterEntities() const
+void OpaqueRenderSystem::UnregisterEntities() const
 {
 	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-	for (auto entity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent>(entityManager, componentManager))
+	for (auto entity : ecs::IterateEntitiesWithAll<PipelineOpaqueComponent, ColorTintPushConstantData>(entityManager, componentManager))
 	{
 		UnregisterEntity(entity);
 	}
 }
 
-void PhongRenderSystem::UpdateFrame(const FrameInfo& _frameInfo)
+void OpaqueRenderSystem::Update(const FrameInfo& _frameInfo)
 {
 	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent, TransformComponent>(entityManager, componentManager))
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent, TransformComponent, PipelineOpaqueComponent>(entityManager, componentManager))
 	{
 		TransformComponent& transformComponent = componentManager.GetComponent<TransformComponent>(gameEntity);
 		RenderComponent& renderComponent = componentManager.GetComponent<RenderComponent>(gameEntity);
@@ -132,16 +165,30 @@ void PhongRenderSystem::UpdateFrame(const FrameInfo& _frameInfo)
 		renderComponent.ModelMatrix = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
 		renderComponent.ModelMatrix = renderComponent.ModelMatrix * glm::toMat4(transformComponent.Rotation);
 		renderComponent.ModelMatrix = glm::scale(renderComponent.ModelMatrix, transformComponent.Scale);
+
+		ColorTintPushConstantData& pushComponent = componentManager.GetComponent<ColorTintPushConstantData>(gameEntity);
+
+		// Use a sine wave to create smooth transitions for R, G, and B
+		static const float speed = 1.0f;
+		static float frameTimeUpdated = 0.0f;
+		const float r = 0.5f * (std::sin(speed * frameTimeUpdated) + 1.0f); // Oscillates between 0 and 1
+		const float g = 0.5f * (std::sin(speed * frameTimeUpdated + glm::pi<float>() / 3.0f) + 1.0f); // Offset by 120 degrees
+		const float b = 0.5f * (std::sin(speed * frameTimeUpdated + 2.0f * glm::pi<float>() / 3.0f) + 1.0f); // Offset by 240 degrees
+		frameTimeUpdated += _frameInfo.FrameTime;
+		pushComponent.ColorTint = glm::vec3(r, g, b);
 	}
 }
 
-void PhongRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
+void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 {
+	// this bind only the opaque pipeline
+	m_opaquePipeline->Bind(_frameInfo.CommandBuffer);
+
 	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
 	// 1. Render whatever has vertex buffers and index buffer
-	auto entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent>(entityManager, componentManager, &PhongMaterialComponent::Index);
+	auto entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineOpaqueComponent, DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent, ColorTintPushConstantData>(entityManager, componentManager, &PhongMaterialComponent::Index);
 
 	for (const auto& [key, entities] : entitiesGroupedAndCollected)
 	{
@@ -165,6 +212,7 @@ void PhongRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 
 			const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(entityCollected);
 			const IndexBufferComponent& indexBufferComponent = componentManager.GetComponent<IndexBufferComponent>(entityCollected);
+			const ColorTintPushConstantData& pushComponent = componentManager.GetComponent<ColorTintPushConstantData>(entityCollected);
 
 			vkCmdBindDescriptorSets(
 				_frameInfo.CommandBuffer,
@@ -177,6 +225,7 @@ void PhongRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 				&dynamicOffsetComponent.DynamicOffset
 			);
 
+			PushConstants(_frameInfo.CommandBuffer, 0, &pushComponent);
 			Bind(vertexBufferComponent, indexBufferComponent, _frameInfo.CommandBuffer);
 			Draw(indexBufferComponent, _frameInfo.CommandBuffer);
 		}
@@ -187,7 +236,7 @@ void PhongRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 
 
 	// 2. Render only entities having Vertex buffers only
-	entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent>(entityManager, componentManager, &PhongMaterialComponent::Index);
+	entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent, ColorTintPushConstantData>(entityManager, componentManager, &PhongMaterialComponent::Index);
 
 	for (const auto& [key, entities] : entitiesGroupedAndCollected)
 	{
@@ -208,8 +257,8 @@ void PhongRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 		for (const auto& entityCollected : entities)
 		{
 			const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(entityCollected);
-
 			const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(entityCollected);
+			const ColorTintPushConstantData& pushComponent = componentManager.GetComponent<ColorTintPushConstantData>(entityCollected);
 
 			vkCmdBindDescriptorSets(
 				_frameInfo.CommandBuffer,
@@ -222,6 +271,7 @@ void PhongRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 				&dynamicOffsetComponent.DynamicOffset
 			);
 
+			PushConstants(_frameInfo.CommandBuffer, 0, &pushComponent);
 			Bind(vertexBufferComponent, _frameInfo.CommandBuffer);
 			Draw(vertexBufferComponent, _frameInfo.CommandBuffer);
 		}
@@ -230,29 +280,36 @@ void PhongRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 	entitiesGroupedAndCollected.clear();
 }
 
-void PhongRenderSystem::SetupPipeline(PipelineConfigInfo& _pipelineConfig)
+void OpaqueRenderSystem::CreatePipeline(VkRenderPass _renderPass)
 {
+	assertMsgReturnVoid(m_pipelineLayout != nullptr, "Cannot create pipeline before pipeline layout");
+
+	PipelineConfigInfo pipelineConfig{};
+
+	Pipeline::OpaquePipelineConfiguration(pipelineConfig);
+
+	pipelineConfig.RenderPass = _renderPass;
+	pipelineConfig.PipelineLayout = m_pipelineLayout;
+
 	ShaderInfo vertexShader(
-		m_app.GetConfig().ShadersPath + "phong_shader.vert.spv",
+		m_app.GetConfig().ShadersPath + "default_shader.vert.spv",
 		ShaderType::Vertex
 	);
 
 	ShaderInfo fragmentShader(
-		m_app.GetConfig().ShadersPath + "phong_shader.frag.spv",
+		m_app.GetConfig().ShadersPath + "opaque_shader.frag.spv",
 		ShaderType::Fragment
 	);
 	fragmentShader.AddSpecializationConstant(0, 2.0f);
 
-	Pipeline::OpaquePipelineConfiguration(_pipelineConfig);
-
-	m_pipeline = std::make_unique<Pipeline>(
+	m_opaquePipeline = std::make_unique<Pipeline>(
 		m_device,
-		std::vector{ 
+		std::vector{
 			vertexShader,
 			fragmentShader,
 		},
-		_pipelineConfig
-	);
+		pipelineConfig
+		);
 }
 
 VESPERENGINE_NAMESPACE_END

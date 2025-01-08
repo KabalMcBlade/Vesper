@@ -13,6 +13,7 @@
 
 #include "Core/core_defines.h"
 #include "Core/memory_copy.h"
+#include "Core/hash.h"
 
 #include "Backend/model_data.h"
 #include "Backend/pipeline.h"
@@ -33,9 +34,8 @@
 #include "Systems/model_system.h"
 #include "Systems/material_system.h"
 #include "Systems/core_render_system.h"
-#include "Systems/base_render_system.h"
-#include "Systems/push_constant_render_system.h"
-#include "Systems/phong_render_system.h"
+#include "Systems/master_render_system.h"
+#include "Systems/opaque_render_system.h"
 #include "Systems/camera_system.h"
 #include "Systems/brdf_lut_generation_system.h"
 

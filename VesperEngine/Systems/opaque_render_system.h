@@ -8,12 +8,9 @@
 #include "Backend/frame_info.h"
 #include "Backend/descriptors.h"
 
-#include "Components/camera_components.h"
-
-#include "Systems/base_render_system.h"
+#include "Systems/core_render_system.h"
 
 #include "App/vesper_app.h"
-#include "App/window_handle.h"
 
 #include <memory>
 
@@ -22,35 +19,38 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-class VESPERENGINE_API PhongRenderSystem final : public BaseRenderSystem
+class VESPERENGINE_API OpaqueRenderSystem final : public CoreRenderSystem
 {
 public:
-	PhongRenderSystem(VesperApp& _app, Device& _device, DescriptorPool& _globalDescriptorPool, VkRenderPass _renderPass,
+	OpaqueRenderSystem(VesperApp& _app, Device& _device, DescriptorPool& _globalDescriptorPool, VkRenderPass _renderPass,
 		VkDescriptorSetLayout _globalDescriptorSetLayout,
 		VkDescriptorSetLayout _groupDescriptorSetLayout,
 		uint32 _alignedSizeUBO);
-	~PhongRenderSystem();
+	~OpaqueRenderSystem();
 
-	PhongRenderSystem(const PhongRenderSystem&) = delete;
-	PhongRenderSystem& operator=(const PhongRenderSystem&) = delete;
+	OpaqueRenderSystem(const OpaqueRenderSystem&) = delete;
+	OpaqueRenderSystem& operator=(const OpaqueRenderSystem&) = delete;
 
 public:
 	VESPERENGINE_INLINE uint32 GetObjectCount() const { return m_internalCounter; }
 	VESPERENGINE_INLINE uint32 GetAlignedSizeUBO() const { return m_alignedSizeUBO; }
 
 public:
+	void Update(const FrameInfo& _frameInfo);
+	void Render(const FrameInfo& _frameInfo);
+
+public:
 	void RegisterEntity(ecs::Entity _entity) const;
 	void UnregisterEntity(ecs::Entity _entity) const;
 	void UnregisterEntities() const;
 
-protected:
-	virtual void UpdateFrame(const FrameInfo& _frameInfo) override;
-	virtual void RenderFrame(const FrameInfo& _frameInfo) override;
-	virtual void SetupPipeline(PipelineConfigInfo& _pipelineConfig) override;
+private:
+	void CreatePipeline(VkRenderPass _renderPass);
 
 private:
 	VesperApp& m_app;
 	DescriptorPool& m_globalDescriptorPool;
+	std::unique_ptr<Pipeline> m_opaquePipeline;
 	std::unique_ptr<DescriptorSetLayout> m_materialSetLayout;
 	uint32 m_alignedSizeUBO {0};
 	mutable uint32 m_internalCounter {0};

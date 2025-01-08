@@ -116,7 +116,11 @@ ViewerApp::ViewerApp(Config& _config) :
 	m_materialSystem = std::make_unique<MaterialSystem>(*this, *m_device);
 	m_modelSystem = std::make_unique<ModelSystem>(*this, *m_device, *m_materialSystem);
 
-	m_phongRenderSystem = std::make_unique<PhongRenderSystem>(*this , *m_device, *m_globalPool,
+	m_masterRenderSystem = std::make_unique<MasterRenderSystem>(*m_device, 
+		m_globalSetLayout->GetDescriptorSetLayout(),
+		m_groupSetLayout->GetDescriptorSetLayout());
+
+	m_opaqueRenderSystem = std::make_unique<OpaqueRenderSystem>(*this , *m_device, *m_globalPool,
 		m_renderer->GetSwapChainRenderPass(),
 		m_globalSetLayout->GetDescriptorSetLayout(),
 		m_groupSetLayout->GetDescriptorSetLayout(),
@@ -187,11 +191,11 @@ void ViewerApp::Run()
 
 		objectUboBuffers[i] = m_buffer->Create<BufferComponent>(
 			sizeof(ObjectUBO),
-			m_phongRenderSystem->GetObjectCount(),
+			m_opaqueRenderSystem->GetObjectCount(),
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, //| VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 			VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, //VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO,
 			VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
-			m_phongRenderSystem->GetAlignedSizeUBO(),
+			m_opaqueRenderSystem->GetAlignedSizeUBO(),
 			true
 		);
 	}
@@ -266,7 +270,7 @@ void ViewerApp::Run()
 			}
 			//////////////////////////////////////////////////////////////////////////
 
-			m_phongRenderSystem->Update(frameInfo);
+			m_opaqueRenderSystem->Update(frameInfo);
 			 
 			m_cameraSystem->Update(aspectRatio);
 			m_cameraSystem->GetActiveCameraData(0, activeCameraComponent, activeCameraTransformComponent);
@@ -287,6 +291,8 @@ void ViewerApp::Run()
 
 			m_renderer->BeginSwapChainRenderPass(commandBuffer);
 
+			m_masterRenderSystem->BindGlobalDescriptor(frameInfo);
+
 			for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, RenderComponent>(entityManager, componentManager))
 			{
 				const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(gameEntity);
@@ -298,7 +304,7 @@ void ViewerApp::Run()
 				m_buffer->WriteToIndex(objectUboBuffers[frameIndex], dynamicOffsetComponent.DynamicOffsetIndex);
 			}
 
-			m_phongRenderSystem->Render(frameInfo);
+			m_opaqueRenderSystem->Render(frameInfo);
 
 			m_renderer->EndSwapChainRenderPass(commandBuffer);
 			m_renderer->EndFrame();
@@ -352,7 +358,7 @@ void ViewerApp::LoadGameEntities()
 		transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
 		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-		m_phongRenderSystem->RegisterEntity(cubeNoIndices);
+		m_opaqueRenderSystem->RegisterEntity(cubeNoIndices);
 
 		// test
 		GetComponentManager().AddComponent<RotationComponent>(cubeNoIndices);
@@ -379,7 +385,7 @@ void ViewerApp::LoadGameEntities()
 			transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-			m_phongRenderSystem->RegisterEntity(coloredCube);
+			m_opaqueRenderSystem->RegisterEntity(coloredCube);
 
 			// test
 			GetComponentManager().AddComponent<RotationComponent>(coloredCube);
@@ -406,7 +412,7 @@ void ViewerApp::LoadGameEntities()
 			transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-			m_phongRenderSystem->RegisterEntity(flatVase);
+			m_opaqueRenderSystem->RegisterEntity(flatVase);
 		}
 	}
 
@@ -425,7 +431,7 @@ void ViewerApp::LoadGameEntities()
 			transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-			m_phongRenderSystem->RegisterEntity(smoothVase);
+			m_opaqueRenderSystem->RegisterEntity(smoothVase);
 		}
 	}
 
@@ -444,7 +450,7 @@ void ViewerApp::LoadGameEntities()
 			transformComponent.Scale = { 3.0f, 1.0f, 3.0f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-			m_phongRenderSystem->RegisterEntity(quad);
+			m_opaqueRenderSystem->RegisterEntity(quad);
 		}
 	}
 	
@@ -463,15 +469,16 @@ void ViewerApp::LoadGameEntities()
 			transformComponent.Scale = { 1.0f, 1.0f, 1.0f }; 
 			transformComponent.Rotation = glm::angleAxis(glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-			m_phongRenderSystem->RegisterEntity(character);
+			m_opaqueRenderSystem->RegisterEntity(character);
 		}
 	} 
 }
 
 void ViewerApp::UnloadGameEntities()
 {
+	m_masterRenderSystem->Cleanup();
 	m_materialSystem->Cleanup();
 	m_modelSystem->UnloadModels();
-	m_phongRenderSystem->UnregisterEntities();
+	m_opaqueRenderSystem->UnregisterEntities();
 	m_gameEntitySystem->DestroyGameEntities();
 }

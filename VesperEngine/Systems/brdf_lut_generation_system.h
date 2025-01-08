@@ -27,12 +27,13 @@ public:
 public:
 	void Generate(VkCommandBuffer _commandBuffer, uint32 _width, uint32 _height);
 
-protected:
-	virtual void SetupPipeline(PipelineConfigInfo& _pipelineConfig) override;
+private:
+	void CreatePipeline(VkRenderPass _renderPass);
 	
 private:
 	VesperApp& m_app;
 	VertexBufferComponent m_quadVertexBufferComponent;
+	std::unique_ptr<Pipeline> m_pipeline;
 	std::unique_ptr<Buffer> m_buffer;
 };
 
