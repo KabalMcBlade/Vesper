@@ -209,6 +209,7 @@ call "C:\Projects\Vesper\VesperEngine\copy_assets.bat" C:\Projects\Vesper\Vesper
     <None Include="Assets\Shaders\push_constant_shader.vert" />
     <None Include="Assets\Shaders\phong_shader.frag" />
     <None Include="Assets\Shaders\phong_shader.vert" />
+    <None Include="Assets\Shaders\test_multiflag_generation_phong_shader.frag" />
     <None Include="compile_shaders.bat" />
     <None Include="copy_assets.bat" />
   </ItemGroup>

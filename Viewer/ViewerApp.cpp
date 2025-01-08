@@ -217,7 +217,7 @@ void ViewerApp::Run()
 			.WriteBuffer(GROUP_BINDING_OBJECT, &objectBufferInfo)
 			.Build(groupDescriptorSets[i]);
 	}
-
+	
 	auto currentTime = std::chrono::high_resolution_clock::now();
 
 	SceneUBO sceneUBO;

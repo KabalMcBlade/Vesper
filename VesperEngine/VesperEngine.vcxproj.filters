@@ -274,6 +274,7 @@
     <None Include="Assets\Shaders\pre_filtered_environment_map.frag" />
     <None Include="Assets\Shaders\brdf_lut_shader.frag" />
     <None Include="Assets\Shaders\fullscreen.vert" />
+    <None Include="Assets\Shaders\test_multiflag_generation_phong_shader.frag" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Assets\Shaders\shader_flag_config.txt" />

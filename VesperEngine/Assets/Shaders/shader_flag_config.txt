@@ -1,1 +1,1 @@
-phong_shader.frag BINDLESS 0 1
+test_multiflag_generation_phong_shader.frag BINDLESS 0 1

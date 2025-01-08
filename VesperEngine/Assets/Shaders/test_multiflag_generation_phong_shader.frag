@@ -1,5 +1,10 @@
 #version 450
 
+#if BINDLESS == 1
+    #extension GL_EXT_nonuniform_qualifier : require
+#endif
+
+
 layout(location = 0) in vec3 fragColor;
 layout(location = 1) in vec3 fragPositionWorld;
 layout(location = 2) in vec3 fragNormalWorld;
@@ -21,25 +26,41 @@ layout(std140, set = 0, binding = 1) uniform LightUBO
 } lightUBO;
 
 
-layout(set = 2, binding = 0) uniform sampler2D diffuseTexture;
-layout(set = 2, binding = 1) uniform sampler2D specularTexture;
-layout(set = 2, binding = 2) uniform sampler2D ambientTexture;
-layout(set = 2, binding = 3) uniform sampler2D normalTexture;
+#if BINDLESS == 1
+    layout(set = 2, binding = 0) uniform sampler2D textures[];
+#else
+    layout(set = 2, binding = 0) uniform sampler2D diffuseTexture;
+    layout(set = 2, binding = 1) uniform sampler2D specularTexture;
+    layout(set = 2, binding = 2) uniform sampler2D ambientTexture;
+    layout(set = 2, binding = 3) uniform sampler2D normalTexture;
+#endif
 
-layout(std140, set = 2, binding = 4) uniform MaterialData 
+
+#if BINDLESS == 1
+    layout(std140, set = 2, binding = 1) uniform MaterialData 
+#else
+    layout(std140, set = 2, binding = 4) uniform MaterialData 
+#endif
 {
     vec4 AmbientColor;
     vec4 DiffuseColor;
     vec4 SpecularColor;
     vec4 EmissionColor;
     float Shininess;
+#if BINDLESS == 1
+    int TextureIndices[4]; // Indices for the textures: [Ambient, Diffuse, Specular, Normal] (Value of -1 indicate is missing)
+#else
     int TextureFlags;      // 0: HasAmbientTexture, 1: HasDiffuseTexture, 2: HasSpecularTexture, 3: HasNormalTexture
+#endif
 } material;
 
+
+#if BINDLESS == 0
 bool getFlag(int flags, int bitIndex) 
 {
     return ((flags >> bitIndex) & 1) != 0;
 }
+#endif
 
 // Specialization constant for brightness adjustment
 layout(constant_id = 0) const float kBrightnessFactor = 1.0;
@@ -49,16 +70,28 @@ void main()
     // DEBUG UV COLOR
     //outColor = vec4(fragUV, 0.0, 1.0); // Visualize UVs as colors
     
+#if BINDLESS == 1
+    bool bHasAmbientTexture = material.TextureIndices[0] != -1;
+    bool bHasDiffuseTexture = material.TextureIndices[1] != -1;
+    bool bHasSpecularTexture = material.TextureIndices[2] != -1;
+    bool bHasNormalTexture = material.TextureIndices[3] != -1;
+#else
     // get flags
     bool bHasAmbientTexture = getFlag(material.TextureFlags, 0);    // Extract bit 0 - HasAmbientTexture
     bool bHasDiffuseTexture = getFlag(material.TextureFlags, 1);    // Extract bit 1 - HasDiffuseTexture  
     bool bHasSpecularTexture = getFlag(material.TextureFlags, 2);   // Extract bit 2 - HasSpecularTexture
     bool bHasNormalTexture = getFlag(material.TextureFlags, 3);     // Extract bit 3 - HasNormalTexture
+#endif
 
     vec3 normal = normalize(fragNormalWorld);
     if (bHasNormalTexture) 
     {
+#if BINDLESS == 1
+        vec3 normalMap = texture(textures[nonuniformEXT(material.TextureIndices[3])], fragUV).rgb * 2.0 - 1.0;
+#else
         vec3 normalMap = texture(normalTexture, fragUV).rgb * 2.0 - 1.0;
+#endif
+
         normal = normalize(normalMap);
     }
 
@@ -71,7 +104,12 @@ void main()
     // Ambient Contribution
     if (bHasAmbientTexture) 
     {
+#if BINDLESS == 1
+        vec4 ambientTextureColor = texture(textures[nonuniformEXT(material.TextureIndices[0])], fragUV);
+#else
         vec4 ambientTextureColor = texture(ambientTexture, fragUV);
+#endif
+
         vec4 finalAmbientColor = ambientTextureColor * material.AmbientColor;
         combinedLighting += finalAmbientColor * vec4(sceneUBO.AmbientColor.rgb, 1.0) * sceneUBO.AmbientColor.a;
     }
@@ -79,7 +117,12 @@ void main()
     // Diffuse Contribution
     if (bHasDiffuseTexture) 
     {
+#if BINDLESS == 1
+        vec4 diffuseTextureColor = texture(textures[nonuniformEXT(material.TextureIndices[1])], fragUV);
+#else
         vec4 diffuseTextureColor = texture(diffuseTexture, fragUV);
+#endif
+
         vec4 finalDiffuseColor = diffuseTextureColor * material.DiffuseColor;
 
         float diffIntensity = max(dot(normal, lightDir), 0.0);
@@ -89,7 +132,12 @@ void main()
     // Specular Contribution
     if (bHasSpecularTexture) 
     {
-        vec4 specularTextureColor = texture(specularTexture, fragUV);       
+#if BINDLESS == 1
+        vec4 specularTextureColor = texture(textures[nonuniformEXT(material.TextureIndices[2])], fragUV);
+#else
+        vec4 specularTextureColor = texture(specularTexture, fragUV);
+#endif
+        
         vec4 finalSpecularColor = specularTextureColor * material.SpecularColor;
 
         vec3 reflectDir = reflect(-lightDir, normal);

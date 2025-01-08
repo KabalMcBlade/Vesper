@@ -238,7 +238,7 @@ void PhongRenderSystem::SetupPipeline(PipelineConfigInfo& _pipelineConfig)
 	);
 
 	ShaderInfo fragmentShader(
-		m_app.GetConfig().ShadersPath + "phong_shader_bindless0.frag.spv",
+		m_app.GetConfig().ShadersPath + "phong_shader.frag.spv",
 		ShaderType::Fragment
 	);
 	fragmentShader.AddSpecializationConstant(0, 2.0f);
