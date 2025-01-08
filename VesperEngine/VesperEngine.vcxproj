@@ -214,7 +214,7 @@ call "C:\Projects\Vesper\VesperEngine\copy_assets.bat" C:\Projects\Vesper\Vesper
     <None Include="copy_assets.bat" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Assets\Shaders\shader_flag_config.txt" />
+    <Text Include="compile_shaders_config.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

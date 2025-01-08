@@ -12,7 +12,7 @@ if "%~1"=="" goto :END_1
 set VK_PLATFORM=Bin
 
 :: Set the path to the flag configuration file
-set CONFIG_FILE=%~1Assets\Shaders\shader_flag_config.txt
+set CONFIG_FILE=%~1compile_shaders_config.txt
 
 :: Check if the configuration file exists
 if not exist "%CONFIG_FILE%" (

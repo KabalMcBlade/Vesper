@@ -277,6 +277,6 @@
     <None Include="Assets\Shaders\test_multiflag_generation_phong_shader.frag" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Assets\Shaders\shader_flag_config.txt" />
+    <Text Include="compile_shaders_config.txt" />
   </ItemGroup>
 </Project>
