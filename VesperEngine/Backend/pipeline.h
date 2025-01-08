@@ -42,6 +42,19 @@ enum class ShaderType : uint8
 	Fragment
 };
 
+struct SpecializationConstant 
+{
+	uint32 ID;					// Specialization constant ID
+	std::vector<uint8> Value;	// Raw bytes of the constant value
+
+	template <typename T>
+	SpecializationConstant(uint32 _id, const T& _value)
+		: ID(_id), Value(sizeof(T))
+	{
+		std::memcpy(Value.data(), &_value, sizeof(T));
+	}
+};
+
 struct ShaderInfo
 {
 	ShaderInfo(const std::string& _filepath, const ShaderType _type) : Filepath(_filepath), Type(_type){}
@@ -50,8 +63,15 @@ struct ShaderInfo
 	ShaderInfo(const PipelineConfigInfo&) = delete;
 	ShaderInfo& operator=(const PipelineConfigInfo&) = delete;
 
+	template <typename T>
+	void AddSpecializationConstant(uint32 _id, const T& _value)
+	{
+		SpecializationConstants.emplace_back(_id, _value);
+	}
+
 	std::string Filepath;
 	ShaderType Type;
+	std::vector<SpecializationConstant> SpecializationConstants;
 };
 
 class VESPERENGINE_API Pipeline final

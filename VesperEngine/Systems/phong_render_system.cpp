@@ -232,9 +232,23 @@ void PhongRenderSystem::RenderFrame(const FrameInfo& _frameInfo)
 
 void PhongRenderSystem::SetupPipeline(PipelineConfigInfo& _pipelineConfig)
 {
+	ShaderInfo vertexShader(
+		m_app.GetConfig().ShadersPath + "phong_shader.vert.spv",
+		ShaderType::Vertex
+	);
+
+	ShaderInfo fragmentShader(
+		m_app.GetConfig().ShadersPath + "phong_shader_bindless0.frag.spv",
+		ShaderType::Fragment
+	);
+	fragmentShader.AddSpecializationConstant(0, 2.0f);
+
 	m_pipeline = std::make_unique<Pipeline>(
 		m_device,
-		std::vector{ ShaderInfo{m_app.GetConfig().ShadersPath + "phong_shader.vert.spv", ShaderType::Vertex}, ShaderInfo{m_app.GetConfig().ShadersPath + "phong_shader_bindless0.frag.spv", ShaderType::Fragment}, },
+		std::vector{ 
+			vertexShader,
+			fragmentShader,
+		},
 		_pipelineConfig
 	);
 }

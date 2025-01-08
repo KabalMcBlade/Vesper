@@ -8,6 +8,13 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
+struct SpecializationData
+{
+	VkSpecializationInfo SpecializationInfo{};
+	std::vector<VkSpecializationMapEntry> MapEntries;
+	std::vector<uint8_t> DataBuffer;
+};
+
 void Pipeline::DefaultPipelineConfiguration(PipelineConfigInfo& _outConfigInfo)
 {
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -188,8 +195,10 @@ void Pipeline::CreateGraphicsPipeline(const std::vector<ShaderInfo>& _shadersInf
 
 	m_shaderModules.resize(count);
 
-	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-	shaderStages.resize(count);
+	std::vector<VkPipelineShaderStageCreateInfo> shaderStages(count);
+
+	// specialization constants
+	std::vector<SpecializationData> specializationDatas(count);
 
 	for (int8 i = 0; i < count; ++i)
 	{
@@ -205,7 +214,40 @@ void Pipeline::CreateGraphicsPipeline(const std::vector<ShaderInfo>& _shadersInf
 		shaderStages[i].pName = "main";
 		shaderStages[i].flags = 0;
 		shaderStages[i].pNext = nullptr;
-		shaderStages[i].pSpecializationInfo = nullptr;
+
+		if (!shaderInfo.SpecializationConstants.empty())
+		{
+			SpecializationData& specData = specializationDatas[i];
+
+			specData.MapEntries.resize(shaderInfo.SpecializationConstants.size());
+
+			uint32 offset = 0;
+			specData.DataBuffer.clear();
+
+			for (size_t j = 0; j < shaderInfo.SpecializationConstants.size(); ++j)
+			{
+				const auto& specConst = shaderInfo.SpecializationConstants[j];
+
+				VkSpecializationMapEntry& entry = specData.MapEntries[j];
+				entry.constantID = specConst.ID;
+				entry.offset = offset;
+				entry.size = specConst.Value.size();
+
+				specData.DataBuffer.insert(specData.DataBuffer.end(), specConst.Value.begin(), specConst.Value.end());
+				offset += static_cast<uint32>(specConst.Value.size());
+			}
+
+			specData.SpecializationInfo.mapEntryCount = static_cast<uint32>(specData.MapEntries.size());
+			specData.SpecializationInfo.pMapEntries = specData.MapEntries.data();
+			specData.SpecializationInfo.dataSize = specData.DataBuffer.size();
+			specData.SpecializationInfo.pData = specData.DataBuffer.data();
+
+			shaderStages[i].pSpecializationInfo = &specData.SpecializationInfo;
+		}
+		else
+		{
+			shaderStages[i].pSpecializationInfo = nullptr;
+		}
 	}
 	
 	auto& bindingDescriptions = _configInfo.BindingDescriptions;

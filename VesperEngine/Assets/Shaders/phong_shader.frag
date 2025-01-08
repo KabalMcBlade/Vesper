@@ -62,11 +62,13 @@ bool getFlag(int flags, int bitIndex)
 }
 #endif
 
+// Specialization constant for brightness adjustment
+layout(constant_id = 0) const float kBrightnessFactor = 1.0;
+
 void main() 
 {
     // DEBUG UV COLOR
     //outColor = vec4(fragUV, 0.0, 1.0); // Visualize UVs as colors
-
     
 #if BINDLESS == 1
     bool bHasAmbientTexture = material.TextureIndices[0] != -1;
@@ -157,5 +159,5 @@ void main()
     combinedLighting += material.EmissionColor;
 
     // Clamp Final Result
-    outColor = clamp(combinedLighting, 0.0, 1.0);
+    outColor = clamp(combinedLighting * kBrightnessFactor, 0.0, 1.0);
 }
