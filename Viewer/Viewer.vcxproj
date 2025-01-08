@@ -67,8 +67,7 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>call "$(ProjectDir)copy_locally.bat" $(ProjectDir) $(OutDir) $(IntDirFullPath)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -93,8 +92,7 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>call "$(ProjectDir)copy_locally.bat" $(ProjectDir) $(OutDir) $(IntDirFullPath)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -112,55 +110,7 @@
     <ClInclude Include="ViewerApp.h" />
     <ClInclude Include="WindowHandle.h" />
   </ItemGroup>
-  <!-- Models Files -->
   <ItemGroup>
-    <ModelsFiles Include="$(ProjectDir)Assets\Models\**\*.*" />
-    <ModelsFiles Remove="$(ProjectDir)Assets\Models\**\*.obj" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="$(ProjectDir)Assets\Models\custombuild.txt">
-      <Command>
-        call "$(ProjectDir)copy_locally.bat" Models $(ProjectDir) $(OutDir) $(IntDirFullPath) || exit 0
-      </Command>
-      <Outputs>$(IntDirFullPath)copy_Models_build.timestamp</Outputs>
-      <AdditionalInputs>@(ModelsFiles)</AdditionalInputs>
-      <Message>Assets (Models) have been copied!</Message>
-    </CustomBuild>
-  </ItemGroup>
-  <!-- Shader Files -->
-  <ItemGroup>
-    <ShaderFiles Include="$(ProjectDir)Assets\Shaders\**\*.*" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="$(ProjectDir)Assets\Shaders\custombuild.txt">
-      <Command>
-        call "$(ProjectDir)copy_locally.bat" Shaders $(ProjectDir) $(OutDir) $(IntDirFullPath) || exit 0
-      </Command>
-      <Outputs>$(IntDirFullPath)copy_Shaders_build.timestamp</Outputs>
-      <AdditionalInputs>@(ShaderFiles)</AdditionalInputs>
-      <Message>Assets (Shaders) have been copied!</Message>
-    </CustomBuild>
-  </ItemGroup>
-  <!-- Textures Files -->
-  <ItemGroup>
-    <TexturesFiles Include="$(ProjectDir)Assets\Textures\**\*.*" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="$(ProjectDir)Assets\Textures\custombuild.txt">
-      <Command>
-        call "$(ProjectDir)copy_locally.bat" Textures $(ProjectDir) $(OutDir) $(IntDirFullPath) || exit 0
-      </Command>
-      <Outputs>$(IntDirFullPath)copy_Textures_build.timestamp</Outputs>
-      <AdditionalInputs>@(TexturesFiles)</AdditionalInputs>
-      <Message>Assets (Textures) have been copied!</Message>
-    </CustomBuild>
-  </ItemGroup>
-  <!-- Exclude files from project -->
-  <ItemGroup>
-    <None Remove="$(ProjectDir)Assets\Models\**\*.obj" />
-    <None Remove="$(ProjectDir)Assets\Models\**\*.*" />
-    <None Remove="$(ProjectDir)Assets\Shaders\**\*.*" />
-    <None Remove="$(ProjectDir)Assets\Textures\**\*.*" />
     <None Include="copy_locally.bat" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
