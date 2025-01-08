@@ -15,12 +15,6 @@ VESPERENGINE_USING_NAMESPACE
 
 int main()
 {
-// 	glm::vec4 test0 = { 1.0f, 2.0f, 3.0f, 4.0f };
-// 	glm::vec4 test1 = { 7.0f, 7.0f, 7.0f, 7.0f };
-// 
-// 	glm::vec4 test3 = test0;
-// 	glm::vec4 testAdd = test0 + test3;
-
 	Config cfg;
     cfg.WindowName = "Vesper Viewer";
 	cfg.WindowWidth = 800;

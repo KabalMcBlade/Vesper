@@ -67,7 +67,7 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>call "$(ProjectDir)copy_locally.bat" $(ProjectDir) $(OutDir)</Command>
+      <Command>call "$(ProjectDir)copy_locally.bat" $(ProjectDir) $(OutDir) $(IntDirFullPath)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -92,7 +92,7 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>call "$(ProjectDir)copy_locally.bat" $(ProjectDir) $(OutDir)</Command>
+      <Command>call "$(ProjectDir)copy_locally.bat" $(ProjectDir) $(OutDir) $(IntDirFullPath)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -6,6 +6,7 @@ echo *****************************
 echo:
 
 if "%~1"=="" goto :END_1
+if "%~2"=="" goto :END_2
 
 ::- Select the Vulkan platform: Bin32 (32-bit) or Bin (64-bit). 
 ::- We are using 64-bit on this engine, so go for Bin!
@@ -30,6 +31,9 @@ echo Compiling fragment shader files:
 for %%f in ("%~1Assets\Shaders\*.frag") do (
     call :COMPILE_SHADER "%%f" "fragment"
 )
+
+:: Create the timestamp file here if everything is successful
+echo. > "%~2shaders_last_build.timestamp"
 
 goto :END_OK
 
@@ -84,6 +88,10 @@ exit /b
 
 :END_1
 echo No $(ProjectDir) provided as parameter!
+goto :END
+
+:END_2
+echo No $(IntDirFullPath) provided as parameter!
 goto :END
 
 :END_OK
