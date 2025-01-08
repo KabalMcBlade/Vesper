@@ -101,6 +101,9 @@ StyleCopReport.xml
 # Exception: Allow .obj files in specific directories
 !Viewer/Assets/Models/*.obj
 
+# Ignore project specific files
+*.timestamp
+
 # Chutzpah Test files
 _Chutzpah*
 
