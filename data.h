@@ -1,3 +1,7 @@
+// Copyright (c) 2022-2025 Michele Condo'
+// File: C:\Projects\ECS-API\data.h
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
 #pragma once
 
 struct Vector
@@ -49,7 +53,7 @@ struct RigidBody
 
 struct Health
 {
-	// this because I want to groupBy this
+	// this because I want to group by this
 	using FieldType = float;
 
 	float m_maxValue = 0.0f;
