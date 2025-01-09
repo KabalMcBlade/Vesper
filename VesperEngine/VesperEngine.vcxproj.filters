@@ -153,9 +153,6 @@
     <ClInclude Include="App\file_system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Systems\phong_render_system.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Systems\core_render_system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -243,9 +240,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="App\file_system.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Systems\phong_render_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Systems\core_render_system.cpp">

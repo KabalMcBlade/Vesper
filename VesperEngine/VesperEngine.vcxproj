@@ -75,7 +75,7 @@
     </Lib>
     <PostBuildEvent>
       <Command>call "$(ProjectDir)compile_shaders.bat" $(ProjectDir) $(IntDirFullPath) || exit 0
-call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ || exit 0</Command>
+call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ $(IntDirFullPath) || exit 0</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -108,7 +108,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ || exit 
     </Lib>
     <PostBuildEvent>
       <Command>call "$(ProjectDir)compile_shaders.bat" $(ProjectDir) $(IntDirFullPath) || exit 0
-call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ || exit 0</Command>
+call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ $(IntDirFullPath) || exit 0</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -7,6 +7,7 @@ echo:
 
 if "%~1"=="" goto :END_1
 if "%~2"=="" goto :END_2
+if "%~3"=="" goto :END_3
 
 set SOURCE=%~1
 set DEST=%~2
@@ -38,6 +39,9 @@ echo:
 echo Copying texture files from "%SOURCE%Assets\Textures" to "%DEST%Assets\Textures":
 copy "%SOURCE%Assets\Textures\*.*" "%DEST%Assets\Textures\"
 
+:: Create the timestamp file here if everything is successful
+echo. > "%~3copy_assets_build.timestamp"
+
 goto :END_OK
 
 :END_1
@@ -46,6 +50,10 @@ goto :END
 
 :END_2
 echo Error: No destination directory provided as a parameter!
+goto :END
+
+:END_3
+echo Error: No $(IntDirFullPath) provided as a parameter!
 goto :END
 
 :END_OK

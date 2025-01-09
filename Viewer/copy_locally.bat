@@ -38,7 +38,7 @@ copy "%~1Assets\Textures\*.*" "%~2Assets\Textures\"
 echo:
 
 :: Create the timestamp file here if everything is successful
-echo. > "%~3copy_assets_build.timestamp"
+echo. > "%~3copy_locally_build.timestamp"
 
 goto :END_OK
 

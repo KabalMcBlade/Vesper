@@ -33,7 +33,7 @@ for %%f in ("%~1Assets\Shaders\*.frag") do (
 )
 
 :: Create the timestamp file here if everything is successful
-echo. > "%~2shaders_last_build.timestamp"
+echo. > "%~2compile_shaders_build.timestamp"
 
 goto :END_OK
 
