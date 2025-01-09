@@ -5,16 +5,20 @@
 #pragma once
 
 #include "vulkan/vulkan.h"
+
 #include "Core/core_defines.h"
-#include "Backend/device.h"
+
 #include "Components/graphics_components.h"
-#include "Components/camera_components.h"
+
+#include "Backend/device.h"
 #include "Backend/pipeline.h"
 #include "Backend/frame_info.h"
 
+
 VESPERENGINE_NAMESPACE_BEGIN
 
-class VESPERENGINE_API CoreRenderSystem {
+class VESPERENGINE_API CoreRenderSystem
+{
 public:
 	CoreRenderSystem(Device& _device);
 	virtual ~CoreRenderSystem();
