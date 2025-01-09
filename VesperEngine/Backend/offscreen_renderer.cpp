@@ -1,3 +1,7 @@
+// Copyright (c) 2025-2025 Michele Condo'
+// File: C:\Projects\Vesper\VesperEngine\Backend\offscreen_renderer.cpp
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
 #include "offscreen_renderer.h"
 
 #include "Utility/logger.h"

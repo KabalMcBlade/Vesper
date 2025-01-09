@@ -1,3 +1,7 @@
+// Copyright (c) 2022-2025 Michele Condo'
+// File: C:\Projects\Vesper\VesperEngine\Utility\stb_loader.cpp
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "ThirdParty/stb/stb_image.h"
 

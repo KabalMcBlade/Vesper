@@ -1,3 +1,7 @@
+// Copyright (c) 2025-2025 Michele Condo'
+// File: C:\Projects\Vesper\VesperEngine\Systems\brdf_lut_generation_system.cpp
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
 #include "Systems/brdf_lut_generation_system.h"
 
 #include "../stb/stb_image_write.h"

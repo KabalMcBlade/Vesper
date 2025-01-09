@@ -1,3 +1,7 @@
+// Copyright (c) 2025-2025 Michele Condo'
+// File: C:\Projects\Vesper\VesperEngine\Systems\material_system.cpp
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
 #include "material_system.h"
 
 #include "Backend/offscreen_renderer.h"

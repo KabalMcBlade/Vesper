@@ -1,3 +1,7 @@
+// Copyright (c) 2025-2025 Michele Condo'
+// File: C:\Projects\Vesper\VesperEngine\Core\hash.h
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
 #pragma once
 
 #include "ECS/ECS/hash.h"

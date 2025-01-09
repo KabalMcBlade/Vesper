@@ -1,3 +1,7 @@
+// Copyright (c) 2022-2025 Michele Condo'
+// File: C:\Projects\Vesper\VesperEngine\Systems\game_entity_system.cpp
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
 #include "game_entity_system.h"
 
 #include "App/vesper_app.h"

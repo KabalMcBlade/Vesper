@@ -1,3 +1,7 @@
+// Copyright (c) 2025-2025 Michele Condo'
+// File: C:\Projects\Vesper\VesperEngine\Backend\offscreen_swap_chain.cpp
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
 #include "Backend/offscreen_swap_chain.h"
 
 #include "Components/graphics_components.h"

@@ -1,3 +1,7 @@
+// Copyright (c) 2022-2025 Michele Condo'
+// File: C:\Projects\Vesper\VesperEngine\dllmain.cpp
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "Core/core_defines.h"
 #include <windows.h> 
