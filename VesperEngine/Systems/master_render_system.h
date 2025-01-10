@@ -40,7 +40,6 @@ public:
 	static constexpr uint32 kGlobalBindingLightsIndex = 1u;
 
 public:
-	// the _globalDescriptorSetLayout and _groupDescriptorSetLayout, should be managed by this class! REFACTORING!!
 	MasterRenderSystem(Device& _device);
 	virtual ~MasterRenderSystem() = default;
 
