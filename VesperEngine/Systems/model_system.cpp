@@ -219,6 +219,16 @@ void ModelSystem::UnloadModel(ecs::Entity _entity) const
 	{
 		m_app.GetComponentManager().RemoveComponent<NoMaterialComponent>(_entity);
 	}
+
+	if (m_app.GetComponentManager().HasComponents<PipelineTransparentComponent>(_entity))
+	{
+		m_app.GetComponentManager().RemoveComponent<PipelineTransparentComponent>(_entity);
+	}
+
+	if (m_app.GetComponentManager().HasComponents<PipelineOpaqueComponent>(_entity))
+	{
+		m_app.GetComponentManager().RemoveComponent<PipelineOpaqueComponent>(_entity);
+	}
 }
 
 void ModelSystem::UnloadModels() const

@@ -76,24 +76,17 @@ void EntityHandlerSystem::UpdateEntities(const FrameInfo& _frameInfo)
 void EntityHandlerSystem::Cleanup()
 {
 	UnregisterEntities();
+
 	for (int32 i = 0; i < SwapChain::kMaxFramesInFlight; ++i)
 	{
 		m_buffer->Destroy(m_entityUboBuffers[i]);
 	}
+
+	m_internalCounter = 0;
 }
 
-void EntityHandlerSystem::RegisterEntity(ecs::Entity _entity) const
+void EntityHandlerSystem::RegisterRenderableEntity(ecs::Entity _entity) const
 {
-	if (!m_app.GetComponentManager().HasComponents<RenderComponent>(_entity))
-	{
-		m_app.GetComponentManager().AddComponent<RenderComponent>(_entity);
-	}
-
-	if (!m_app.GetComponentManager().HasComponents<DynamicOffsetComponent>(_entity))
-	{
-		m_app.GetComponentManager().AddComponent<DynamicOffsetComponent>(_entity);
-	}
-	
 	DynamicOffsetComponent& dynamicUniformBufferComponent = m_app.GetComponentManager().GetComponent<DynamicOffsetComponent>(_entity);
 	dynamicUniformBufferComponent.DynamicOffsetIndex = m_internalCounter;
 	dynamicUniformBufferComponent.DynamicOffset = m_internalCounter * m_alignedSizeUBO;
@@ -101,23 +94,16 @@ void EntityHandlerSystem::RegisterEntity(ecs::Entity _entity) const
 	++m_internalCounter;
 }
 
-void EntityHandlerSystem::UnregisterEntity(ecs::Entity _entity) const
-{
-	if (m_app.GetComponentManager().HasComponents<RenderComponent, DynamicOffsetComponent>(_entity))
-	{
-		m_app.GetComponentManager().RemoveComponent<RenderComponent>(_entity);
-		m_app.GetComponentManager().RemoveComponent<DynamicOffsetComponent>(_entity);
-	}
-}
-
 void EntityHandlerSystem::UnregisterEntities() const
 {
 	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-	for (auto entity : ecs::IterateEntitiesWithAll<RenderComponent, DynamicOffsetComponent>(entityManager, componentManager))
+	for (auto entity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent>(entityManager, componentManager))
 	{
-		UnregisterEntity(entity);
+		DynamicOffsetComponent& dynamicUniformBufferComponent = m_app.GetComponentManager().GetComponent<DynamicOffsetComponent>(entity);
+		dynamicUniformBufferComponent.DynamicOffsetIndex = 0u;
+		dynamicUniformBufferComponent.DynamicOffset = 0u;
 	}
 }
 

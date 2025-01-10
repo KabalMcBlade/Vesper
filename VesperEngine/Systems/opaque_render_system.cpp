@@ -169,7 +169,6 @@ void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 		for (const auto& entityCollected : entities)
 		{
 			const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(entityCollected);
-
 			const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(entityCollected);
 			const IndexBufferComponent& indexBufferComponent = componentManager.GetComponent<IndexBufferComponent>(entityCollected);
 			const ColorTintPushConstantData& pushComponent = componentManager.GetComponent<ColorTintPushConstantData>(entityCollected);

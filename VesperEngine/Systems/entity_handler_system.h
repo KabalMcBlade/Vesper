@@ -54,14 +54,14 @@ public:
 public:
 	// Call this at the beginning, but after all the constructors of all the system is done
 	void Initialize(DescriptorPool& _globalDescriptorPool);
+	// Register an entity to be valid renderable
+	void RegisterRenderableEntity(ecs::Entity _entity) const;
 	// Call this within the update the entities.
 	void UpdateEntities(const FrameInfo& _frameInfo);
 	// Call at the end or at destruction time, anyway after the game loop is done.
 	void Cleanup();
 
-public:
-	void RegisterEntity(ecs::Entity _entity) const;
-	void UnregisterEntity(ecs::Entity _entity) const;
+private:
 	void UnregisterEntities() const;
 
 private:

@@ -11,6 +11,7 @@
 #include "Components/graphics_components.h"
 #include "Components/object_components.h"
 #include "Components/camera_components.h"
+#include "Components/pipeline_components.h"
 
 #include "ECS/ECS/ecs.h"
 

@@ -214,7 +214,7 @@ void ViewerApp::LoadGameEntities()
 		transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
 		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-		m_entityHandlerSystem->RegisterEntity(cubeNoIndices);
+		m_entityHandlerSystem->RegisterRenderableEntity(cubeNoIndices);
 
 		// test
 		GetComponentManager().AddComponent<RotationComponent>(cubeNoIndices);
@@ -241,7 +241,7 @@ void ViewerApp::LoadGameEntities()
 			transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-			m_entityHandlerSystem->RegisterEntity(coloredCube);
+			m_entityHandlerSystem->RegisterRenderableEntity(coloredCube);
 
 			// test
 			GetComponentManager().AddComponent<RotationComponent>(coloredCube);
@@ -268,7 +268,7 @@ void ViewerApp::LoadGameEntities()
 			transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-			m_entityHandlerSystem->RegisterEntity(flatVase);
+			m_entityHandlerSystem->RegisterRenderableEntity(flatVase);
 		}
 	}
 
@@ -287,7 +287,7 @@ void ViewerApp::LoadGameEntities()
 			transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-			m_entityHandlerSystem->RegisterEntity(smoothVase);
+			m_entityHandlerSystem->RegisterRenderableEntity(smoothVase);
 		}
 	}
 
@@ -306,7 +306,7 @@ void ViewerApp::LoadGameEntities()
 			transformComponent.Scale = { 3.0f, 1.0f, 3.0f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-			m_entityHandlerSystem->RegisterEntity(quad);
+			m_entityHandlerSystem->RegisterRenderableEntity(quad);
 		}
 	}
 	
@@ -325,7 +325,7 @@ void ViewerApp::LoadGameEntities()
 			transformComponent.Scale = { 1.0f, 1.0f, 1.0f }; 
 			transformComponent.Rotation = glm::angleAxis(glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-			m_entityHandlerSystem->RegisterEntity(character);
+			m_entityHandlerSystem->RegisterRenderableEntity(character);
 		}
 	} 
 

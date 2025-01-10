@@ -6,6 +6,7 @@
 
 #include "App/vesper_app.h"
 
+
 VESPERENGINE_NAMESPACE_BEGIN
 
 GameEntitySystem::GameEntitySystem(VesperApp& _app)
@@ -27,8 +28,11 @@ ecs::Entity GameEntitySystem::CreateGameEntity(EntityType _type) const
 		m_app.GetComponentManager().AddComponent<TransformComponent>(entity);
 		break;
 	case EntityType::Renderable:
-		m_app.GetComponentManager().AddComponent<TransformComponent>(entity);
-		m_app.GetComponentManager().AddComponent<RenderComponent>(entity);
+		{
+			m_app.GetComponentManager().AddComponent<TransformComponent>(entity);
+			m_app.GetComponentManager().AddComponent<RenderComponent>(entity);
+			m_app.GetComponentManager().AddComponent<DynamicOffsetComponent>(entity);
+		}
 		break;
 	default:
 		// Pure
@@ -58,6 +62,11 @@ void GameEntitySystem::DestroyGameEntity(const ecs::Entity _entity) const
 	if (m_app.GetComponentManager().HasComponents<RenderComponent>(_entity))
 	{
 		m_app.GetComponentManager().RemoveComponent<RenderComponent>(_entity);
+	}
+
+	if (m_app.GetComponentManager().HasComponents<DynamicOffsetComponent>(_entity))
+	{
+		m_app.GetComponentManager().RemoveComponent<DynamicOffsetComponent>(_entity);
 	}
 
 	m_app.GetEntityManager().DestroyEntity(_entity);
