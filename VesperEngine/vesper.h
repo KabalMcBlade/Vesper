@@ -35,6 +35,7 @@
 #include "Components/camera_components.h"
 
 #include "Systems/game_entity_system.h"
+#include "Systems/entity_handler_system.h"
 #include "Systems/model_system.h"
 #include "Systems/material_system.h"
 #include "Systems/core_render_system.h"

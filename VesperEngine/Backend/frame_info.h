@@ -16,7 +16,7 @@ struct FrameInfo
 	float FrameTime{ 0.0f };
 	VkCommandBuffer CommandBuffer{ VK_NULL_HANDLE };
 	VkDescriptorSet GlobalDescriptorSet{ VK_NULL_HANDLE };
-	VkDescriptorSet GroupDescriptorSet{ VK_NULL_HANDLE };
+	VkDescriptorSet EntityDescriptorSet{ VK_NULL_HANDLE };
 };
 
 VESPERENGINE_NAMESPACE_END

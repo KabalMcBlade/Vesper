@@ -18,8 +18,6 @@
 
 #include <memory>
 
-#include "ECS/ECS/ecs.h"
-
 
 VESPERENGINE_NAMESPACE_BEGIN
 
@@ -28,25 +26,16 @@ class VESPERENGINE_API OpaqueRenderSystem final : public CoreRenderSystem
 public:
 	OpaqueRenderSystem(VesperApp& _app, Device& _device, DescriptorPool& _globalDescriptorPool, VkRenderPass _renderPass,
 		VkDescriptorSetLayout _globalDescriptorSetLayout,
-		VkDescriptorSetLayout _groupDescriptorSetLayout,
-		uint32 _alignedSizeUBO);
+		VkDescriptorSetLayout _entityDescriptorSetLayout);
 	~OpaqueRenderSystem();
 
 	OpaqueRenderSystem(const OpaqueRenderSystem&) = delete;
 	OpaqueRenderSystem& operator=(const OpaqueRenderSystem&) = delete;
 
 public:
-	VESPERENGINE_INLINE uint32 GetObjectCount() const { return m_internalCounter; }
-	VESPERENGINE_INLINE uint32 GetAlignedSizeUBO() const { return m_alignedSizeUBO; }
-
-public:
+	void MaterialBinding() const;
 	void Update(const FrameInfo& _frameInfo);
 	void Render(const FrameInfo& _frameInfo);
-
-public:
-	void RegisterEntity(ecs::Entity _entity) const;
-	void UnregisterEntity(ecs::Entity _entity) const;
-	void UnregisterEntities() const;
 
 private:
 	void CreatePipeline(VkRenderPass _renderPass);
@@ -56,8 +45,6 @@ private:
 	DescriptorPool& m_globalDescriptorPool;
 	std::unique_ptr<Pipeline> m_opaquePipeline;
 	std::unique_ptr<DescriptorSetLayout> m_materialSetLayout;
-	uint32 m_alignedSizeUBO {0};
-	mutable uint32 m_internalCounter {0};
 };
 
 VESPERENGINE_NAMESPACE_END

@@ -41,9 +41,9 @@ private:
 
 	// this goes AFTER the device, or will crash at shutdown time.
 	// also, a DescriptorPool could be x system, instead one global.
-	std::unique_ptr<DescriptorPool> m_globalPool;	
-	std::unique_ptr<DescriptorSetLayout> m_groupSetLayout;
+	std::unique_ptr<DescriptorPool> m_globalPool;
 
+	std::unique_ptr<EntityHandlerSystem> m_entityHandlerSystem;
 	std::unique_ptr<GameEntitySystem> m_gameEntitySystem;
 	std::unique_ptr<ModelSystem> m_modelSystem;
 	std::unique_ptr<MaterialSystem> m_materialSystem;
@@ -52,7 +52,6 @@ private:
 
 	std::unique_ptr<CameraSystem> m_cameraSystem;
 	std::unique_ptr<ObjLoader> m_objLoader;
-	std::unique_ptr<Buffer> m_buffer;
 
 	// from game side
 	std::unique_ptr<KeyboardMovementCameraController> m_keyboardController;

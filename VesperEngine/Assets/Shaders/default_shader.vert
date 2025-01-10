@@ -19,18 +19,18 @@ layout(std140, set = 0, binding = 0) uniform SceneUBO
 
 // set 0 and binding 1 is on fragment shader only
 
-layout(std140, set = 1, binding = 0) uniform ObjectUBO 
+layout(std140, set = 1, binding = 0) uniform EntityUBO 
 {
     mat4 ModelMatrix;
-} objectUBO;
+} entityUBO;
 
 void main()
 {
-    vec4 positionWorld = objectUBO.ModelMatrix * vec4(inPosition, 1.0);
+    vec4 positionWorld = entityUBO.ModelMatrix * vec4(inPosition, 1.0);
     gl_Position = sceneUBO.ProjectionMatrix * sceneUBO.ViewMatrix * positionWorld;
 
     fragColor = inColor;
     fragPositionWorld = positionWorld.xyz;
-    fragNormalWorld = normalize(mat3(transpose(inverse(objectUBO.ModelMatrix))) * inNormal);
+    fragNormalWorld = normalize(mat3(transpose(inverse(entityUBO.ModelMatrix))) * inNormal);
     fragUV = inUV;
 }

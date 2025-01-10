@@ -29,9 +29,6 @@
 #define DESCRIPTOR_SET_COUNT_PER_POOL 20
 
 
-#define GROUP_BINDING_OBJECT 0
-
-
 VESPERENGINE_USING_NAMESPACE
 
 // special struct to just inform the system this entity can be rotated
@@ -41,14 +38,6 @@ struct RotationComponent
 	float RadiantPerFrame;
 };
 
-
-// Object Uniform Buffer Object
-struct VESPERENGINE_ALIGN16 ObjectUBO
-{
-	glm::mat4 ModelMatrix{ 1.0f };
-};
-
-
 ViewerApp::ViewerApp(Config& _config) :
 	VesperApp(_config)
 {
@@ -56,10 +45,6 @@ ViewerApp::ViewerApp(Config& _config) :
 
 	m_device = std::make_unique<Device>(*m_window);
 	m_renderer = std::make_unique<Renderer>(*m_window, *m_device);
-
-	const uint32 minUboAlignment = static_cast<uint32>(m_device->GetLimits().minUniformBufferOffsetAlignment);
-
-	const uint32 uboAlignedSize = m_buffer->GetAlignment<uint32>(sizeof(ObjectUBO), minUboAlignment);
 
 	m_globalPool = DescriptorPool::Builder(*m_device)
 		.SetMaxSets(SwapChain::kMaxFramesInFlight * DESCRIPTOR_MAX_SET_COUNT)
@@ -69,10 +54,7 @@ ViewerApp::ViewerApp(Config& _config) :
 		//.AddPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, SwapChain::kMaxFramesInFlight)
 		.Build();
 
-	m_groupSetLayout = DescriptorSetLayout::Builder(*m_device)
-		.AddBinding(GROUP_BINDING_OBJECT, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT)
-		.Build();
-
+	m_entityHandlerSystem = std::make_unique<EntityHandlerSystem>(*this, *m_device);
 	m_gameEntitySystem = std::make_unique<GameEntitySystem>(*this);
 	m_materialSystem = std::make_unique<MaterialSystem>(*this, *m_device);
 	m_modelSystem = std::make_unique<ModelSystem>(*this, *m_device, *m_materialSystem);
@@ -82,12 +64,10 @@ ViewerApp::ViewerApp(Config& _config) :
 	m_opaqueRenderSystem = std::make_unique<OpaqueRenderSystem>(*this , *m_device, *m_globalPool,
 		m_renderer->GetSwapChainRenderPass(),
 		m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
-		m_groupSetLayout->GetDescriptorSetLayout(),
-		uboAlignedSize);
+		m_entityHandlerSystem->GetEntityDescriptorSetLayout());
 
 	m_cameraSystem = std::make_unique<CameraSystem>(*this);
 	m_objLoader = std::make_unique<ObjLoader>(*this , *m_device);
-	m_buffer = std::make_unique<Buffer>(*m_device);
 
 	m_keyboardController = std::make_unique<KeyboardMovementCameraController>(*this);
 
@@ -121,40 +101,13 @@ ViewerApp::~ViewerApp()
 }
 
 void ViewerApp::Run()
-{
-	std::vector<BufferComponent> objectUboBuffers(SwapChain::kMaxFramesInFlight);
-
-	for (int32 i = 0; i < SwapChain::kMaxFramesInFlight; ++i)
-	{
-		objectUboBuffers[i] = m_buffer->Create<BufferComponent>(
-			sizeof(ObjectUBO),
-			m_opaqueRenderSystem->GetObjectCount(),
-			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, //| VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-			VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, //VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO,
-			VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
-			m_opaqueRenderSystem->GetAlignedSizeUBO(),
-			true
-		);
-	}
-	
-	std::vector<VkDescriptorSet> groupDescriptorSets(SwapChain::kMaxFramesInFlight);
-	for (int32 i = 0; i < SwapChain::kMaxFramesInFlight; ++i)
-	{
-		auto objectBufferInfo = m_buffer->GetDescriptorInfo(objectUboBuffers[i]);
-
-		DescriptorWriter(*m_groupSetLayout, *m_globalPool)
-			.WriteBuffer(GROUP_BINDING_OBJECT, &objectBufferInfo)
-			.Build(groupDescriptorSets[i]);
-	}
-	
+{	
 	auto currentTime = std::chrono::high_resolution_clock::now();
-
-	ObjectUBO objectUBO;
 
 	CameraComponent activeCameraComponent;
 	CameraTransformComponent activeCameraTransformComponent;
 
-
+	m_entityHandlerSystem->Initialize(*m_globalPool);
 	m_masterRenderSystem->Initialize(*m_globalPool);
 
 	ecs::EntityManager& entityManager = GetEntityManager();
@@ -179,7 +132,7 @@ void ViewerApp::Run()
 			const int32 frameIndex = m_renderer->GetFrameIndex();
 
 			FrameInfo frameInfo { frameIndex, frameTime, commandBuffer, 
-				m_masterRenderSystem->GetGlobalDescriptorSet(frameIndex), groupDescriptorSets[frameIndex] };
+				m_masterRenderSystem->GetGlobalDescriptorSet(frameIndex), m_entityHandlerSystem->GetEntityDescriptorSet(frameIndex) };
 			
 			const float aspectRatio = m_renderer->GetAspectRatio();
 
@@ -203,6 +156,7 @@ void ViewerApp::Run()
 			m_cameraSystem->GetActiveCameraData(0, activeCameraComponent, activeCameraTransformComponent);
 
 			m_masterRenderSystem->UpdateScene(frameInfo, activeCameraComponent);
+			m_entityHandlerSystem->UpdateEntities(frameInfo);
 
 			// For instance, add here before the swap chain:
 			// begin off screen shadow pass
@@ -213,17 +167,6 @@ void ViewerApp::Run()
 
 			m_masterRenderSystem->BindGlobalDescriptor(frameInfo);
 
-			for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, RenderComponent>(entityManager, componentManager))
-			{
-				const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(gameEntity);
-				const RenderComponent& renderComponent = componentManager.GetComponent<RenderComponent>(gameEntity);
-
-				objectUBO.ModelMatrix = renderComponent.ModelMatrix;
-				 
-				objectUboBuffers[frameIndex].MappedMemory = &objectUBO;
-				m_buffer->WriteToIndex(objectUboBuffers[frameIndex], dynamicOffsetComponent.DynamicOffsetIndex);
-			}
-
 			m_opaqueRenderSystem->Render(frameInfo);
 
 			m_renderer->EndSwapChainRenderPass(commandBuffer);
@@ -232,11 +175,6 @@ void ViewerApp::Run()
 	}
 
 	vkDeviceWaitIdle(m_device->GetDevice());
-
-	for (int32 i = 0; i < SwapChain::kMaxFramesInFlight; ++i)
-	{
-		m_buffer->Destroy(objectUboBuffers[i]);
-	}
 }
 
 void ViewerApp::LoadCameraEntities()
@@ -276,7 +214,7 @@ void ViewerApp::LoadGameEntities()
 		transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
 		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-		m_opaqueRenderSystem->RegisterEntity(cubeNoIndices);
+		m_entityHandlerSystem->RegisterEntity(cubeNoIndices);
 
 		// test
 		GetComponentManager().AddComponent<RotationComponent>(cubeNoIndices);
@@ -303,7 +241,7 @@ void ViewerApp::LoadGameEntities()
 			transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-			m_opaqueRenderSystem->RegisterEntity(coloredCube);
+			m_entityHandlerSystem->RegisterEntity(coloredCube);
 
 			// test
 			GetComponentManager().AddComponent<RotationComponent>(coloredCube);
@@ -330,7 +268,7 @@ void ViewerApp::LoadGameEntities()
 			transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-			m_opaqueRenderSystem->RegisterEntity(flatVase);
+			m_entityHandlerSystem->RegisterEntity(flatVase);
 		}
 	}
 
@@ -349,7 +287,7 @@ void ViewerApp::LoadGameEntities()
 			transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-			m_opaqueRenderSystem->RegisterEntity(smoothVase);
+			m_entityHandlerSystem->RegisterEntity(smoothVase);
 		}
 	}
 
@@ -368,7 +306,7 @@ void ViewerApp::LoadGameEntities()
 			transformComponent.Scale = { 3.0f, 1.0f, 3.0f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-			m_opaqueRenderSystem->RegisterEntity(quad);
+			m_entityHandlerSystem->RegisterEntity(quad);
 		}
 	}
 	
@@ -387,16 +325,20 @@ void ViewerApp::LoadGameEntities()
 			transformComponent.Scale = { 1.0f, 1.0f, 1.0f }; 
 			transformComponent.Rotation = glm::angleAxis(glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-			m_opaqueRenderSystem->RegisterEntity(character);
+			m_entityHandlerSystem->RegisterEntity(character);
 		}
 	} 
+
+	//////////////////////////////////////////////////////////////////////////
+	// MATERIAL BINDING FOR OPAQUE PIPELINE
+	m_opaqueRenderSystem->MaterialBinding();
 }
 
 void ViewerApp::UnloadGameEntities()
 {
+	m_entityHandlerSystem->Cleanup();
 	m_materialSystem->Cleanup();
 	m_masterRenderSystem->Cleanup();
 	m_modelSystem->UnloadModels();
-	m_opaqueRenderSystem->UnregisterEntities();
 	m_gameEntitySystem->DestroyGameEntities();
 }

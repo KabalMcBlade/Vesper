@@ -135,6 +135,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ $(IntDir
     <ClInclude Include="ECS\ECS\utility.h" />
     <ClInclude Include="Systems\brdf_lut_generation_system.h" />
     <ClInclude Include="Systems\core_render_system.h" />
+    <ClInclude Include="Systems\entity_handler_system.h" />
     <ClInclude Include="Systems\material_system.h" />
     <ClInclude Include="Systems\opaque_render_system.h" />
     <ClInclude Include="ThirdParty\stb\stb_image.h" />
@@ -182,6 +183,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ $(IntDir
     </ClCompile>
     <ClCompile Include="Systems\brdf_lut_generation_system.cpp" />
     <ClCompile Include="Systems\core_render_system.cpp" />
+    <ClCompile Include="Systems\entity_handler_system.cpp" />
     <ClCompile Include="Systems\material_system.cpp" />
     <ClCompile Include="Systems\opaque_render_system.cpp" />
     <ClCompile Include="Utility\logger.cpp" />

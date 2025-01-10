@@ -68,6 +68,7 @@ std::unique_ptr<MaterialData> CreateMaterialData(const tinyobj::material_t& _tin
 
 		phongMaterial->Type = MaterialType::Phong;
 		phongMaterial->Name = _tinyMaterial.name;
+		phongMaterial->IsTransparent = _tinyMaterial.dissolve < 1.0f;
 
 		phongMaterial->Shininess = _tinyMaterial.shininess;
 		phongMaterial->AmbientColor = glm::vec4(_tinyMaterial.ambient[0], _tinyMaterial.ambient[1], _tinyMaterial.ambient[2], 1.0f);
@@ -88,6 +89,7 @@ std::unique_ptr<MaterialData> CreateMaterialData(const tinyobj::material_t& _tin
 
 		pbrMaterial->Type = MaterialType::PBR;
 		pbrMaterial->Name = _tinyMaterial.name;
+		pbrMaterial->IsTransparent = _tinyMaterial.dissolve < 1.0f;
 
 		pbrMaterial->Roughness = _tinyMaterial.roughness;
 		pbrMaterial->Metallic = _tinyMaterial.metallic;

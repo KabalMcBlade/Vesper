@@ -27,6 +27,7 @@
 
 #include "Utility/logger.h"
 
+#include "ECS/ECS/ecs.h"
 
 #define MATERIAL_DIFFUSE_BINDING 0
 #define MATERIAL_SPECULAR_BINDING 1
@@ -45,8 +46,7 @@ struct ColorTintPushConstantData
 
 OpaqueRenderSystem::OpaqueRenderSystem(VesperApp& _app, Device& _device, DescriptorPool& _globalDescriptorPool, VkRenderPass _renderPass,
 	VkDescriptorSetLayout _globalDescriptorSetLayout,
-	VkDescriptorSetLayout _groupDescriptorSetLayout,
-	uint32 _alignedSizeUBO)
+	VkDescriptorSetLayout _entityDescriptorSetLayout)
 	: CoreRenderSystem{ _device }
 	, m_app(_app)
 	, m_globalDescriptorPool(_globalDescriptorPool)
@@ -72,11 +72,9 @@ OpaqueRenderSystem::OpaqueRenderSystem(VesperApp& _app, Device& _device, Descrip
 	m_pushConstants.push_back(pushConstantRange);
 
 	CreatePipelineLayout(std::vector<VkDescriptorSetLayout>
-			{ _globalDescriptorSetLayout, _groupDescriptorSetLayout, m_materialSetLayout->GetDescriptorSetLayout() }
+			{ _globalDescriptorSetLayout, _entityDescriptorSetLayout, m_materialSetLayout->GetDescriptorSetLayout() }
 		);
 	CreatePipeline(_renderPass);
-
-	m_alignedSizeUBO = _alignedSizeUBO;
 }
 
 OpaqueRenderSystem::~OpaqueRenderSystem()
@@ -84,39 +82,14 @@ OpaqueRenderSystem::~OpaqueRenderSystem()
 	m_app.GetComponentManager().UnregisterComponent<ColorTintPushConstantData>();
 }
 
-void OpaqueRenderSystem::RegisterEntity(ecs::Entity _entity) const
+void OpaqueRenderSystem::MaterialBinding() const
 {
-	// just to ensure it has, but the RenderComponent should be already present
-	if (!m_app.GetComponentManager().HasComponents<RenderComponent>(_entity))
+	ecs::EntityManager& entityManager = m_app.GetEntityManager();
+	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
+
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<PhongMaterialComponent>(entityManager, componentManager))
 	{
-		m_app.GetComponentManager().AddComponent<RenderComponent>(_entity);
-	}
-
-	// Add opaque pipeline component if missing
-	if (!m_app.GetComponentManager().HasComponents<PipelineOpaqueComponent>(_entity))
-	{
-		m_app.GetComponentManager().AddComponent<PipelineOpaqueComponent>(_entity);
-	}
-
-	// Add push constant component if missing
-	if (!m_app.GetComponentManager().HasComponents<ColorTintPushConstantData>(_entity))
-	{
-		m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(_entity);
-	}
-
-	// don't add a check here, so we avoid to add twice the same entity, it will trigger an assert
-	m_app.GetComponentManager().AddComponent<DynamicOffsetComponent>(_entity);
-
-	DynamicOffsetComponent& dynamicUniformBufferComponent = m_app.GetComponentManager().GetComponent<DynamicOffsetComponent>(_entity);
-	dynamicUniformBufferComponent.DynamicOffsetIndex = m_internalCounter;
-	dynamicUniformBufferComponent.DynamicOffset = m_internalCounter * m_alignedSizeUBO;
-
-	++m_internalCounter;
-
-	// Material binding
-	if (m_app.GetComponentManager().HasComponents<PhongMaterialComponent>(_entity))
-	{
-		PhongMaterialComponent& materialComponent = m_app.GetComponentManager().GetComponent<PhongMaterialComponent>(_entity);
+		PhongMaterialComponent& materialComponent = m_app.GetComponentManager().GetComponent<PhongMaterialComponent>(gameEntity);
 		materialComponent.BoundDescriptorSet.resize(SwapChain::kMaxFramesInFlight);
 
 		for (int32 i = 0; i < SwapChain::kMaxFramesInFlight; ++i)
@@ -130,29 +103,12 @@ void OpaqueRenderSystem::RegisterEntity(ecs::Entity _entity) const
 				.Build(materialComponent.BoundDescriptorSet[i]);
 		}
 	}
-	else
-	{
-		LOG(Logger::ERROR, "Expected Material, but is missing!");
-	}
-}
 
-void OpaqueRenderSystem::UnregisterEntity(ecs::Entity _entity) const
-{
-	if (m_app.GetComponentManager().HasComponents<PipelineOpaqueComponent, ColorTintPushConstantData>(_entity))
+	// TEST PUSH CONSTANT ONLY!
+	// I add this here, because I do not want actually this in the opaque pipeline, but is for test only! 
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<PipelineOpaqueComponent>(entityManager, componentManager))
 	{
-		m_app.GetComponentManager().RemoveComponent<PipelineOpaqueComponent>(_entity);
-		m_app.GetComponentManager().RemoveComponent<ColorTintPushConstantData>(_entity);
-	}
-}
-
-void OpaqueRenderSystem::UnregisterEntities() const
-{
-	ecs::EntityManager& entityManager = m_app.GetEntityManager();
-	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
-
-	for (auto entity : ecs::IterateEntitiesWithAll<PipelineOpaqueComponent, ColorTintPushConstantData>(entityManager, componentManager))
-	{
-		UnregisterEntity(entity);
+		componentManager.AddComponent<ColorTintPushConstantData>(gameEntity);
 	}
 }
 
@@ -224,7 +180,7 @@ void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 				m_pipelineLayout,
 				1,
 				1,
-				&_frameInfo.GroupDescriptorSet,
+				&_frameInfo.EntityDescriptorSet,
 				1,
 				&dynamicOffsetComponent.DynamicOffset
 			);
@@ -270,7 +226,7 @@ void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 				m_pipelineLayout,
 				1,
 				1,
-				&_frameInfo.GroupDescriptorSet,
+				&_frameInfo.EntityDescriptorSet,
 				1,
 				&dynamicOffsetComponent.DynamicOffset
 			);

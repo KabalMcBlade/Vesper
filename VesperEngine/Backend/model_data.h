@@ -61,6 +61,7 @@ struct MaterialData
 {
 	MaterialType Type;
 	std::string Name;
+	bool IsTransparent{ false };
 
 	MaterialData() : Type(MaterialType::Phong), Name("") {}
 	MaterialData(MaterialType _type) : Type(_type), Name("") {}

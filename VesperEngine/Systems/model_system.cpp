@@ -8,6 +8,8 @@
 
 #include "Backend/device.h"
 
+#include "Components/pipeline_components.h"
+
 #include "App/vesper_app.h"
 
 #include "Utility/logger.h"
@@ -110,6 +112,15 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 	default:
 		throw std::runtime_error("Unsupported material type");
 		break;
+	}
+
+	if (_data->Material->IsTransparent)
+	{
+		m_app.GetComponentManager().AddComponent<PipelineTransparentComponent>(_entity);
+	}
+	else
+	{
+		m_app.GetComponentManager().AddComponent<PipelineOpaqueComponent>(_entity);
 	}
 
 	// depending by the data, add the component
