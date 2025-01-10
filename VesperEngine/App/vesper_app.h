@@ -36,7 +36,7 @@ private:
 
 private:
 	ecs::ComponentManager& m_componentManager;
-	ecs::EntityManager& m_entityManager;
+	ecs::EntityManager& m_gameManager;
 	Config& m_config;
 };
 

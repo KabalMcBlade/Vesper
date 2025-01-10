@@ -6,6 +6,7 @@
 
 #include "WindowHandle.h"
 
+#include "GameManager.h"
 #include "KeyboardMovementCameraController.h"
 #include "MouseLookCameraController.h"
 
@@ -28,19 +29,11 @@ public:
 	void Run();
 
 private:
-	void LoadCameraEntities();
-
-	void LoadGameEntities();
-	void UnloadGameEntities();
-
-private:
 	// from engine side
 	std::unique_ptr<ViewerWindow> m_window;
 	std::unique_ptr<Device> m_device;
 	std::unique_ptr<Renderer> m_renderer;
 
-	// this goes AFTER the device, or will crash at shutdown time.
-	// also, a DescriptorPool could be x system, instead one global.
 	std::unique_ptr<DescriptorPool> m_globalPool;
 
 	std::unique_ptr<EntityHandlerSystem> m_entityHandlerSystem;
@@ -56,5 +49,6 @@ private:
 	// from game side
 	std::unique_ptr<KeyboardMovementCameraController> m_keyboardController;
 	std::unique_ptr<MouseLookCameraController> m_mouseController;
+	std::unique_ptr<GameManager> m_gameManager;
 };
 

@@ -96,6 +96,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="KeyboardMovementCameraController.cpp" />
     <ClCompile Include="MouseLookCameraController.cpp" />
     <ClCompile Include="Viewer.cpp" />
@@ -103,6 +104,8 @@
     <ClCompile Include="WindowHandle.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GameData.h" />
+    <ClInclude Include="GameManager.h" />
     <ClInclude Include="KeyboardMovementCameraController.h" />
     <ClInclude Include="MouseLookCameraController.h" />
     <ClInclude Include="ThirdParty\glfw\include\glfw3.h" />

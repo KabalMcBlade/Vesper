@@ -31,12 +31,6 @@
 
 VESPERENGINE_USING_NAMESPACE
 
-// special struct to just inform the system this entity can be rotated
-struct RotationComponent
-{
-	glm::vec3 RotationAxis;
-	float RadiantPerFrame;
-};
 
 ViewerApp::ViewerApp(Config& _config) :
 	VesperApp(_config)
@@ -69,11 +63,6 @@ ViewerApp::ViewerApp(Config& _config) :
 	m_cameraSystem = std::make_unique<CameraSystem>(*this);
 	m_objLoader = std::make_unique<ObjLoader>(*this , *m_device);
 
-	m_keyboardController = std::make_unique<KeyboardMovementCameraController>(*this);
-
-	m_mouseController = std::make_unique<MouseLookCameraController>();
-	m_mouseController->SetMouseCallback(this, m_window->GetWindow());
-	
 	LOG_NL();
 
 	// BRDF LUT TEXTURE
@@ -85,19 +74,30 @@ ViewerApp::ViewerApp(Config& _config) :
 	m_materialSystem->GenerateOrLoadBRDFLutTexture(brdfLutPath, extent);
 	LOG(Logger::INFO, "BRDF LUT texture generated/loaded at ", brdfLutPath);
 
-	// test
-	GetComponentManager().RegisterComponent<RotationComponent>(); 
 
-	LoadCameraEntities();
-	LoadGameEntities();
+
+	//////////////////////////////////////////////////////////////////////////
+	// Game side initialization
+
+	m_keyboardController = std::make_unique<KeyboardMovementCameraController>(*this);
+
+	m_mouseController = std::make_unique<MouseLookCameraController>();
+	m_mouseController->SetMouseCallback(this, m_window->GetWindow());
+
+	m_gameManager = std::make_unique<GameManager>(*this, *m_entityHandlerSystem, *m_gameEntitySystem, *m_modelSystem, *m_cameraSystem, *m_objLoader);
+
+	m_gameManager->LoadCameraEntities();
+	m_gameManager->LoadGameEntities();
+
+	m_opaqueRenderSystem->MaterialBinding();
 }
 
 ViewerApp::~ViewerApp()
 {
-	// test
-	GetComponentManager().UnregisterComponent<RotationComponent>();
+	m_gameManager->UnloadGameEntities();
 
-	UnloadGameEntities();
+	m_materialSystem->Cleanup();
+	m_masterRenderSystem->Cleanup();
 }
 
 void ViewerApp::Run()
@@ -109,9 +109,6 @@ void ViewerApp::Run()
 
 	m_entityHandlerSystem->Initialize(*m_globalPool);
 	m_masterRenderSystem->Initialize(*m_globalPool);
-
-	ecs::EntityManager& entityManager = GetEntityManager();
-	ecs::ComponentManager& componentManager = GetComponentManager();
 
 	while (!m_window->ShouldClose())
 	{
@@ -134,24 +131,11 @@ void ViewerApp::Run()
 			FrameInfo frameInfo { frameIndex, frameTime, commandBuffer, 
 				m_masterRenderSystem->GetGlobalDescriptorSet(frameIndex), m_entityHandlerSystem->GetEntityDescriptorSet(frameIndex) };
 			
-			const float aspectRatio = m_renderer->GetAspectRatio();
-
-			//////////////////////////////////////////////////////////////////////////
-			// ROTATION TEST
-			for (auto gameEntity : ecs::IterateEntitiesWithAll<TransformComponent, RotationComponent>(entityManager, componentManager))
-			{
-				RotationComponent& rotateComponent = componentManager.GetComponent<RotationComponent>(gameEntity);
-				TransformComponent& transformComponent = componentManager.GetComponent<TransformComponent>(gameEntity);
-
-				// Add random rotation, for testing UBO
-				const glm::quat& prevRot = transformComponent.Rotation;
-				glm::quat currRot = glm::angleAxis(rotateComponent.RadiantPerFrame, rotateComponent.RotationAxis);
-				transformComponent.Rotation = prevRot * currRot;
-			}
-			//////////////////////////////////////////////////////////////////////////
+			m_gameManager->Update(frameInfo);
 
 			m_opaqueRenderSystem->Update(frameInfo);
-			 
+
+			const float aspectRatio = m_renderer->GetAspectRatio();
 			m_cameraSystem->Update(aspectRatio);
 			m_cameraSystem->GetActiveCameraData(0, activeCameraComponent, activeCameraTransformComponent);
 
@@ -175,170 +159,4 @@ void ViewerApp::Run()
 	}
 
 	vkDeviceWaitIdle(m_device->GetDevice());
-}
-
-void ViewerApp::LoadCameraEntities()
-{
-	{
-		ecs::Entity camera = m_gameEntitySystem->CreateGameEntity(EntityType::Camera);
-
-		CameraTransformComponent& transformComponent = GetComponentManager().GetComponent<CameraTransformComponent>(camera);
-		transformComponent.Position = { 0.0f, -0.5f, -3.5f };
-
-		CameraComponent& cameraComponent = GetComponentManager().GetComponent<CameraComponent>(camera);
-
-		m_cameraSystem->SetViewRotation(cameraComponent, transformComponent);
-		m_cameraSystem->SetPerspectiveProjection(cameraComponent, glm::radians(50.0f), 1.0f, 0.1f, 100.0f);
-
-		// Active this one by default
-		m_cameraSystem->SetCurrentActiveCamera(camera);
-	}
-}
-
-void ViewerApp::LoadGameEntities()
-{
-	//////////////////////////////////////////////////////////////////////////
-	// Cube no Indices
-	{
-		std::unique_ptr<ModelData> cubeNoIndicesData = PrimitiveFactory::GenerateCubeNoIndices(
-			{ 0.0f, 0.0f, 0.0f },
-			{ glm::vec3(.9f, .9f, .9f), glm::vec3(.8f, .8f, .1f), glm::vec3(.9f, .6f, .1f), glm::vec3(.8f, .1f, .1f), glm::vec3(.1f, .1f, .8f), glm::vec3(.1f, .8f, .1f) }
-		);
-
-		ecs::Entity cubeNoIndices = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
-
-		m_modelSystem->LoadModel(cubeNoIndices, std::move(cubeNoIndicesData));
-
-		TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(cubeNoIndices);
-		transformComponent.Position = { -1.0f, -1.0f, 0.0f };
-		transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
-		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
-
-		m_entityHandlerSystem->RegisterRenderableEntity(cubeNoIndices);
-
-		// test
-		GetComponentManager().AddComponent<RotationComponent>(cubeNoIndices);
-
-		static const float radPerFrame = 0.00174533f;     // 0.1 deg
-		RotationComponent& rotateComponent = GetComponentManager().GetComponent<RotationComponent>(cubeNoIndices);
-		rotateComponent.RotationAxis = glm::vec3(0.0f, 1.0f, 0.0f);
-		rotateComponent.RadiantPerFrame = radPerFrame;
-	}
-
-
-	//////////////////////////////////////////////////////////////////////////
-	// Cube
-	{
-		std::vector<std::unique_ptr<ModelData>> coloredCubeDataList = m_objLoader->LoadModel("colored_cube.obj");
-		for (auto& coloredCubeData : coloredCubeDataList)
-		{
-			ecs::Entity coloredCube = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
-			
-			m_modelSystem->LoadModel(coloredCube, std::move(coloredCubeData));
-
-			TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(coloredCube);
-			transformComponent.Position = { 1.0f, -1.5f, 0.0f };
-			transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
-			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
-
-			m_entityHandlerSystem->RegisterRenderableEntity(coloredCube);
-
-			// test
-			GetComponentManager().AddComponent<RotationComponent>(coloredCube);
-
-			static const float radPerFrame = 0.00174533f;     // 0.1 deg
-			RotationComponent& rotateComponent = GetComponentManager().GetComponent<RotationComponent>(coloredCube);
-			rotateComponent.RotationAxis = glm::vec3(0.0f, 0.0f, 1.0f);
-			rotateComponent.RadiantPerFrame = radPerFrame;
-		}
-	}
-
-	//////////////////////////////////////////////////////////////////////////
-	// Flat Vase
-	{
-		std::vector<std::unique_ptr<ModelData>> flatVaseDataList = m_objLoader->LoadModel("flat_vase.obj");
-		for (auto& flatVaseData : flatVaseDataList)
-		{
-			ecs::Entity flatVase = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
-
-			m_modelSystem->LoadModel(flatVase, std::move(flatVaseData));
-
-			TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(flatVase);
-			transformComponent.Position = { -1.0f, 0.5f, 0.0f };
-			transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
-			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
-
-			m_entityHandlerSystem->RegisterRenderableEntity(flatVase);
-		}
-	}
-
-	//////////////////////////////////////////////////////////////////////////
-	// Smooth Vase
-	{
-		std::vector<std::unique_ptr<ModelData>> smoothVaseDataList = m_objLoader->LoadModel("smooth_vase.obj");
-		for (auto& smoothVaseData : smoothVaseDataList)
-		{
-			ecs::Entity smoothVase = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
-
-			m_modelSystem->LoadModel(smoothVase, std::move(smoothVaseData));
-
-			TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(smoothVase);
-			transformComponent.Position = { 1.0f, 0.5f, 0.0f };
-			transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
-			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
-
-			m_entityHandlerSystem->RegisterRenderableEntity(smoothVase);
-		}
-	}
-
-	//////////////////////////////////////////////////////////////////////////
-	// Plane / Quad
-	{
-		std::vector<std::unique_ptr<ModelData>> quadDataList = m_objLoader->LoadModel("quad.obj");
-		for (auto& quadData : quadDataList)
-		{
-			ecs::Entity quad = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
-
-			m_modelSystem->LoadModel(quad, std::move(quadData));
-
-			TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(quad);
-			transformComponent.Position = { 0.0f, 1.0f, 0.0f };
-			transformComponent.Scale = { 3.0f, 1.0f, 3.0f };
-			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
-
-			m_entityHandlerSystem->RegisterRenderableEntity(quad);
-		}
-	}
-	
-	//////////////////////////////////////////////////////////////////////////
-	// A_blonde_twintailed_g_1228205950_texture
-	{
-		std::vector<std::unique_ptr<ModelData>> characterDataList = m_objLoader->LoadModel("A_blonde_twintailed_g_1228205950_texture.obj");
-		for (auto& characterData : characterDataList)
-		{
-			ecs::Entity character = m_gameEntitySystem->CreateGameEntity(EntityType::Renderable);
-
-			m_modelSystem->LoadModel(character, std::move(characterData));
-
-			TransformComponent& transformComponent = GetComponentManager().GetComponent<TransformComponent>(character);
-			transformComponent.Position = { 0.0f, 0.0f, 1.0f };
-			transformComponent.Scale = { 1.0f, 1.0f, 1.0f }; 
-			transformComponent.Rotation = glm::angleAxis(glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-
-			m_entityHandlerSystem->RegisterRenderableEntity(character);
-		}
-	} 
-
-	//////////////////////////////////////////////////////////////////////////
-	// MATERIAL BINDING FOR OPAQUE PIPELINE
-	m_opaqueRenderSystem->MaterialBinding();
-}
-
-void ViewerApp::UnloadGameEntities()
-{
-	m_entityHandlerSystem->Cleanup();
-	m_materialSystem->Cleanup();
-	m_masterRenderSystem->Cleanup();
-	m_modelSystem->UnloadModels();
-	m_gameEntitySystem->DestroyGameEntities();
 }

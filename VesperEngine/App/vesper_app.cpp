@@ -21,12 +21,12 @@ ecs::ComponentManager& VesperApp::GetComponentManager()
 
 ecs::EntityManager& VesperApp::GetEntityManager()
 { 
-	return m_entityManager;
+	return m_gameManager;
 }
 
 VesperApp::VesperApp(Config& _config)
 	: m_componentManager(ecs::GetComponentManager())
-	, m_entityManager(ecs::GetEntityManager())
+	, m_gameManager(ecs::GetEntityManager())
 	, m_config{ _config }
 {
 	InitialieECS();
@@ -41,14 +41,14 @@ VesperApp::~VesperApp()
 
 void VesperApp::InitialieECS()
 {
-	m_entityManager.Create(m_config.MaxEntities);
+	m_gameManager.Create(m_config.MaxEntities);
 	m_componentManager.Create(m_config.MaxEntities, m_config.MaxComponentsPerEntity);
 }
 
 void VesperApp::ShutdownECS()
 {
 	m_componentManager.Destroy();
-	m_entityManager.Destroy();
+	m_gameManager.Destroy();
 }
 
 void VesperApp::RegisterDefaultComponents()
