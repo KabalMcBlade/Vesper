@@ -167,6 +167,13 @@ void Device::PickPhysicalDevice()
 	vkGetPhysicalDeviceProperties(m_physicalDevice, &m_properties);
 
 	LOG(Logger::INFO, "Physical device: ", m_properties.deviceName);
+	LOG_NL();
+
+	LOG(Logger::INFO, "Next Gen Hardware limits: ", m_properties.deviceName);
+	LOG(Logger::INFO, "\t", "maxDescriptorSetSampledImages: ", m_properties.limits.maxDescriptorSetSampledImages);
+	LOG(Logger::INFO, "\t", "maxPerStageDescriptorSamplers: ", m_properties.limits.maxPerStageDescriptorSamplers);
+	LOG(Logger::INFO, "\t", "maxPerStageDescriptorUniformBuffers: ", m_properties.limits.maxPerStageDescriptorUniformBuffers);
+	LOG_NL();
 }
 
 void Device::CreateLogicalDevice() 
