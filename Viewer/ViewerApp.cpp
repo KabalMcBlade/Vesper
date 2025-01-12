@@ -25,8 +25,8 @@
 #endif
 
 
-#define DESCRIPTOR_MAX_SET_COUNT 100
-#define DESCRIPTOR_SET_COUNT_PER_POOL 20
+#define DESCRIPTOR_MAX_SET_COUNT 128
+#define DESCRIPTOR_SET_COUNT_PER_POOL 32
 
 
 VESPERENGINE_USING_NAMESPACE
@@ -41,6 +41,7 @@ ViewerApp::ViewerApp(Config& _config) :
 	m_renderer = std::make_unique<Renderer>(*m_window, *m_device);
 
 	m_globalPool = DescriptorPool::Builder(*m_device)
+		.SetPoolFlags(VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT_EXT)		// bindless
 		.SetMaxSets(SwapChain::kMaxFramesInFlight * DESCRIPTOR_MAX_SET_COUNT)
 		.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::kMaxFramesInFlight * DESCRIPTOR_SET_COUNT_PER_POOL)
 		.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, SwapChain::kMaxFramesInFlight * DESCRIPTOR_SET_COUNT_PER_POOL)
