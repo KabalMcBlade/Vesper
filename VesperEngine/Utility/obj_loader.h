@@ -9,6 +9,8 @@
 #include "Backend/device.h"
 #include "Backend/model_data.h"
 
+#include "Systems/material_system.h"
+
 #include <string>
 #include <memory>
 #include <vector>
@@ -21,7 +23,7 @@ class VesperApp;
 class VESPERENGINE_API ObjLoader
 {
 public:
-	ObjLoader(VesperApp& _app, Device& _device);
+	ObjLoader(VesperApp& _app, Device& _device, MaterialSystem& _materialSystem);
 	~ObjLoader() = default;
 
 	ObjLoader(const ObjLoader&) = delete;
@@ -33,6 +35,7 @@ public:
 private:
 	VesperApp& m_app;
 	Device& m_device;
+	MaterialSystem& m_materialSystem;
 };
 
 VESPERENGINE_NAMESPACE_END

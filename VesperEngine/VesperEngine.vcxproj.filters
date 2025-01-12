@@ -168,13 +168,13 @@
     <ClInclude Include="Systems\opaque_render_system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Core\hash.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Components\pipeline_components.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Systems\entity_handler_system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\texture_system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -261,6 +261,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Systems\entity_handler_system.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Systems\texture_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

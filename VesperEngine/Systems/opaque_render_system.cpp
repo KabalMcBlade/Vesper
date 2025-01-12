@@ -95,9 +95,9 @@ void OpaqueRenderSystem::MaterialBinding() const
 		for (int32 i = 0; i < SwapChain::kMaxFramesInFlight; ++i)
 		{
 			DescriptorWriter(*m_materialSetLayout, m_globalDescriptorPool)
-				.WriteImage(0, &materialComponent.DiffuseImageInfo)
-				.WriteImage(1, &materialComponent.SpecularImageInfo)
-				.WriteImage(2, &materialComponent.AmbientImageInfo)
+				.WriteImage(0, &materialComponent.AmbientImageInfo)
+				.WriteImage(1, &materialComponent.DiffuseImageInfo)
+				.WriteImage(2, &materialComponent.SpecularImageInfo)
 				.WriteImage(3, &materialComponent.NormalImageInfo)
 				.WriteBuffer(4, &materialComponent.UniformBufferInfo)
 				.Build(materialComponent.BoundDescriptorSet[i]);

@@ -11,12 +11,14 @@ GameManager::GameManager(
 	EntityHandlerSystem& _entityHandlerSystem,
 	GameEntitySystem& _gameEntitySystem,
 	ModelSystem& _modelSystem,
+	MaterialSystem& _materialSystem,
 	CameraSystem& _cameraSystem,
 	ObjLoader& _objLoader)
 	: m_app(_app)
 	, m_entityHandlerSystem(_entityHandlerSystem)
 	, m_gameEntitySystem(_gameEntitySystem)
 	, m_modelSystem(_modelSystem)
+	, m_materialSystem(_materialSystem)
 	, m_cameraSystem(_cameraSystem)
 	, m_objLoader(_objLoader)
 {
@@ -69,6 +71,7 @@ void GameManager::LoadGameEntities()
 	// Cube no Indices
 	{
 		std::unique_ptr<ModelData> cubeNoIndicesData = PrimitiveFactory::GenerateCubeNoIndices(
+			m_materialSystem,
 			{ 0.0f, 0.0f, 0.0f },
 			{ glm::vec3(.9f, .9f, .9f), glm::vec3(.8f, .8f, .1f), glm::vec3(.9f, .6f, .1f), glm::vec3(.8f, .1f, .1f), glm::vec3(.1f, .1f, .8f), glm::vec3(.1f, .8f, .1f) }
 		);

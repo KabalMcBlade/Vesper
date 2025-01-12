@@ -18,6 +18,7 @@ public:
 		EntityHandlerSystem& _entityHandlerSystem, 
 		GameEntitySystem& _gameEntitySystem,
 		ModelSystem& _modelSystem,
+		MaterialSystem& _materialSystem,
 		CameraSystem& _cameraSystem,
 		ObjLoader& _objLoader);
 	~GameManager();
@@ -34,6 +35,7 @@ private:
 	EntityHandlerSystem& m_entityHandlerSystem;
 	GameEntitySystem& m_gameEntitySystem;
 	ModelSystem& m_modelSystem;
+	MaterialSystem& m_materialSystem;
 	CameraSystem& m_cameraSystem;
 	ObjLoader& m_objLoader;
 };

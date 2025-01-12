@@ -5,7 +5,10 @@
 #pragma once
 
 #include "Core/core_defines.h"
+
 #include "Backend/model_data.h"
+
+#include "Systems/material_system.h"
 
 #define GLM_FORCE_INTRINSICS
 //#define GLM_FORCE_SSE2		// or GLM_FORCE_SSE42 or else, but the above one use compiler to find out which one is enabled
@@ -24,14 +27,14 @@ VESPERENGINE_NAMESPACE_BEGIN
 class VESPERENGINE_API PrimitiveFactory
 {
 public:
-	static std::unique_ptr<ModelData> GenerateTriangleNoIndices(glm::vec3 _offset, glm::vec3 _faceColor, bool _isStatic = true);
-	static std::unique_ptr<ModelData> GenerateTriangle(glm::vec3 _offset, glm::vec3 _faceColor, bool _isStatic = true);
+	static std::unique_ptr<ModelData> GenerateTriangleNoIndices(MaterialSystem& _materialSystem, glm::vec3 _offset, glm::vec3 _faceColor, bool _isStatic = true);
+	static std::unique_ptr<ModelData> GenerateTriangle(MaterialSystem& _materialSystem, glm::vec3 _offset, glm::vec3 _faceColor, bool _isStatic = true);
 
-	static std::unique_ptr<ModelData> GenerateCubeNoIndices(glm::vec3 _offset, glm::vec3 _facesColor, bool _isStatic = true);
-	static std::unique_ptr<ModelData> GenerateCubeNoIndices(glm::vec3 _offset, std::array<glm::vec3, 6> _facesColor, bool _isStatic = true);
+	static std::unique_ptr<ModelData> GenerateCubeNoIndices(MaterialSystem& _materialSystem, glm::vec3 _offset, glm::vec3 _facesColor, bool _isStatic = true);
+	static std::unique_ptr<ModelData> GenerateCubeNoIndices(MaterialSystem& _materialSystem, glm::vec3 _offset, std::array<glm::vec3, 6> _facesColor, bool _isStatic = true);
 
-	static std::unique_ptr<ModelData> GenerateCube(glm::vec3 _offset, glm::vec3 _facesColor, bool _isStatic = true);
-	static std::unique_ptr<ModelData> GenerateCube(glm::vec3 _offset, std::array<glm::vec3, 6> _facesColor, bool _isStatic = true);
+	static std::unique_ptr<ModelData> GenerateCube(MaterialSystem& _materialSystem, glm::vec3 _offset, glm::vec3 _facesColor, bool _isStatic = true);
+	static std::unique_ptr<ModelData> GenerateCube(MaterialSystem& _materialSystem, glm::vec3 _offset, std::array<glm::vec3, 6> _facesColor, bool _isStatic = true);
 
 private:
 	PrimitiveFactory() = delete;

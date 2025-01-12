@@ -39,6 +39,7 @@ private:
 	std::unique_ptr<EntityHandlerSystem> m_entityHandlerSystem;
 	std::unique_ptr<GameEntitySystem> m_gameEntitySystem;
 	std::unique_ptr<ModelSystem> m_modelSystem;
+	std::unique_ptr<TextureSystem> m_texturelSystem;
 	std::unique_ptr<MaterialSystem> m_materialSystem;
 	std::unique_ptr<MasterRenderSystem> m_masterRenderSystem;
 	std::unique_ptr<OpaqueRenderSystem> m_opaqueRenderSystem;

@@ -21,9 +21,9 @@ layout(std140, set = 0, binding = 1) uniform LightUBO
 } lightUBO;
 
 
-layout(set = 2, binding = 0) uniform sampler2D diffuseTexture;
-layout(set = 2, binding = 1) uniform sampler2D specularTexture;
-layout(set = 2, binding = 2) uniform sampler2D ambientTexture;
+layout(set = 2, binding = 0) uniform sampler2D ambientTexture;
+layout(set = 2, binding = 1) uniform sampler2D diffuseTexture;
+layout(set = 2, binding = 2) uniform sampler2D specularTexture;
 layout(set = 2, binding = 3) uniform sampler2D normalTexture;
 
 layout(std140, set = 2, binding = 4) uniform MaterialData 

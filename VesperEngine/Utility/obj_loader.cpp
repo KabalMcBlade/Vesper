@@ -8,8 +8,6 @@
 #include "App/config.h"
 #include "App/file_system.h"
 
-#include "Systems/material_system.h"
-
 #include "Utility/hash.h"
 #include "Utility/logger.h"
 
@@ -57,71 +55,68 @@ bool IsPBRMaterial(const tinyobj::material_t& _material)
 		_material.anisotropy_rotation > epsilon);
 }
 
-std::unique_ptr<MaterialData> CreateMaterialData(const tinyobj::material_t& _tinyMaterial, const std::string& _texturePath)
+std::shared_ptr<MaterialData> CreateMaterial(MaterialSystem& _materialSystem, const tinyobj::material_t& _tinyMaterial, const std::string& _texturePath)
 {
 	// for now we support only Phong and PBR
 	auto materialType = IsPBRMaterial(_tinyMaterial) ? MaterialType::PBR : MaterialType::Phong;
 
 	if (materialType == MaterialType::Phong)
 	{
-		auto phongMaterial = std::make_unique<MaterialDataPhong>();
-
-		phongMaterial->Type = MaterialType::Phong;
-		phongMaterial->Name = _tinyMaterial.name;
-		phongMaterial->IsTransparent = _tinyMaterial.dissolve < 1.0f;
-
-		phongMaterial->Shininess = _tinyMaterial.shininess;
-		phongMaterial->AmbientColor = glm::vec4(_tinyMaterial.ambient[0], _tinyMaterial.ambient[1], _tinyMaterial.ambient[2], 1.0f);
-		phongMaterial->DiffuseColor = glm::vec4(_tinyMaterial.diffuse[0], _tinyMaterial.diffuse[1], _tinyMaterial.diffuse[2], _tinyMaterial.dissolve);
-		phongMaterial->SpecularColor = glm::vec4(_tinyMaterial.specular[0],_tinyMaterial.specular[1],_tinyMaterial.specular[2],_tinyMaterial.dissolve);
-		phongMaterial->EmissionColor = glm::vec4(_tinyMaterial.emission[0], _tinyMaterial.emission[1], _tinyMaterial.emission[2], 1.0f);
-
-		phongMaterial->AmbientTexturePath = _texturePath + _tinyMaterial.ambient_texname;
-		phongMaterial->DiffuseTexturePath = _texturePath + _tinyMaterial.diffuse_texname;
-		phongMaterial->SpecularTexturePath = _texturePath + _tinyMaterial.specular_texname;
-		phongMaterial->NormalTexturePath = _texturePath + _tinyMaterial.normal_texname;
-
-		return phongMaterial;
+		return _materialSystem.CreateMaterial(
+			_tinyMaterial.name,
+			{
+				_tinyMaterial.ambient_texname.empty() ? "" : _texturePath + _tinyMaterial.ambient_texname,
+				_tinyMaterial.diffuse_texname.empty() ? "" : _texturePath + _tinyMaterial.diffuse_texname,
+				_tinyMaterial.specular_texname.empty() ? "" : _texturePath + _tinyMaterial.specular_texname,
+				_tinyMaterial.normal_texname.empty() ? "" : _texturePath + _tinyMaterial.normal_texname
+			},
+			{
+				glm::vec4(_tinyMaterial.ambient[0], _tinyMaterial.ambient[1], _tinyMaterial.ambient[2], 1.0f),
+				glm::vec4(_tinyMaterial.diffuse[0], _tinyMaterial.diffuse[1], _tinyMaterial.diffuse[2], _tinyMaterial.dissolve),
+				glm::vec4(_tinyMaterial.specular[0],_tinyMaterial.specular[1],_tinyMaterial.specular[2],_tinyMaterial.dissolve),
+				glm::vec4(_tinyMaterial.emission[0], _tinyMaterial.emission[1], _tinyMaterial.emission[2], 1.0f),
+				_tinyMaterial.shininess
+			},
+			_tinyMaterial.dissolve < 1.0f,
+			MaterialType::Phong
+		);
 	}
 	else if (materialType == MaterialType::PBR)
 	{
-		auto pbrMaterial = std::make_unique<MaterialDataPBR>();
-
-		pbrMaterial->Type = MaterialType::PBR;
-		pbrMaterial->Name = _tinyMaterial.name;
-		pbrMaterial->IsTransparent = _tinyMaterial.dissolve < 1.0f;
-
-		pbrMaterial->Roughness = _tinyMaterial.roughness;
-		pbrMaterial->Metallic = _tinyMaterial.metallic;
-		pbrMaterial->Sheen = _tinyMaterial.sheen;
-		pbrMaterial->ClearcoatThickness = _tinyMaterial.clearcoat_thickness;
-		pbrMaterial->ClearcoatRoughness = _tinyMaterial.clearcoat_roughness;
-		pbrMaterial->Anisotropy = _tinyMaterial.anisotropy;
-		pbrMaterial->AnisotropyRotation = _tinyMaterial.anisotropy_rotation;
-
-		pbrMaterial->RoughnessTexturePath = _texturePath + _tinyMaterial.roughness_texname;
-		pbrMaterial->MetallicTexturePath = _texturePath + _tinyMaterial.metallic_texname;
-		pbrMaterial->SheenTexturePath = _texturePath + _tinyMaterial.sheen_texname;
-		pbrMaterial->EmissiveTexturePath = _texturePath + _tinyMaterial.emissive_texname;
-		pbrMaterial->NormalMapTexturePath = _texturePath + _tinyMaterial.normal_texname;
-
-		return pbrMaterial;
+		return _materialSystem.CreateMaterial(
+			_tinyMaterial.name,
+			{
+				_tinyMaterial.roughness_texname.empty() ? "" : _texturePath + _tinyMaterial.roughness_texname,
+				_tinyMaterial.metallic_texname.empty() ? "" : _texturePath + _tinyMaterial.metallic_texname,
+				_tinyMaterial.sheen_texname.empty() ? "" : _texturePath + _tinyMaterial.sheen_texname,
+				_tinyMaterial.emissive_texname.empty() ? "" : _texturePath + _tinyMaterial.emissive_texname,
+				_tinyMaterial.normal_texname.empty() ? "" : _texturePath + _tinyMaterial.normal_texname
+			},
+			{
+				_tinyMaterial.roughness,
+				_tinyMaterial.metallic,
+				_tinyMaterial.sheen,
+				_tinyMaterial.clearcoat_thickness,
+				_tinyMaterial.clearcoat_roughness,
+				_tinyMaterial.anisotropy,
+				_tinyMaterial.anisotropy_rotation,
+			},
+			_tinyMaterial.dissolve < 1.0f,
+			MaterialType::PBR
+		);
 	}
 	else
 	{
 		// Fallback to a default MaterialData if material type is invalid
-		auto defaultMaterial = MaterialSystem::CreateDefaultPhongMaterialData();
-
-		return defaultMaterial;
+		return _materialSystem.CreateMaterial(MaterialSystem::DefaultPhongMaterial);
 	}
 }
 
-
-ObjLoader::ObjLoader(VesperApp& _app, Device& _device)
+ObjLoader::ObjLoader(VesperApp& _app, Device& _device, MaterialSystem& _materialSystem)
 	: m_app(_app)
 	, m_device{_device}
+	, m_materialSystem{_materialSystem}
 {
-
 }
 
 std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& _fileName, bool _isStatic)
@@ -175,7 +170,7 @@ std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& 
 				if (materialID >= 0 && materialID < static_cast<int32>(materials.size()))
 				{
 					const auto& tinyMaterial = materials[materialID];
-					model->Material = CreateMaterialData(tinyMaterial, texturePath);
+					model->Material = CreateMaterial(m_materialSystem, tinyMaterial, texturePath);
 				}
 				else
 				{
@@ -185,7 +180,7 @@ std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& 
 			else
 			{
 				// No materials available; assign a default
-				model->Material = MaterialSystem::CreateDefaultPhongMaterialData();
+				model->Material = m_materialSystem.CreateMaterial(MaterialSystem::DefaultPhongMaterial);
 			}
 			
 			for (int32 vertexIndex = 0; vertexIndex < 3; ++vertexIndex)

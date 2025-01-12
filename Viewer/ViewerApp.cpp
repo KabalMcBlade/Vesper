@@ -50,7 +50,8 @@ ViewerApp::ViewerApp(Config& _config) :
 
 	m_entityHandlerSystem = std::make_unique<EntityHandlerSystem>(*this, *m_device);
 	m_gameEntitySystem = std::make_unique<GameEntitySystem>(*this);
-	m_materialSystem = std::make_unique<MaterialSystem>(*this, *m_device);
+	m_texturelSystem = std::make_unique<TextureSystem>(*m_device);
+	m_materialSystem = std::make_unique<MaterialSystem>(*m_device, *m_texturelSystem);
 	m_modelSystem = std::make_unique<ModelSystem>(*this, *m_device, *m_materialSystem);
 
 	m_masterRenderSystem = std::make_unique<MasterRenderSystem>(*m_device);
@@ -61,7 +62,7 @@ ViewerApp::ViewerApp(Config& _config) :
 		m_entityHandlerSystem->GetEntityDescriptorSetLayout());
 
 	m_cameraSystem = std::make_unique<CameraSystem>(*this);
-	m_objLoader = std::make_unique<ObjLoader>(*this , *m_device);
+	m_objLoader = std::make_unique<ObjLoader>(*this , *m_device, *m_materialSystem);
 
 	LOG_NL();
 
@@ -71,7 +72,7 @@ ViewerApp::ViewerApp(Config& _config) :
 	VkExtent2D extent;
 	extent.width = 512;
 	extent.height = 512;
-	m_materialSystem->GenerateOrLoadBRDFLutTexture(brdfLutPath, extent);
+	std::shared_ptr<TextureData> brdfLut = m_texturelSystem->GenerateOrLoadBRDFLutTexture(*this, brdfLutPath, extent);
 	LOG(Logger::INFO, "BRDF LUT texture generated/loaded at ", brdfLutPath);
 
 
@@ -84,7 +85,14 @@ ViewerApp::ViewerApp(Config& _config) :
 	m_mouseController = std::make_unique<MouseLookCameraController>();
 	m_mouseController->SetMouseCallback(this, m_window->GetWindow());
 
-	m_gameManager = std::make_unique<GameManager>(*this, *m_entityHandlerSystem, *m_gameEntitySystem, *m_modelSystem, *m_cameraSystem, *m_objLoader);
+	m_gameManager = std::make_unique<GameManager>(
+		*this, 
+		*m_entityHandlerSystem, 
+		*m_gameEntitySystem, 
+		*m_modelSystem, 
+		*m_materialSystem,
+		*m_cameraSystem, 
+		*m_objLoader);
 
 	m_gameManager->LoadCameraEntities();
 	m_gameManager->LoadGameEntities();
@@ -95,7 +103,7 @@ ViewerApp::ViewerApp(Config& _config) :
 ViewerApp::~ViewerApp()
 {
 	m_gameManager->UnloadGameEntities();
-
+	m_texturelSystem->Cleanup();
 	m_materialSystem->Cleanup();
 	m_masterRenderSystem->Cleanup();
 }

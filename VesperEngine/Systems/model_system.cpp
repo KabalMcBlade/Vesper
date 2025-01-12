@@ -27,86 +27,66 @@ ModelSystem::ModelSystem(VesperApp& _app, Device& _device, MaterialSystem& _mate
 
 void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _data) const
 {
-	// create real materials and store in the material system, once the model is getting loaded, so for each model
-	// create a new material, if the same material parameters don't exist, otherwise reuse a material with the same data
-	int32 materialIndex = -1;
-	if (_data->Material)
-	{
-		materialIndex = m_materialSystem.CreateMaterial(*_data->Material);
-
-		if (materialIndex == -1)
-		{
-			LOG(Logger::ERROR, "Material ", _data->Material->Name, " is present and valid, but couldn't create or retrieve it");
-		}
-	}
-			
-	// add material component and bind it
 	switch (_data->Material->Type)
 	{
 	case MaterialType::Phong:
 		{
-			const auto material = m_materialSystem.GetMaterial(materialIndex);
-			auto materialPhong = std::dynamic_pointer_cast<MaterialPhong>(material);
-
 			m_app.GetComponentManager().AddComponent<PhongMaterialComponent>(_entity);
 			PhongMaterialComponent& phongMaterialComponent = m_app.GetComponentManager().GetComponent<PhongMaterialComponent>(_entity);
 			
-			phongMaterialComponent.Index = materialIndex;
+			phongMaterialComponent.Index = _data->Material->Index;
 
-			phongMaterialComponent.DiffuseImageInfo.sampler = materialPhong->DiffuseTexture.Sampler;
-			phongMaterialComponent.DiffuseImageInfo.imageView = materialPhong->DiffuseTexture.ImageView;
-			phongMaterialComponent.DiffuseImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-			phongMaterialComponent.SpecularImageInfo.sampler = materialPhong->SpecularTexture.Sampler;
-			phongMaterialComponent.SpecularImageInfo.imageView = materialPhong->SpecularTexture.ImageView;
-			phongMaterialComponent.SpecularImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-			phongMaterialComponent.AmbientImageInfo.sampler = materialPhong->AmbientTexture.Sampler;
-			phongMaterialComponent.AmbientImageInfo.imageView = materialPhong->AmbientTexture.ImageView;
+			phongMaterialComponent.AmbientImageInfo.sampler = _data->Material->Textures[0]->Sampler;
+			phongMaterialComponent.AmbientImageInfo.imageView = _data->Material->Textures[0]->ImageView;
 			phongMaterialComponent.AmbientImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-			phongMaterialComponent.NormalImageInfo.sampler = materialPhong->NormalTexture.Sampler;
-			phongMaterialComponent.NormalImageInfo.imageView = materialPhong->NormalTexture.ImageView;
+			phongMaterialComponent.DiffuseImageInfo.sampler = _data->Material->Textures[1]->Sampler;
+			phongMaterialComponent.DiffuseImageInfo.imageView = _data->Material->Textures[1]->ImageView;
+			phongMaterialComponent.DiffuseImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+			phongMaterialComponent.SpecularImageInfo.sampler = _data->Material->Textures[2]->Sampler;
+			phongMaterialComponent.SpecularImageInfo.imageView = _data->Material->Textures[2]->ImageView;
+			phongMaterialComponent.SpecularImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+			phongMaterialComponent.NormalImageInfo.sampler = _data->Material->Textures[3]->Sampler;
+			phongMaterialComponent.NormalImageInfo.imageView = _data->Material->Textures[3]->ImageView;
 			phongMaterialComponent.NormalImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
- 			phongMaterialComponent.UniformBufferInfo.buffer = materialPhong->UniformBuffer.Buffer;
+ 			phongMaterialComponent.UniformBufferInfo.buffer = _data->Material->UniformBuffer.Buffer;
  			phongMaterialComponent.UniformBufferInfo.offset = 0;
- 			phongMaterialComponent.UniformBufferInfo.range = materialPhong->UniformBuffer.AlignedSize;
+ 			phongMaterialComponent.UniformBufferInfo.range = _data->Material->UniformBuffer.AlignedSize;
 		}
 		break;
 	case MaterialType::PBR:
 		{
-			const auto material = m_materialSystem.GetMaterial(materialIndex);
-			auto materialPBR = std::dynamic_pointer_cast<MaterialPBR>(material);
-
 			m_app.GetComponentManager().AddComponent<PBRMaterialComponent>(_entity);
 			PBRMaterialComponent& pbrMaterialComponent = m_app.GetComponentManager().GetComponent<PBRMaterialComponent>(_entity);
 
-			pbrMaterialComponent.Index = materialIndex;
+			pbrMaterialComponent.Index = _data->Material->Index;
 
-			pbrMaterialComponent.RoughnessImageInfo.sampler = materialPBR->RoughnessTexture.Sampler;
-			pbrMaterialComponent.RoughnessImageInfo.imageView = materialPBR->RoughnessTexture.ImageView;
+			pbrMaterialComponent.RoughnessImageInfo.sampler = _data->Material->Textures[0]->Sampler;
+			pbrMaterialComponent.RoughnessImageInfo.imageView = _data->Material->Textures[0]->ImageView;
 			pbrMaterialComponent.RoughnessImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-			pbrMaterialComponent.MetallicImageInfo.sampler = materialPBR->MetallicTexture.Sampler;
-			pbrMaterialComponent.MetallicImageInfo.imageView = materialPBR->MetallicTexture.ImageView;
+			pbrMaterialComponent.MetallicImageInfo.sampler = _data->Material->Textures[1]->Sampler;
+			pbrMaterialComponent.MetallicImageInfo.imageView = _data->Material->Textures[1]->ImageView;
 			pbrMaterialComponent.MetallicImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-			pbrMaterialComponent.SheenImageInfo.sampler = materialPBR->SheenTexture.Sampler;
-			pbrMaterialComponent.SheenImageInfo.imageView = materialPBR->SheenTexture.ImageView;
+			pbrMaterialComponent.SheenImageInfo.sampler = _data->Material->Textures[2]->Sampler;
+			pbrMaterialComponent.SheenImageInfo.imageView = _data->Material->Textures[2]->ImageView;
 			pbrMaterialComponent.SheenImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-			pbrMaterialComponent.EmissiveImageInfo.sampler = materialPBR->EmissiveTexture.Sampler;
-			pbrMaterialComponent.EmissiveImageInfo.imageView = materialPBR->EmissiveTexture.ImageView;
+			pbrMaterialComponent.EmissiveImageInfo.sampler = _data->Material->Textures[3]->Sampler;
+			pbrMaterialComponent.EmissiveImageInfo.imageView = _data->Material->Textures[3]->ImageView;
 			pbrMaterialComponent.EmissiveImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-			pbrMaterialComponent.NormalImageInfo.sampler = materialPBR->NormalMapTexture.Sampler;
-			pbrMaterialComponent.NormalImageInfo.imageView = materialPBR->NormalMapTexture.ImageView;
+			pbrMaterialComponent.NormalImageInfo.sampler = _data->Material->Textures[4]->Sampler;
+			pbrMaterialComponent.NormalImageInfo.imageView = _data->Material->Textures[4]->ImageView;
 			pbrMaterialComponent.NormalImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-			pbrMaterialComponent.UniformBufferInfo.buffer = materialPBR->UniformBuffer.Buffer;
+			pbrMaterialComponent.UniformBufferInfo.buffer = _data->Material->UniformBuffer.Buffer;
 			pbrMaterialComponent.UniformBufferInfo.offset = 0;
-			pbrMaterialComponent.UniformBufferInfo.range = materialPBR->UniformBuffer.AlignedSize;
+			pbrMaterialComponent.UniformBufferInfo.range = _data->Material->UniformBuffer.AlignedSize;
 		}
 		break;
 	default:
