@@ -190,18 +190,34 @@ void Device::CreateLogicalDevice()
 	VkPhysicalDeviceFeatures deviceFeatures = {};
 	deviceFeatures.samplerAnisotropy = VK_TRUE;
 
+	// EXT features
+	VkPhysicalDeviceDescriptorIndexingFeaturesEXT indexingFeatures = {};
+	indexingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT;
+	indexingFeatures.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
+	indexingFeatures.runtimeDescriptorArray = VK_TRUE;
+	indexingFeatures.descriptorBindingPartiallyBound = VK_TRUE;
+	indexingFeatures.descriptorBindingUniformBufferUpdateAfterBind = VK_TRUE;
+	indexingFeatures.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
+	indexingFeatures.descriptorBindingStorageImageUpdateAfterBind = VK_TRUE;
+	indexingFeatures.descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE;
+	indexingFeatures.descriptorBindingUniformTexelBufferUpdateAfterBind = VK_TRUE;
+	indexingFeatures.descriptorBindingStorageTexelBufferUpdateAfterBind = VK_TRUE;
+
+	VkPhysicalDeviceFeatures2 deviceFeatures2 = {};
+	deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+	deviceFeatures2.features = deviceFeatures;  // Include base features like samplerAnisotropy
+	deviceFeatures2.pNext = &indexingFeatures;
+
 	VkDeviceCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 
 	createInfo.queueCreateInfoCount = static_cast<uint32>(queueCreateInfos.size());
 	createInfo.pQueueCreateInfos = queueCreateInfos.data();
 
-	createInfo.pEnabledFeatures = &deviceFeatures;
 	createInfo.enabledExtensionCount = static_cast<uint32>(m_deviceExtensions.size());
 	createInfo.ppEnabledExtensionNames = m_deviceExtensions.data();
 
-	// might not really be necessary anymore because device specific validation layers
-	// have been deprecated
+	// validation layers
 	if (m_window.IsValidationLayersEnabled())
 	{
 		createInfo.enabledLayerCount = static_cast<uint32>(m_validationLayers.size());
@@ -211,6 +227,10 @@ void Device::CreateLogicalDevice()
 	{
 		createInfo.enabledLayerCount = 0;
 	}
+
+	// Use features2 instead of pEnabledFeatures
+	createInfo.pEnabledFeatures = nullptr;
+	createInfo.pNext = &deviceFeatures2;
 
 	if (vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) != VK_SUCCESS)
 	{
