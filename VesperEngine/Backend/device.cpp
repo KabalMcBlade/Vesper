@@ -344,8 +344,25 @@ bool Device::IsDeviceSuitable(VkPhysicalDevice device)
 	VkPhysicalDeviceFeatures supportedFeatures;
 	vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
 
-	return indices.IsComplete() && extensionsSupported && swapChainAdequate &&
-		supportedFeatures.samplerAnisotropy;
+	// Check for bindless support
+	VkPhysicalDeviceDescriptorIndexingFeatures descriptorIndexingFeatures{};
+	descriptorIndexingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES;
+
+	VkPhysicalDeviceFeatures2 deviceFeatures2{};
+	deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+	deviceFeatures2.pNext = &descriptorIndexingFeatures;
+
+	// Get physical device features including descriptor indexing
+	vkGetPhysicalDeviceFeatures2(device, &deviceFeatures2);
+
+	const bool bindlessSupported = descriptorIndexingFeatures.shaderSampledImageArrayNonUniformIndexing &&
+		descriptorIndexingFeatures.runtimeDescriptorArray && descriptorIndexingFeatures.descriptorBindingPartiallyBound;
+
+	return indices.IsComplete() 
+		&& extensionsSupported 
+		&& swapChainAdequate
+		&& supportedFeatures.samplerAnisotropy
+		&& bindlessSupported;
 }
 
 void Device::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& _createInfo) 
