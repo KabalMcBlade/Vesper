@@ -37,7 +37,15 @@ The different settings for linkage are, in Windows and Visual Studio 2022:<br />
     - Runtime Library: Multi-threaded (/MT) **OR** Multi-threaded Debug (/MTd)
   - Viewer or Any executable
     - Runtime Library: Multi-threaded (/MT) **OR** Multi-threaded Debug (/MTd)
-	  
+
+### Features
+
+- ECS core
+- Latest Vulkan API
+- Automatically support bindless and standard binding resource (textures and buffers)
+- Opaque pipeline render system (for now just this)
+- Push constant and specialization constant support integrated
+- Extendable render pipeline
 
 ## Screenshots
 
