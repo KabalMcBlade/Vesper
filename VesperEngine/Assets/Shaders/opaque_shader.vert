@@ -1,5 +1,9 @@
 #version 450
 
+#if BINDLESS == 1
+    #extension GL_EXT_nonuniform_qualifier : require
+#endif
+
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inColor;
 layout(location = 2) in vec3 inNormal;
@@ -17,12 +21,19 @@ layout(std140, set = 0, binding = 0) uniform SceneUBO
     vec4 AmbientColor; // w is intensity
 } sceneUBO;
 
-// set 0 and binding 1 is on fragment shader only
 
+#if BINDLESS == 1
+layout(std140, set = 2, binding = 0) uniform EntityUBO 
+{
+    mat4 ModelMatrix;
+} entityUBO;
+#else
 layout(std140, set = 1, binding = 0) uniform EntityUBO 
 {
     mat4 ModelMatrix;
 } entityUBO;
+#endif
+
 
 void main()
 {

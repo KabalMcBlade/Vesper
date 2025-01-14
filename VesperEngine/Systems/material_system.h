@@ -20,6 +20,7 @@
 #include "ECS/ECS/ecs.h"
 
 #include <any>
+#include "uniform_buffer.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN
@@ -97,6 +98,17 @@ public:
 		MaterialType _type);
 
 	std::shared_ptr<MaterialData>  CreateMaterial(const DefaultMaterialType& _defaultMaterial);
+
+	VESPERENGINE_INLINE std::shared_ptr<MaterialData> GetMaterial(uint32 _index) const
+	{
+		assert(_index >= 0 && _index < m_materials.size() && "Materials index is out of bound!");
+		return m_materials[_index];
+	}
+
+	VESPERENGINE_INLINE const std::vector<std::shared_ptr<MaterialData>>& GetMaterials() const
+	{
+		return m_materials;
+	}
 
 	void Cleanup();
 

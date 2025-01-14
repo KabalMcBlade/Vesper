@@ -25,15 +25,11 @@
 #include "Components/object_components.h"
 #include "Components/pipeline_components.h"
 
+#include "Systems/uniform_buffer.h"
+
 #include "Utility/logger.h"
 
 #include "ECS/ECS/ecs.h"
-
-#define MATERIAL_DIFFUSE_BINDING 0
-#define MATERIAL_SPECULAR_BINDING 1
-#define MATERIAL_AMBIENT_BINDING 2
-#define MATERIAL_NORMAL_BINDING 3
-#define MATERIAL_UNIFORM_BINDING 4
 
 
 VESPERENGINE_NAMESPACE_BEGIN
@@ -44,22 +40,35 @@ struct ColorTintPushConstantData
 	glm::vec3 ColorTint{ 1.0f };
 };
 
-OpaqueRenderSystem::OpaqueRenderSystem(VesperApp& _app, Device& _device, DescriptorPool& _globalDescriptorPool, VkRenderPass _renderPass,
+OpaqueRenderSystem::OpaqueRenderSystem(VesperApp& _app, Device& _device, Renderer& _renderer,
 	VkDescriptorSetLayout _globalDescriptorSetLayout,
-	VkDescriptorSetLayout _entityDescriptorSetLayout)
+	VkDescriptorSetLayout _entityDescriptorSetLayout,
+	VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout)
 	: CoreRenderSystem{ _device }
 	, m_app(_app)
-	, m_globalDescriptorPool(_globalDescriptorPool)
+	, m_renderer(_renderer)
 {
+	m_buffer = std::make_unique<Buffer>(m_device);
+
 	m_app.GetComponentManager().RegisterComponent<ColorTintPushConstantData>();
 
-	m_materialSetLayout = DescriptorSetLayout::Builder(_device)
-		.AddBinding(MATERIAL_DIFFUSE_BINDING, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
-		.AddBinding(MATERIAL_SPECULAR_BINDING, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
-		.AddBinding(MATERIAL_AMBIENT_BINDING, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
-		.AddBinding(MATERIAL_NORMAL_BINDING, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
-		.AddBinding(MATERIAL_UNIFORM_BINDING, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
-		.Build();
+	if (m_device.IsBindlessResourcesSupported())
+	{
+		// in this case is just for the indices!
+		m_materialSetLayout = DescriptorSetLayout::Builder(_device)
+			.AddBinding(kPhongUniformBufferOnlyBindingIndex, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+			.Build();
+	}
+	else
+	{
+		m_materialSetLayout = DescriptorSetLayout::Builder(_device)
+			.AddBinding(kPhongAmbientTextureBindingIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+			.AddBinding(kPhongDiffuseTextureBindingIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+			.AddBinding(kPhongSpecularTextureBindingIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+			.AddBinding(kPhongNormalTextureBindingIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+			.AddBinding(kPhongUniformBufferBindingIndex, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+			.Build();
+	}
 
 	// TEST PUSH CONSTANT!
 	// REMEMBER THAT TO TEST THIS WITH THIS PIPELINE AND LAYOUT ALSO THE MASTER RENDERER NEED TO HAVE!
@@ -71,10 +80,31 @@ OpaqueRenderSystem::OpaqueRenderSystem(VesperApp& _app, Device& _device, Descrip
 
 	m_pushConstants.push_back(pushConstantRange);
 
-	CreatePipelineLayout(std::vector<VkDescriptorSetLayout>
+	// set 0: global descriptor set layout
+	// set 1: bindless textures and buffer descriptor set layout
+	// set 2: entity descriptor set layout
+	// set 3: material descriptor set layout
+	// OR
+	// set 0: global descriptor set layout
+	// set 1: entity descriptor set layout
+	// set 2: material descriptor set layout
+	if (m_device.IsBindlessResourcesSupported())
+	{
+		m_entitySetIndex = 2;	// normally is 1
+		m_materialSetIndex = 3;	// normally is 2
+
+		CreatePipelineLayout(std::vector<VkDescriptorSetLayout>
+			{ _globalDescriptorSetLayout, _bindlessBindingDescriptorSetLayout, _entityDescriptorSetLayout, m_materialSetLayout->GetDescriptorSetLayout() }
+		);
+	}
+	else
+	{
+		CreatePipelineLayout(std::vector<VkDescriptorSetLayout>
 			{ _globalDescriptorSetLayout, _entityDescriptorSetLayout, m_materialSetLayout->GetDescriptorSetLayout() }
 		);
-	CreatePipeline(_renderPass);
+	}
+
+	CreatePipeline(m_renderer.GetSwapChainRenderPass());
 }
 
 OpaqueRenderSystem::~OpaqueRenderSystem()
@@ -82,7 +112,7 @@ OpaqueRenderSystem::~OpaqueRenderSystem()
 	m_app.GetComponentManager().UnregisterComponent<ColorTintPushConstantData>();
 }
 
-void OpaqueRenderSystem::MaterialBinding() const
+void OpaqueRenderSystem::MaterialBinding()
 {
 	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
@@ -92,15 +122,50 @@ void OpaqueRenderSystem::MaterialBinding() const
 		PhongMaterialComponent& materialComponent = m_app.GetComponentManager().GetComponent<PhongMaterialComponent>(gameEntity);
 		materialComponent.BoundDescriptorSet.resize(SwapChain::kMaxFramesInFlight);
 
-		for (int32 i = 0; i < SwapChain::kMaxFramesInFlight; ++i)
+		if (m_device.IsBindlessResourcesSupported())
 		{
-			DescriptorWriter(*m_materialSetLayout, m_globalDescriptorPool)
-				.WriteImage(0, &materialComponent.AmbientImageInfo)
-				.WriteImage(1, &materialComponent.DiffuseImageInfo)
-				.WriteImage(2, &materialComponent.SpecularImageInfo)
-				.WriteImage(3, &materialComponent.NormalImageInfo)
-				.WriteBuffer(4, &materialComponent.UniformBufferInfo)
-				.Build(materialComponent.BoundDescriptorSet[i]);
+			for (int32 i = 0; i < SwapChain::kMaxFramesInFlight; ++i)
+			{
+				m_bindlessBindingMaterialIndexUbos.emplace_back(m_buffer->Create<BufferComponent>(
+					sizeof(PhongBindlessMaterialIndexUBO),
+					1,
+					VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+					VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+					VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+					/*minUboAlignment*/1,
+					true
+				));
+
+				BufferComponent& currentBuffer = m_bindlessBindingMaterialIndexUbos.back();
+
+				PhongBindlessMaterialIndexUBO phongIndexUBO;
+				phongIndexUBO.MaterialIndex = materialComponent.Index;
+
+				currentBuffer.MappedMemory = &phongIndexUBO;
+				m_buffer->WriteToBuffer(currentBuffer);
+
+				VkDescriptorBufferInfo bufferInfo;
+				bufferInfo.buffer = currentBuffer.Buffer;
+				bufferInfo.offset = 0;
+				bufferInfo.range = currentBuffer.AlignedSize;
+
+ 				DescriptorWriter(*m_materialSetLayout, *m_renderer.GetDescriptorPool())
+ 					.WriteBuffer(kPhongUniformBufferOnlyBindingIndex, &bufferInfo)
+ 					.Build(materialComponent.BoundDescriptorSet[i]);
+			}
+		}
+		else
+		{
+			for (int32 i = 0; i < SwapChain::kMaxFramesInFlight; ++i)
+			{
+				DescriptorWriter(*m_materialSetLayout, *m_renderer.GetDescriptorPool())
+					.WriteImage(kPhongAmbientTextureBindingIndex, &materialComponent.AmbientImageInfo)
+					.WriteImage(kPhongDiffuseTextureBindingIndex, &materialComponent.DiffuseImageInfo)
+					.WriteImage(kPhongSpecularTextureBindingIndex, &materialComponent.SpecularImageInfo)
+					.WriteImage(kPhongNormalTextureBindingIndex, &materialComponent.NormalImageInfo)
+					.WriteBuffer(kPhongUniformBufferBindingIndex, &materialComponent.UniformBufferInfo)
+					.Build(materialComponent.BoundDescriptorSet[i]);
+			}
 		}
 	}
 
@@ -159,7 +224,7 @@ void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 			_frameInfo.CommandBuffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
 			m_pipelineLayout,
-			2,
+			m_materialSetIndex,
 			1,
 			&phongMaterialComponent.BoundDescriptorSet[_frameInfo.FrameIndex],
 			0,
@@ -177,7 +242,7 @@ void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 				_frameInfo.CommandBuffer,
 				VK_PIPELINE_BIND_POINT_GRAPHICS,	// for now is only graphics, in future we want also the compute version
 				m_pipelineLayout,
-				1,
+				m_entitySetIndex,
 				1,
 				&_frameInfo.EntityDescriptorSet,
 				1,
@@ -206,7 +271,7 @@ void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 			_frameInfo.CommandBuffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
 			m_pipelineLayout,
-			2,
+			m_materialSetIndex,
 			1,
 			&phongMaterialComponent.BoundDescriptorSet[_frameInfo.FrameIndex],
 			0,
@@ -223,7 +288,7 @@ void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 				_frameInfo.CommandBuffer,
 				VK_PIPELINE_BIND_POINT_GRAPHICS,	// for now is only graphics, in future we want also the compute version
 				m_pipelineLayout,
-				1,
+				m_entitySetIndex,
 				1,
 				&_frameInfo.EntityDescriptorSet,
 				1,
@@ -250,16 +315,28 @@ void OpaqueRenderSystem::CreatePipeline(VkRenderPass _renderPass)
 	pipelineConfig.RenderPass = _renderPass;
 	pipelineConfig.PipelineLayout = m_pipelineLayout;
 
+
+	const std::string vertexShaderFilepath = m_device.IsBindlessResourcesSupported()
+		? m_app.GetConfig().ShadersPath + "opaque_shader_bindless1.vert.spv"
+		: m_app.GetConfig().ShadersPath + "opaque_shader_bindless0.vert.spv";
+
 	ShaderInfo vertexShader(
-		m_app.GetConfig().ShadersPath + "default_shader.vert.spv",
+		vertexShaderFilepath,
 		ShaderType::Vertex
 	);
 
+
+	const std::string fragmentShaderFilepath = m_device.IsBindlessResourcesSupported() 
+		? m_app.GetConfig().ShadersPath + "opaque_shader_bindless1.frag.spv"
+		: m_app.GetConfig().ShadersPath + "opaque_shader_bindless0.frag.spv";
+
 	ShaderInfo fragmentShader(
-		m_app.GetConfig().ShadersPath + "opaque_shader.frag.spv",
+		fragmentShaderFilepath,
 		ShaderType::Fragment
 	);
+
 	fragmentShader.AddSpecializationConstant(0, 2.0f);
+
 
 	m_opaquePipeline = std::make_unique<Pipeline>(
 		m_device,
@@ -269,6 +346,14 @@ void OpaqueRenderSystem::CreatePipeline(VkRenderPass _renderPass)
 		},
 		pipelineConfig
 		);
+}
+
+void OpaqueRenderSystem::Cleanup()
+{
+	for (int32 i = 0; i < m_bindlessBindingMaterialIndexUbos.size(); ++i)
+	{
+		m_buffer->Destroy(m_bindlessBindingMaterialIndexUbos[i]);
+	}
 }
 
 VESPERENGINE_NAMESPACE_END

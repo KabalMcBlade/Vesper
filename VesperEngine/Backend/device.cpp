@@ -200,20 +200,25 @@ void Device::CreateLogicalDevice()
 	// EXT features
 	VkPhysicalDeviceDescriptorIndexingFeaturesEXT indexingFeatures = {};
 	indexingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT;
-	indexingFeatures.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
 	indexingFeatures.runtimeDescriptorArray = VK_TRUE;
 	indexingFeatures.descriptorBindingPartiallyBound = VK_TRUE;
+	indexingFeatures.descriptorBindingVariableDescriptorCount = VK_TRUE;
 	indexingFeatures.descriptorBindingUniformBufferUpdateAfterBind = VK_TRUE;
 	indexingFeatures.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
-	indexingFeatures.descriptorBindingStorageImageUpdateAfterBind = VK_TRUE;
+	indexingFeatures.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
 	indexingFeatures.descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE;
-	indexingFeatures.descriptorBindingUniformTexelBufferUpdateAfterBind = VK_TRUE;
-	indexingFeatures.descriptorBindingStorageTexelBufferUpdateAfterBind = VK_TRUE;
+// 	indexingFeatures.descriptorBindingStorageImageUpdateAfterBind = VK_TRUE;
+// 	indexingFeatures.descriptorBindingUniformTexelBufferUpdateAfterBind = VK_TRUE;
+// 	indexingFeatures.descriptorBindingStorageTexelBufferUpdateAfterBind = VK_TRUE; 	
 
 	VkPhysicalDeviceFeatures2 deviceFeatures2 = {};
 	deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
 	deviceFeatures2.features = deviceFeatures;  // Include base features like samplerAnisotropy
-	deviceFeatures2.pNext = &indexingFeatures;
+
+	if (m_bIsBindlessResourcesSupported)
+	{
+		deviceFeatures2.pNext = &indexingFeatures;
+	}
 
 	VkDeviceCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -362,14 +367,23 @@ bool Device::IsDeviceSuitable(VkPhysicalDevice device)
 	// Get physical device features including descriptor indexing
 	vkGetPhysicalDeviceFeatures2(device, &deviceFeatures2);
 
-	const bool bindlessSupported = descriptorIndexingFeatures.shaderSampledImageArrayNonUniformIndexing &&
-		descriptorIndexingFeatures.runtimeDescriptorArray && descriptorIndexingFeatures.descriptorBindingPartiallyBound;
+	m_bIsBindlessResourcesSupported = VK_EXT_descriptor_indexing_extension_enabled &&
+		descriptorIndexingFeatures.shaderSampledImageArrayNonUniformIndexing &&
+		descriptorIndexingFeatures.runtimeDescriptorArray &&
+		descriptorIndexingFeatures.descriptorBindingPartiallyBound &&
+		descriptorIndexingFeatures.descriptorBindingVariableDescriptorCount &&
+		descriptorIndexingFeatures.descriptorBindingUniformBufferUpdateAfterBind &&
+		descriptorIndexingFeatures.descriptorBindingSampledImageUpdateAfterBind &&
+		descriptorIndexingFeatures.descriptorBindingStorageImageUpdateAfterBind &&
+		descriptorIndexingFeatures.descriptorBindingStorageBufferUpdateAfterBind &&
+		descriptorIndexingFeatures.descriptorBindingUniformTexelBufferUpdateAfterBind &&
+		descriptorIndexingFeatures.descriptorBindingStorageTexelBufferUpdateAfterBind;
 
 	return indices.IsComplete() 
 		&& extensionsSupported 
 		&& swapChainAdequate
-		&& supportedFeatures.samplerAnisotropy
-		&& bindlessSupported;
+		&& supportedFeatures.samplerAnisotropy;
+		//&& m_bIsBindlessResourcesSupported;	// not mandatory, the system can run either way (if the shader support)
 }
 
 void Device::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& _createInfo) 
@@ -516,6 +530,10 @@ bool Device::CheckDeviceExtensionSupport(VkPhysicalDevice _device)
 		else if (strcmp(extension.extensionName, VK_EXT_MEMORY_PRIORITY_EXTENSION_NAME) == 0)
 		{
 			VK_EXT_memory_priority_enabled = true;
+		}
+		else if (strcmp(extension.extensionName, VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME) == 0)
+		{
+			VK_EXT_descriptor_indexing_extension_enabled = true;
 		}
 
 		requiredExtensions.erase(extension.extensionName);

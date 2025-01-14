@@ -11,40 +11,78 @@
 #include "Backend/pipeline.h"
 #include "Backend/frame_info.h"
 #include "Backend/descriptors.h"
+#include "Backend/renderer.h"
 
 #include "Systems/core_render_system.h"
+#include "Systems/master_render_system.h"
+
+#include "Components/graphics_components.h"
 
 #include "App/vesper_app.h"
 
 #include <memory>
+#include <vector>
 
+// USING BINDLESS
+// set 0: global descriptor set layout
+// set 1: bindless textures and buffer descriptor set layout
+// set 2: entity descriptor set layout
+// set 3: material descriptor set layout
+// 
+// OR NORMAL BINDING
+// set 0: global descriptor set layout
+// set 1: entity descriptor set layout
+// set 2: material descriptor set layout
 
 VESPERENGINE_NAMESPACE_BEGIN
 
 class VESPERENGINE_API OpaqueRenderSystem final : public CoreRenderSystem
 {
 public:
-	OpaqueRenderSystem(VesperApp& _app, Device& _device, DescriptorPool& _globalDescriptorPool, VkRenderPass _renderPass,
+	static constexpr uint32 kPhongAmbientTextureBindingIndex = 0u;
+	static constexpr uint32 kPhongDiffuseTextureBindingIndex = 1u;
+	static constexpr uint32 kPhongSpecularTextureBindingIndex = 2u;
+	static constexpr uint32 kPhongNormalTextureBindingIndex = 3u;
+	static constexpr uint32 kPhongUniformBufferBindingIndex = 4u;
+
+	// used during bindless, but is not the bindless index, is the standard binding buffer, which contains the index for the bindless material
+	static constexpr uint32 kPhongUniformBufferOnlyBindingIndex = 0u;
+
+public:
+	OpaqueRenderSystem(VesperApp& _app, Device& _device, Renderer& _renderer,
 		VkDescriptorSetLayout _globalDescriptorSetLayout,
-		VkDescriptorSetLayout _entityDescriptorSetLayout);
+		VkDescriptorSetLayout _entityDescriptorSetLayout,
+		VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout = VK_NULL_HANDLE);
 	~OpaqueRenderSystem();
 
 	OpaqueRenderSystem(const OpaqueRenderSystem&) = delete;
 	OpaqueRenderSystem& operator=(const OpaqueRenderSystem&) = delete;
 
 public:
-	void MaterialBinding() const;
+	// Call at initialization time
+	void MaterialBinding();
+	// Call between begin/end frame, do not need to be called between begin/end swap chain render pass. But need to be called before Render
 	void Update(const FrameInfo& _frameInfo);
+	// Call between begin swap chain render pass/end swap chain render pass.
 	void Render(const FrameInfo& _frameInfo);
+	// Call at the end or at destruction time, anyway after the game loop is done.
+	void Cleanup();
 
 private:
 	void CreatePipeline(VkRenderPass _renderPass);
 
 private:
 	VesperApp& m_app;
-	DescriptorPool& m_globalDescriptorPool;
+	Renderer& m_renderer;
 	std::unique_ptr<Pipeline> m_opaquePipeline;
 	std::unique_ptr<DescriptorSetLayout> m_materialSetLayout;
+
+	std::unique_ptr<Buffer> m_buffer;
+
+	std::vector<BufferComponent> m_bindlessBindingMaterialIndexUbos;
+
+	uint32 m_entitySetIndex = 1;
+	uint32 m_materialSetIndex = 2;
 };
 
 VESPERENGINE_NAMESPACE_END

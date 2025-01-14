@@ -66,6 +66,28 @@ public:
 
 	std::shared_ptr<TextureData> GenerateOrLoadBRDFLutTexture(VesperApp& _app, const std::string& _saveLoadPath, VkExtent2D _extent);
 
+	VESPERENGINE_INLINE std::shared_ptr<TextureData> GetTexture(uint32 _index) const
+	{
+		assert(_index >= 0 && _index < m_textures.size() && "Texture index is out of bound!");
+		return m_textures[_index];
+	}
+
+	VESPERENGINE_INLINE const std::vector<std::shared_ptr<TextureData>>& GetTextures() const
+	{
+		return m_textures;
+	}
+
+	VESPERENGINE_INLINE const int32 GetTextureIndex(const std::shared_ptr<TextureData>& _texture) const
+	{
+		auto it = std::find(m_textures.begin(), m_textures.end(), _texture);
+		if (it != m_textures.end())
+		{
+			return static_cast<int32>(std::distance(m_textures.begin(), it));
+		}
+
+		return -1;
+	}
+
 private:
 	uint8* LoadTextureData(const std::string& _path, int32& _width, int32& _height, int32& _channels, int32 _desired_channels);
 	void FreeTextureData(uint8* _data);

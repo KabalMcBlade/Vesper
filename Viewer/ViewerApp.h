@@ -34,8 +34,6 @@ private:
 	std::unique_ptr<Device> m_device;
 	std::unique_ptr<Renderer> m_renderer;
 
-	std::unique_ptr<DescriptorPool> m_globalPool;
-
 	std::unique_ptr<EntityHandlerSystem> m_entityHandlerSystem;
 	std::unique_ptr<GameEntitySystem> m_gameEntitySystem;
 	std::unique_ptr<ModelSystem> m_modelSystem;

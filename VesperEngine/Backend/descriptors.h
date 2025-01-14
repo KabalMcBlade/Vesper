@@ -29,25 +29,37 @@ public:
 			uint32 _binding,
 			VkDescriptorType _descriptorType,
 			VkShaderStageFlags _stageFlags,
+			uint32 _maxCount = 1,
 			uint32 _count = 1);
+		Builder& SetFlags(VkDescriptorSetLayoutCreateFlags _flags);
 		std::unique_ptr<DescriptorSetLayout> Build() const;
 
 	private:
 		Device& m_device;
+		VkDescriptorSetLayoutCreateFlags m_flags = 0;
 		std::unordered_map<uint32, VkDescriptorSetLayoutBinding> m_bindings{};
+		std::unordered_map<uint32, uint32> m_sizePerBinding{};	// used for bindless binding
 	};
 
-	DescriptorSetLayout(Device& _device, std::unordered_map<uint32, VkDescriptorSetLayoutBinding> _bindings);
+	DescriptorSetLayout(Device& _device,
+		VkDescriptorSetLayoutCreateFlags _flags,
+		std::unordered_map<uint32, VkDescriptorSetLayoutBinding> _bindings,
+		std::unordered_map<uint32, uint32> _sizePerBinding);
 	~DescriptorSetLayout();
 	DescriptorSetLayout(const DescriptorSetLayout&) = delete;
 	DescriptorSetLayout& operator=(const DescriptorSetLayout&) = delete;
 
 	VkDescriptorSetLayout GetDescriptorSetLayout() const { return m_descriptorSetLayout; }
+	//const std::unordered_map<uint32, VkDescriptorSetLayoutBinding>& GetBindings() const { return m_bindings; }
+	const std::unordered_map<uint32, uint32>& GetSizePerBinding() const { return m_sizePerBinding; }
+	VkDescriptorSetLayoutCreateFlags GetLayoutFlags() const { return m_layoutFlags; }
 
 private:
 	Device& m_device;
 	VkDescriptorSetLayout m_descriptorSetLayout;
-	std::unordered_map<uint32, VkDescriptorSetLayoutBinding> m_bindings;
+	std::unordered_map<uint32, VkDescriptorSetLayoutBinding> m_bindings{};
+	std::unordered_map<uint32, uint32> m_sizePerBinding{};	// used for bindless binding
+	VkDescriptorSetLayoutCreateFlags m_layoutFlags{0};		// used for bindless binding
 
 	friend class DescriptorWriter;
 };
@@ -82,7 +94,7 @@ public:
 	DescriptorPool(const DescriptorPool&) = delete;
 	DescriptorPool& operator=(const DescriptorPool&) = delete;
 
-	bool AllocateDescriptorSet(const VkDescriptorSetLayout _descriptorSetLayout, VkDescriptorSet& _descriptor) const;
+	bool AllocateDescriptorSet(const DescriptorSetLayout& _descriptorSetLayout, VkDescriptorSet& _descriptor) const;
 	void FreeDescriptors(std::vector<VkDescriptorSet>& _descriptors) const;
 	void ResetPool();
 
@@ -99,8 +111,8 @@ class VESPERENGINE_API DescriptorWriter
 public:
 	DescriptorWriter(DescriptorSetLayout& _setLayout, DescriptorPool& _pool);
 
-	DescriptorWriter& WriteBuffer(uint32 _binding, VkDescriptorBufferInfo* _bufferInfo);
-	DescriptorWriter& WriteImage(uint32 _binding, VkDescriptorImageInfo* _imageInfo);
+	DescriptorWriter& WriteBuffer(uint32 _binding, VkDescriptorBufferInfo* _bufferInfo, uint32 _count = 1);
+	DescriptorWriter& WriteImage(uint32 _binding, VkDescriptorImageInfo* _imageInfo, uint32 _count = 1);
 
 	bool Build(VkDescriptorSet& _set);
 	void Overwrite(VkDescriptorSet& _set);

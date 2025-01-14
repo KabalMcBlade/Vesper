@@ -138,6 +138,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ $(IntDir
     <ClInclude Include="Systems\material_system.h" />
     <ClInclude Include="Systems\opaque_render_system.h" />
     <ClInclude Include="Systems\texture_system.h" />
+    <ClInclude Include="Systems\uniform_buffer.h" />
     <ClInclude Include="ThirdParty\stb\stb_image.h" />
     <ClInclude Include="ThirdParty\stb\stb_image_resize2.h" />
     <ClInclude Include="ThirdParty\stb\stb_image_write.h" />
@@ -205,14 +206,13 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ $(IntDir
   <ItemGroup>
     <None Include="Assets\Shaders\brdf_lut_shader.frag" />
     <None Include="Assets\Shaders\cubemap_shader.vert" />
-    <None Include="Assets\Shaders\default_shader.vert" />
+    <None Include="Assets\Shaders\opaque_shader.vert" />
     <None Include="Assets\Shaders\fullscreen.vert" />
     <None Include="Assets\Shaders\irradiance_convolution_shader.frag" />
     <None Include="Assets\Shaders\opaque_shader.frag" />
     <None Include="Assets\Shaders\pre_filtered_environment_map.frag" />
     <None Include="Assets\Shaders\phong_shader.frag" />
     <None Include="Assets\Shaders\phong_shader.vert" />
-    <None Include="Assets\Shaders\test_multiflag_generation_phong_shader.frag" />
     <None Include="compile_shaders.bat" />
     <None Include="copy_assets.bat" />
   </ItemGroup>

@@ -52,9 +52,7 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 			phongMaterialComponent.NormalImageInfo.imageView = _data->Material->Textures[3]->ImageView;
 			phongMaterialComponent.NormalImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
- 			phongMaterialComponent.UniformBufferInfo.buffer = _data->Material->UniformBuffer.Buffer;
- 			phongMaterialComponent.UniformBufferInfo.offset = 0;
- 			phongMaterialComponent.UniformBufferInfo.range = _data->Material->UniformBuffer.AlignedSize;
+			phongMaterialComponent.UniformBufferInfo = m_buffer->GetDescriptorInfo(_data->Material->UniformBuffer);
 		}
 		break;
 	case MaterialType::PBR:
@@ -84,9 +82,7 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 			pbrMaterialComponent.NormalImageInfo.imageView = _data->Material->Textures[4]->ImageView;
 			pbrMaterialComponent.NormalImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-			pbrMaterialComponent.UniformBufferInfo.buffer = _data->Material->UniformBuffer.Buffer;
-			pbrMaterialComponent.UniformBufferInfo.offset = 0;
-			pbrMaterialComponent.UniformBufferInfo.range = _data->Material->UniformBuffer.AlignedSize;
+			pbrMaterialComponent.UniformBufferInfo = m_buffer->GetDescriptorInfo(_data->Material->UniformBuffer);
 		}
 		break;
 	default:

@@ -9,6 +9,7 @@
 #include "Core/core_defines.h"
 #include "Backend/device.h"
 #include "Backend/swap_chain.h"
+#include "Backend/descriptors.h"
 #include "App/window_handle.h"
 
 #include "vma/vk_mem_alloc.h"
@@ -28,6 +29,8 @@ public:
 public:
 	VESPERENGINE_INLINE VkRenderPass GetSwapChainRenderPass() const { return m_swapChain->GetRenderPass(); }
 	VESPERENGINE_INLINE float GetAspectRatio() const { return m_swapChain->GetExtentAspectRatio(); };
+	VESPERENGINE_INLINE DescriptorPool* GetDescriptorPool() const { return m_globalPool.get(); }
+
 	VESPERENGINE_INLINE bool IsFrameStarted() const { return m_isFrameStarted; }
 	VESPERENGINE_INLINE VkCommandBuffer GetCurrentCommandBuffer() const 
 	{
@@ -42,6 +45,8 @@ public:
 	}
 
 public:
+	void SetupGlobalDescriptors(const std::unordered_map<VkDescriptorType, uint32>& _descriptorTypesAndSize, uint32 _maxSetCount);
+
 	VkCommandBuffer BeginFrame();
 	void EndFrame();
 
@@ -58,6 +63,7 @@ private:
 	WindowHandle& m_window;
 	Device& m_device;
 	std::unique_ptr<SwapChain> m_swapChain;
+	std::unique_ptr<DescriptorPool> m_globalPool;
 	std::vector<VkCommandBuffer> m_commandBuffers;
 
 	uint32 m_currentImageIndex = 0;

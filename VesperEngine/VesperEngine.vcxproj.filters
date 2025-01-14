@@ -177,6 +177,9 @@
     <ClInclude Include="Systems\texture_system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Systems\uniform_buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Backend\pipeline.cpp">
@@ -281,8 +284,7 @@
     <None Include="Assets\Shaders\pre_filtered_environment_map.frag" />
     <None Include="Assets\Shaders\brdf_lut_shader.frag" />
     <None Include="Assets\Shaders\fullscreen.vert" />
-    <None Include="Assets\Shaders\test_multiflag_generation_phong_shader.frag" />
-    <None Include="Assets\Shaders\default_shader.vert" />
+    <None Include="Assets\Shaders\opaque_shader.vert" />
     <None Include="Assets\Shaders\opaque_shader.frag" />
   </ItemGroup>
   <ItemGroup>

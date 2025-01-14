@@ -25,8 +25,8 @@
 #endif
 
 
-#define DESCRIPTOR_MAX_SET_COUNT 128
-#define DESCRIPTOR_SET_COUNT_PER_POOL 32
+#define DESCRIPTOR_MAX_SET_COUNT 32
+#define DESCRIPTOR_MAX_COUNT_PER_POOL_TYPE 2048
 
 
 VESPERENGINE_USING_NAMESPACE
@@ -40,28 +40,27 @@ ViewerApp::ViewerApp(Config& _config) :
 	m_device = std::make_unique<Device>(*m_window);
 	m_renderer = std::make_unique<Renderer>(*m_window, *m_device);
 
-	m_globalPool = DescriptorPool::Builder(*m_device)
-		.SetPoolFlags(VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT_EXT)		// bindless
-		.SetMaxSets(SwapChain::kMaxFramesInFlight * DESCRIPTOR_MAX_SET_COUNT)
-		.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, SwapChain::kMaxFramesInFlight * DESCRIPTOR_SET_COUNT_PER_POOL)
-		.AddPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, SwapChain::kMaxFramesInFlight * DESCRIPTOR_SET_COUNT_PER_POOL)
-		.AddPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, SwapChain::kMaxFramesInFlight * DESCRIPTOR_SET_COUNT_PER_POOL)
-		//.AddPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, SwapChain::kMaxFramesInFlight)
-		.Build();
+	m_renderer->SetupGlobalDescriptors(
+		{ { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, DESCRIPTOR_MAX_COUNT_PER_POOL_TYPE }
+		, { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, DESCRIPTOR_MAX_COUNT_PER_POOL_TYPE}
+		, { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, DESCRIPTOR_MAX_COUNT_PER_POOL_TYPE }
+		, { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, DESCRIPTOR_MAX_COUNT_PER_POOL_TYPE}
+		}
+		, DESCRIPTOR_MAX_SET_COUNT);
 
-	m_entityHandlerSystem = std::make_unique<EntityHandlerSystem>(*this, *m_device);
+	m_entityHandlerSystem = std::make_unique<EntityHandlerSystem>(*this, *m_device, *m_renderer);
 	m_gameEntitySystem = std::make_unique<GameEntitySystem>(*this);
 	m_texturelSystem = std::make_unique<TextureSystem>(*m_device);
 	m_materialSystem = std::make_unique<MaterialSystem>(*m_device, *m_texturelSystem);
 	m_modelSystem = std::make_unique<ModelSystem>(*this, *m_device, *m_materialSystem);
 
-	m_masterRenderSystem = std::make_unique<MasterRenderSystem>(*m_device);
+	m_masterRenderSystem = std::make_unique<MasterRenderSystem>(*m_device, *m_renderer);
 
-	m_opaqueRenderSystem = std::make_unique<OpaqueRenderSystem>(*this , *m_device, *m_globalPool,
-		m_renderer->GetSwapChainRenderPass(),
+	m_opaqueRenderSystem = std::make_unique<OpaqueRenderSystem>(*this , *m_device, *m_renderer,
 		m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
-		m_entityHandlerSystem->GetEntityDescriptorSetLayout());
-
+		m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
+		m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
+		
 	m_cameraSystem = std::make_unique<CameraSystem>(*this);
 	m_objLoader = std::make_unique<ObjLoader>(*this , *m_device, *m_materialSystem);
 
@@ -106,6 +105,7 @@ ViewerApp::~ViewerApp()
 	m_gameManager->UnloadGameEntities();
 	m_texturelSystem->Cleanup();
 	m_materialSystem->Cleanup();
+	m_opaqueRenderSystem->Cleanup();
 	m_masterRenderSystem->Cleanup();
 }
 
@@ -116,8 +116,8 @@ void ViewerApp::Run()
 	CameraComponent activeCameraComponent;
 	CameraTransformComponent activeCameraTransformComponent;
 
-	m_entityHandlerSystem->Initialize(*m_globalPool);
-	m_masterRenderSystem->Initialize(*m_globalPool);
+	m_entityHandlerSystem->Initialize();
+	m_masterRenderSystem->Initialize(*m_texturelSystem, *m_materialSystem);
 
 	while (!m_window->ShouldClose())
 	{

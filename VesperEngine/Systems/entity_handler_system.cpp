@@ -14,9 +14,10 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-EntityHandlerSystem::EntityHandlerSystem(VesperApp& _app, Device& _device)
+EntityHandlerSystem::EntityHandlerSystem(VesperApp& _app, Device& _device, Renderer& _renderer)
 	: m_app(_app)
 	, m_device(_device)
+	, m_renderer(_renderer)
 {
 	m_buffer = std::make_unique<Buffer>(m_device);
 
@@ -28,7 +29,7 @@ EntityHandlerSystem::EntityHandlerSystem(VesperApp& _app, Device& _device)
 		.Build();
 }
 
-void EntityHandlerSystem::Initialize(DescriptorPool& _globalDescriptorPool)
+void EntityHandlerSystem::Initialize()
 {
 	m_entityUboBuffers.resize(SwapChain::kMaxFramesInFlight);
 	m_entityDescriptorSets.resize(SwapChain::kMaxFramesInFlight);
@@ -41,7 +42,7 @@ void EntityHandlerSystem::Initialize(DescriptorPool& _globalDescriptorPool)
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, //| VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 			VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, //VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO,
 			VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
-			GetAlignedSizeUBO(),
+			/*GetAlignedSizeUBO()*/1,
 			true
 		);
 	}
@@ -50,7 +51,7 @@ void EntityHandlerSystem::Initialize(DescriptorPool& _globalDescriptorPool)
 	{
 		auto objectBufferInfo = m_buffer->GetDescriptorInfo(m_entityUboBuffers[i]);
 
-		DescriptorWriter(*m_entitySetLayout, _globalDescriptorPool)
+		DescriptorWriter(*m_entitySetLayout, *m_renderer.GetDescriptorPool())
 			.WriteBuffer(kEntityBindingIndex, &objectBufferInfo)
 			.Build(m_entityDescriptorSets[i]);
 	}

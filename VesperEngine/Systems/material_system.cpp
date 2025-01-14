@@ -9,7 +9,7 @@
 #include "App/vesper_app.h"
 #include "App/file_system.h"
 
-#include "Systems/brdf_lut_generation_system.h"
+#include "Systems/uniform_buffer.h"
 
 #include "Utility/hash.h"
 #include "Utility/logger.h"
@@ -24,39 +24,6 @@
 
 
 VESPERENGINE_NAMESPACE_BEGIN
-
-struct VESPERENGINE_ALIGN16 PhongMaterialUBO
-{
-	glm::vec4 AmbientColor{ 1.0f, 1.0f, 1.0f, 1.0f };
-	glm::vec4 DiffuseColor{ 1.0f, 1.0f, 1.0f, 1.0f };
-	glm::vec4 SpecularColor{ 0.0f, 0.0f, 0.0f, 1.0f };
-	glm::vec4 EmissionColor{ 0.0f, 0.0f, 0.0f, 1.0f };
-
-	float Shininess{ 0.5f };
-
-	int32 TextureFlags{ 0 };      // 0: HasAmbientTexture, 1: HasDiffuseTexture, 2: HasSpecularTexture, 3: HasNormalTexture
-};
-
-struct VESPERENGINE_ALIGN16 PBRMaterialUBO
-{
-	float Roughness{ 0.0f };
-	float Metallic{ 0.0f };
-	float Sheen{ 0.0f };
-	float ClearcoatThickness{ 0.0f };
-	float ClearcoatRoughness{ 0.0f };
-	float Anisotropy{ 0.0f };
-	float AnisotropyRotation{ 0.0f };
-
-	int32 TextureFlags{ 0 };      // 0: HasRoughnessTexture, 1: HasMetallicTexture, 2: HasSheenTexture, 3: HasEmissiveTexture, 4: HasNormalTexture
-};
-
-
-MaterialSystem::MaterialSystem(Device& _device, TextureSystem& _textureSystem)
-	: m_device(_device)
-	, m_textureSystem(_textureSystem)
-{
-	m_buffer = std::make_unique<Buffer>(m_device);
-}
 
 const MaterialSystem::DefaultMaterialType MaterialSystem::DefaultPhongMaterial =
 {
@@ -77,6 +44,13 @@ const MaterialSystem::DefaultMaterialType MaterialSystem::DefaultPhongMaterial =
 	false,
 	MaterialType::Phong
 };
+
+MaterialSystem::MaterialSystem(Device& _device, TextureSystem& _textureSystem)
+	: m_device(_device)
+	, m_textureSystem(_textureSystem)
+{
+	m_buffer = std::make_unique<Buffer>(m_device);
+}
 
 std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
 	const std::string _name,
@@ -119,24 +93,31 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
 		material->Textures[3] = _texturePaths[3].empty() ? m_textureSystem.LoadTexture(TextureSystem::EmissiveTexture) : m_textureSystem.LoadTexture(_texturePaths[3]);
 		material->Textures[4] = _texturePaths[4].empty() ? m_textureSystem.LoadTexture(TextureSystem::NormalTexture) : m_textureSystem.LoadTexture(_texturePaths[4]);
 
-		const uint32 minUboAlignment = static_cast<uint32>(m_device.GetLimits().minUniformBufferOffsetAlignment);
+		//const uint32 minUboAlignment = static_cast<uint32>(m_device.GetLimits().minUniformBufferOffsetAlignment);
 		material->UniformBuffer = m_buffer->Create<BufferComponent>(
 			sizeof(PBRMaterialUBO),
 			1,
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
 			VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
-			minUboAlignment,
+			/*minUboAlignment*/1,
 			true
 		);
 
 		PBRMaterialUBO pbrUBO;
-		pbrUBO.TextureFlags = 0;	// 0: HasRoughnessTexture, 1: HasMetallicTexture, 2: HasSheenTexture, 3: HasEmissiveTexture, 4: HasNormalTexture
-
-		for (size_t i = 0; i < _texturePaths.size(); ++i)
+		if (m_device.IsBindlessResourcesSupported())
 		{
-			const int32 v = !_texturePaths[i].empty() ? 1 : 0;	// Set v to 1 if the string is not empty, 0 otherwise
-			pbrUBO.TextureFlags |= (v << i);					// Perform the bitwise operation
+			for (size_t i = 0; i < _texturePaths.size(); ++i)
+			{
+				pbrUBO.TextureIndices[i] = _texturePaths[i].empty() ? -1 : m_textureSystem.GetTextureIndex(material->Textures[i]);
+			}
+		}
+		else
+		{
+			for (size_t i = 0; i < _texturePaths.size(); ++i)
+			{
+				pbrUBO.TextureIndices[i] = _texturePaths[i].empty() ? -1 : 1;
+			}
 		}
 
 		pbrUBO.Roughness = std::any_cast<float>(_values[0]);
@@ -166,24 +147,31 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
 		material->Textures[2] = _texturePaths[2].empty() ? m_textureSystem.LoadTexture(TextureSystem::SpecularTexture) : m_textureSystem.LoadTexture(_texturePaths[2]);
 		material->Textures[3] = _texturePaths[3].empty() ? m_textureSystem.LoadTexture(TextureSystem::NormalTexture) : m_textureSystem.LoadTexture(_texturePaths[3]);
 
-		const uint32 minUboAlignment = static_cast<uint32>(m_device.GetLimits().minUniformBufferOffsetAlignment);
+		//const uint32 minUboAlignment = static_cast<uint32>(m_device.GetLimits().minUniformBufferOffsetAlignment);
 		material->UniformBuffer = m_buffer->Create<BufferComponent>(
 			sizeof(PhongMaterialUBO),
 			1,
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
 			VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
-			minUboAlignment,
+			/*minUboAlignment*/1,
 			true
 		);
 
 		PhongMaterialUBO phongUBO;
-		phongUBO.TextureFlags = 0;	// 0: HasAmbientTexture, 1: HasDiffuseTexture, 2: HasSpecularTexture, 3: HasNormalTexture
-
-		for (size_t i = 0; i < _texturePaths.size(); ++i)
+		if (m_device.IsBindlessResourcesSupported())
 		{
-			const int32 v = !_texturePaths[i].empty() ? 1 : 0;	// Set v to 1 if the string is not empty, 0 otherwise
-			phongUBO.TextureFlags |= (v << i);					// Perform the bitwise operation
+			for (size_t i = 0; i < _texturePaths.size(); ++i)
+			{
+				phongUBO.TextureIndices[i] = _texturePaths[i].empty() ? -1 : m_textureSystem.GetTextureIndex(material->Textures[i]);
+			}
+		}
+		else
+		{
+			for (size_t i = 0; i < _texturePaths.size(); ++i)
+			{
+				phongUBO.TextureIndices[i] = _texturePaths[i].empty() ? -1 : 1;
+			}
 		}
 
 		phongUBO.AmbientColor = std::any_cast<glm::vec4>(_values[0]);

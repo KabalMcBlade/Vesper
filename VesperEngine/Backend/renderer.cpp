@@ -90,6 +90,24 @@ void Renderer::FreeCommandBuffers()
 	m_commandBuffers.clear();
 }
 
+void Renderer::SetupGlobalDescriptors(const std::unordered_map<VkDescriptorType, uint32>& _descriptorTypesAndSize, uint32 _maxSetCount)
+{
+	auto descriptorBuilder = DescriptorPool::Builder(m_device);
+	descriptorBuilder.SetMaxSets(SwapChain::kMaxFramesInFlight * _maxSetCount);
+
+	if (m_device.IsBindlessResourcesSupported())
+	{
+		descriptorBuilder.SetPoolFlags(VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT_EXT);
+	}
+
+	for (const auto& [key, value] : _descriptorTypesAndSize)
+	{
+		descriptorBuilder.AddPoolSize(key, SwapChain::kMaxFramesInFlight * value);
+	}
+
+	m_globalPool = descriptorBuilder.Build();
+}
+
 VkCommandBuffer Renderer::BeginFrame()
 {
 	assertMsgReturnValue(!IsFrameStarted(), "Cannot call begin frame while is already in progress", VK_NULL_HANDLE);

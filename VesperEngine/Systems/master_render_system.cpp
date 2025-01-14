@@ -6,28 +6,15 @@
 
 #include "Backend/swap_chain.h"
 
+#include "Systems/uniform_buffer.h"
 
 VESPERENGINE_NAMESPACE_BEGIN
 
 
-// Scene Uniform Buffer Object
-struct VESPERENGINE_ALIGN16 SceneUBO
-{
-	glm::mat4 ProjectionMatrix{ 1.0f };
-	glm::mat4 ViewMatrix{ 1.0f };
-	glm::vec4 AmbientColor{ 1.0f, 1.0f, 1.0f, 0.3f };	// w is intensity
-};
 
-// Light Uniform Buffer Object
-struct VESPERENGINE_ALIGN16 LightUBO
-{
-	glm::vec4 LightPos{ 0.0f, -0.25f, 0.0f, 0.0f };
-	glm::vec4 LightColor{ 1.0f, 1.0f, 1.0f, 0.5f };
-};
-
-
-MasterRenderSystem::MasterRenderSystem(Device& _device)
+MasterRenderSystem::MasterRenderSystem(Device& _device, Renderer& _renderer)
 	: CoreRenderSystem(_device)
+	, m_renderer(_renderer)
 {
 	// IS ONLY FOR TESTING!!!
 	// THIS IS HERE BECAUSE THERE IS ONE IN THE OPAQUE RENDERER AND IT IS IN NEED FOR COMMON PIPELINE LAYOUT!
@@ -41,17 +28,38 @@ MasterRenderSystem::MasterRenderSystem(Device& _device)
 	// Start from here:
 	m_buffer = std::make_unique<Buffer>(m_device);
 
-	m_globalSetLayout = DescriptorSetLayout::Builder(m_device)
-		.AddBinding(kGlobalBindingSceneIndex, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
-		.AddBinding(kGlobalBindingLightsIndex, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
-		.Build();
+	// will be valid only if device support it
+	if (m_device.IsBindlessResourcesSupported())
+	{
+		m_globalSetLayout = DescriptorSetLayout::Builder(m_device)
+			.AddBinding(kGlobalBindingSceneIndex, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
+			.AddBinding(kGlobalBindingLightsIndex, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+			.Build();
 
-	CreatePipelineLayout(std::vector<VkDescriptorSetLayout>{ m_globalSetLayout->GetDescriptorSetLayout() });
+		m_bindlesslSetLayout = DescriptorSetLayout::Builder(m_device)
+			.SetFlags(VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT)
+			.AddBinding(kBindlessBindingTexturesIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, kMaxBindlessTextures, kMaxBindlessTextures >> 3)
+			.AddBinding(kBindlessBindingBuffersIndex, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, kMaxBindlessBuffers, kMaxBindlessBuffers >> 3)
+			.Build();
+
+
+		CreatePipelineLayout(std::vector<VkDescriptorSetLayout>{ m_globalSetLayout->GetDescriptorSetLayout(), m_bindlesslSetLayout->GetDescriptorSetLayout() });
+	}
+	else
+	{
+		m_globalSetLayout = DescriptorSetLayout::Builder(m_device)
+			.AddBinding(kGlobalBindingSceneIndex, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
+			.AddBinding(kGlobalBindingLightsIndex, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+			.Build();
+
+		CreatePipelineLayout(std::vector<VkDescriptorSetLayout>{ m_globalSetLayout->GetDescriptorSetLayout() });
+	}
 }
 
-void MasterRenderSystem::Initialize(DescriptorPool& _globalDescriptorPool)
+void MasterRenderSystem::Initialize(TextureSystem& _textureSystem, MaterialSystem& _materialSystem)
 {
 	m_globalDescriptorSets.resize(SwapChain::kMaxFramesInFlight);
+	m_bindlessBindingDescriptorSets.resize(SwapChain::kMaxFramesInFlight);
 
 	m_globalSceneUboBuffers.resize(SwapChain::kMaxFramesInFlight);
 	m_globalLightsUboBuffers.resize(SwapChain::kMaxFramesInFlight);
@@ -84,10 +92,39 @@ void MasterRenderSystem::Initialize(DescriptorPool& _globalDescriptorPool)
 		auto sceneBufferInfo = m_buffer->GetDescriptorInfo(m_globalSceneUboBuffers[i]);
 		auto lightBufferInfo = m_buffer->GetDescriptorInfo(m_globalLightsUboBuffers[i]);
 
-		DescriptorWriter(*m_globalSetLayout, _globalDescriptorPool)
+		DescriptorWriter(*m_globalSetLayout, *m_renderer.GetDescriptorPool())
 			.WriteBuffer(kGlobalBindingSceneIndex, &sceneBufferInfo)
 			.WriteBuffer(kGlobalBindingLightsIndex, &lightBufferInfo)
 			.Build(m_globalDescriptorSets[i]);
+	}
+
+	if (m_device.IsBindlessResourcesSupported())
+	{
+		const auto& textures = _textureSystem.GetTextures();
+		const uint32 textureCount = static_cast<uint32>(textures.size());
+		std::vector<VkDescriptorImageInfo> imageInfos(textureCount);
+		for (size_t i = 0; i < textureCount; ++i)
+		{
+			imageInfos[i].imageView = textures[i]->ImageView;
+			imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfos[i].sampler = textures[i]->Sampler;
+		}
+
+		const auto& materials = _materialSystem.GetMaterials();
+		const uint32 materialCount = static_cast<uint32>(materials.size());
+		std::vector<VkDescriptorBufferInfo> bufferInfos(materialCount);
+		for (size_t i = 0; i < materialCount; ++i) 
+		{
+			bufferInfos[i] = m_buffer->GetDescriptorInfo(materials[i]->UniformBuffer);
+		}
+		
+		for (int32 i = 0; i < SwapChain::kMaxFramesInFlight; ++i)
+		{
+			DescriptorWriter(*m_bindlesslSetLayout, *m_renderer.GetDescriptorPool())
+				.WriteImage(kBindlessBindingTexturesIndex, imageInfos.data(), textureCount)
+				.WriteBuffer(kBindlessBindingBuffersIndex, bufferInfos.data(), materialCount)
+				.Build(m_bindlessBindingDescriptorSets[i]);
+		}
 	}
 }
 
@@ -116,10 +153,25 @@ void MasterRenderSystem::BindGlobalDescriptor(const FrameInfo& _frameInfo)
 		m_pipelineLayout,
 		0,
 		1,
-		&_frameInfo.GlobalDescriptorSet,
+		&m_globalDescriptorSets[_frameInfo.FrameIndex],
+		//&_frameInfo.GlobalDescriptorSet,
 		0,
 		nullptr
 	);
+
+	if (m_device.IsBindlessResourcesSupported())
+	{
+		vkCmdBindDescriptorSets(
+			_frameInfo.CommandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,	// for now is only graphics, in future we want also the compute version
+			m_pipelineLayout,
+			1,
+			1,
+			&m_bindlessBindingDescriptorSets[_frameInfo.FrameIndex],
+			0,
+			nullptr
+		);
+	}
 }
 
 void MasterRenderSystem::Cleanup()

@@ -53,6 +53,8 @@ public:
 	VESPERENGINE_INLINE const VkPhysicalDeviceProperties& GetProperties() const { return m_properties; }
 	VESPERENGINE_INLINE const VkPhysicalDeviceLimits& GetLimits() const { return m_properties.limits; }
 
+	VESPERENGINE_INLINE const bool IsBindlessResourcesSupported() const { return m_bIsBindlessResourcesSupported; }
+
 	SwapChainSupportDetails GetSwapChainSupport() { return QuerySwapChainSupport(m_physicalDevice); }
 	uint32 FindMemoryType(uint32 _typeFilter, VkMemoryPropertyFlags _properties);
 	QueueFamilyIndices FindPhysicalQueueFamilies() { return FindQueueFamilies(m_physicalDevice); }
@@ -109,7 +111,9 @@ private:
 	bool VK_KHR_buffer_device_address_enabled = false;
 	bool VK_EXT_memory_priority_enabled = false;
 	bool VK_EXT_debug_utils_enabled = false;
-	bool g_SparseBindingEnabled = false;
+	bool VK_EXT_descriptor_indexing_extension_enabled = false;
+
+	bool m_bIsBindlessResourcesSupported = false;
 
 private:
 	void CreateInstance();
@@ -152,7 +156,10 @@ private:
 	VmaAllocator m_allocator;
 
 	const std::vector<const char*> m_validationLayers = { "VK_LAYER_KHRONOS_validation" };
-	const std::vector<const char*> m_deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+	const std::vector<const char*> m_deviceExtensions = { 
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME,			// Swapchain support
+		VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME	// Bindless binding support
+	};
 };
 
 VESPERENGINE_NAMESPACE_END

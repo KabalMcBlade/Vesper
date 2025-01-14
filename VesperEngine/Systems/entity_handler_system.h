@@ -11,6 +11,7 @@
 #include "Backend/buffer.h"
 #include "Backend/device.h"
 #include "Backend/descriptors.h"
+#include "Backend/renderer.h"
 
 #include "Core/core_defines.h"
 
@@ -18,6 +19,7 @@
 #include "Components/camera_components.h"
 
 #include "Systems/core_render_system.h"
+#include "Systems/uniform_buffer.h"
 
 #include "ECS/ECS/ecs.h"
 
@@ -27,18 +29,13 @@
 VESPERENGINE_NAMESPACE_BEGIN
 
 
-struct VESPERENGINE_ALIGN16 EntityUBO
-{
-	glm::mat4 ModelMatrix{ 1.0f };
-};
-
 class VESPERENGINE_API EntityHandlerSystem
 {
 public:
 	static constexpr uint32 kEntityBindingIndex = 0u;
 
 public:
-	EntityHandlerSystem(VesperApp& _app, Device& _device);
+	EntityHandlerSystem(VesperApp& _app, Device& _device, Renderer& _renderer);
 	virtual ~EntityHandlerSystem() = default;
 
 	EntityHandlerSystem(const EntityHandlerSystem&) = delete;
@@ -53,7 +50,7 @@ public:
 
 public:
 	// Call this at the beginning, but after all the constructors of all the system is done
-	void Initialize(DescriptorPool& _globalDescriptorPool);
+	void Initialize();
 	// Register an entity to be valid renderable
 	void RegisterRenderableEntity(ecs::Entity _entity) const;
 	// Call this within the update the entities.
@@ -67,6 +64,7 @@ private:
 private:
 	VesperApp& m_app;
 	Device& m_device;
+	Renderer& m_renderer;
 
 	std::unique_ptr<DescriptorSetLayout> m_entitySetLayout;
 	std::unique_ptr<Buffer> m_buffer;

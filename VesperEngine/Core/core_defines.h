@@ -68,6 +68,34 @@ typedef unsigned short      uint16;
 typedef unsigned int        uint32;
 typedef unsigned long long  uint64;
 
+// Special for UBO
+typedef struct AlignedInt
+{
+    VESPERENGINE_ALIGN16 int32 value;
+
+	operator int32() const { return value; }
+
+	AlignedInt& operator=(int32 newValue)
+    {
+		value = newValue;
+		return *this;
+	}
+
+} alignInt32;
+
+typedef struct AlignedFloat
+{
+    VESPERENGINE_ALIGN16 float value;
+
+	operator float() const { return value; }
+
+	AlignedFloat& operator=(float newValue) 
+    {
+		value = newValue;
+		return *this;
+	}
+
+} alignFloat;
 
 //////////////////////////////////////////////////////////////////////////
 // ASSERT

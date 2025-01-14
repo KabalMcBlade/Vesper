@@ -17,29 +17,41 @@ DescriptorSetLayout::Builder& DescriptorSetLayout::Builder::AddBinding(
 	uint32 _binding,
 	VkDescriptorType _descriptorType,
 	VkShaderStageFlags _stageFlags,
-	uint32 _count) 
+	uint32 _maxCount,
+	uint32 _count)
 {
 	assert(m_bindings.count(_binding) == 0 && "Binding already in use");
 
 	VkDescriptorSetLayoutBinding layoutBinding{};
 	layoutBinding.binding = _binding;
 	layoutBinding.descriptorType = _descriptorType;
-	layoutBinding.descriptorCount = _count;
+	layoutBinding.descriptorCount = _maxCount;
 	layoutBinding.stageFlags = _stageFlags;
 	m_bindings[_binding] = layoutBinding;
+	m_sizePerBinding[_binding] = _count;
+	return *this;
+}
+
+DescriptorSetLayout::Builder& DescriptorSetLayout::Builder::SetFlags(VkDescriptorSetLayoutCreateFlags _flags)
+{
+	m_flags = _flags;
 	return *this;
 }
 
 std::unique_ptr<DescriptorSetLayout> DescriptorSetLayout::Builder::Build() const 
 {
-	return std::make_unique<DescriptorSetLayout>(m_device, m_bindings);
+	return std::make_unique<DescriptorSetLayout>(m_device, m_flags, m_bindings, m_sizePerBinding);
 }
 
 DescriptorSetLayout::DescriptorSetLayout(
 	Device& _device, 
-	std::unordered_map<uint32, VkDescriptorSetLayoutBinding> _bindings)
+	VkDescriptorSetLayoutCreateFlags _flags,
+	std::unordered_map<uint32, VkDescriptorSetLayoutBinding> _bindings,
+	std::unordered_map<uint32, uint32> _sizePerBinding)
 	: m_device{ _device }
 	, m_bindings{ _bindings }
+	, m_layoutFlags{ _flags }
+	, m_sizePerBinding{ _sizePerBinding }
 {
 	std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings{};
 	for (auto kv : m_bindings) 
@@ -51,6 +63,34 @@ DescriptorSetLayout::DescriptorSetLayout(
 	descriptorSetLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	descriptorSetLayoutInfo.bindingCount = static_cast<uint32>(setLayoutBindings.size());
 	descriptorSetLayoutInfo.pBindings = setLayoutBindings.data();
+	descriptorSetLayoutInfo.flags = m_layoutFlags;
+	
+	std::vector<VkDescriptorBindingFlags> bindlessFlags;
+	VkDescriptorSetLayoutBindingFlagsCreateInfoEXT extendingInfo{};
+	if (m_layoutFlags & VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT)
+	{
+		const uint32 flagsCount = static_cast<uint32>(setLayoutBindings.size());
+		bindlessFlags.resize(flagsCount);
+
+		for (auto& flags : bindlessFlags)
+		{
+			flags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT_EXT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT_EXT;
+		}
+
+		bindlessFlags[flagsCount - 1] |= VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT;
+
+		LOG(Logger::DEBUG, "Bindless Binding Flags check");
+		for (size_t i = 0; i < bindlessFlags.size(); ++i) 
+		{
+			LOG(Logger::DEBUG, "\tBinding ", i, ": Flags = ", bindlessFlags[i]);
+		}
+
+		extendingInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT;
+		extendingInfo.bindingCount = flagsCount;
+		extendingInfo.pBindingFlags = bindlessFlags.data();
+
+		descriptorSetLayoutInfo.pNext = &extendingInfo;
+	}
 
 	if (vkCreateDescriptorSetLayout(m_device.GetDevice(), &descriptorSetLayoutInfo, nullptr, &m_descriptorSetLayout) != VK_SUCCESS) 
 	{
@@ -115,13 +155,32 @@ DescriptorPool::~DescriptorPool()
 	vkDestroyDescriptorPool(m_device.GetDevice(), m_descriptorPool, nullptr);
 }
 
-bool DescriptorPool::AllocateDescriptorSet(const VkDescriptorSetLayout _descriptorSetLayout, VkDescriptorSet& _descriptor) const
+bool DescriptorPool::AllocateDescriptorSet(const DescriptorSetLayout& _descriptorSetLayout, VkDescriptorSet& _descriptor) const
 {
+	const VkDescriptorSetLayout descriptorSetLayout = _descriptorSetLayout.GetDescriptorSetLayout();
 	VkDescriptorSetAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	allocInfo.descriptorPool = m_descriptorPool;
-	allocInfo.pSetLayouts = &_descriptorSetLayout;
+	allocInfo.pSetLayouts = &descriptorSetLayout;
 	allocInfo.descriptorSetCount = 1;
+
+	// Bindless binding section
+	VkDescriptorSetVariableDescriptorCountAllocateInfo variableDescCount{};
+	std::vector<uint32> variableDescCounts;
+	if (m_device.IsBindlessResourcesSupported() && 
+		(_descriptorSetLayout.GetLayoutFlags() & VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT))
+	{
+		variableDescCount.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO;
+		variableDescCount.descriptorSetCount = 1;
+
+		for (const auto& [key, value] : _descriptorSetLayout.GetSizePerBinding())
+		{
+			variableDescCounts.push_back(value);
+		}
+		variableDescCount.pDescriptorCounts = variableDescCounts.data();
+
+		allocInfo.pNext = &variableDescCount;
+	}
 
 	// Might want to create a "DescriptorPoolManager" class that handles this case, and builds a new pool whenever an old pool fills up.
 	VkResult result = vkAllocateDescriptorSets(m_device.GetDevice(), &allocInfo, &_descriptor);
@@ -171,39 +230,35 @@ DescriptorWriter::DescriptorWriter(DescriptorSetLayout& _setLayout, DescriptorPo
 	: m_setLayout{ _setLayout }
 	, m_pool{ _pool } {}
 
-DescriptorWriter& DescriptorWriter::WriteBuffer(uint32 _binding, VkDescriptorBufferInfo* _bufferInfo) 
+DescriptorWriter& DescriptorWriter::WriteBuffer(uint32 _binding, VkDescriptorBufferInfo* _bufferInfo, uint32 _count) 
 {
 	assert(m_setLayout.m_bindings.count(_binding) == 1 && "Layout does not contain specified _binding");
 
 	auto& bindingDescription = m_setLayout.m_bindings[_binding];
-
-	assert(bindingDescription.descriptorCount == 1 && "Binding single descriptor info, but _binding expects multiple");
 
 	VkWriteDescriptorSet write{};
 	write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	write.descriptorType = bindingDescription.descriptorType;
 	write.dstBinding = _binding;
 	write.pBufferInfo = _bufferInfo;
-	write.descriptorCount = 1;
+	write.descriptorCount = _count;
 
 	m_writes.push_back(write);
 	return *this;
 }
 
-DescriptorWriter& DescriptorWriter::WriteImage(uint32 _binding, VkDescriptorImageInfo* _imageInfo)
+DescriptorWriter& DescriptorWriter::WriteImage(uint32 _binding, VkDescriptorImageInfo* _imageInfo, uint32 _count)
 {
 	assert(m_setLayout.m_bindings.count(_binding) == 1 && "Layout does not contain specified _binding");
 
 	auto& bindingDescription = m_setLayout.m_bindings[_binding];
-
-	assert(bindingDescription.descriptorCount == 1 && "Binding single descriptor info, but _binding expects multiple");
 
 	VkWriteDescriptorSet write{};
 	write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	write.descriptorType = bindingDescription.descriptorType;
 	write.dstBinding = _binding;
 	write.pImageInfo = _imageInfo;
-	write.descriptorCount = 1;
+	write.descriptorCount = _count;
 
 	m_writes.push_back(write);
 	return *this;
@@ -211,7 +266,7 @@ DescriptorWriter& DescriptorWriter::WriteImage(uint32 _binding, VkDescriptorImag
 
 bool DescriptorWriter::Build(VkDescriptorSet& _set) 
 {
-	bool success = m_pool.AllocateDescriptorSet(m_setLayout.GetDescriptorSetLayout(), _set);
+	bool success = m_pool.AllocateDescriptorSet(m_setLayout, _set);
 	if (!success) 
 	{
 		LOG(Logger::ERROR, "Cannot build the descriptor set!");
