@@ -62,6 +62,7 @@ public:
 	std::shared_ptr<TextureData> LoadTexture(const std::string& _path, VkFormat _overrideFormat = VK_FORMAT_UNDEFINED);
 	std::shared_ptr<TextureData> LoadTexture(const std::string& _name, VkFormat _format, const uint8* _data, int32 _width, int32 _height);
 	std::shared_ptr<TextureData> LoadTexture(const DefaultTextureType& _defaultTexture);
+	std::shared_ptr<TextureData> LoadCubemap(const std::array<std::string, 6>& _paths, VkFormat _overrideFormat = VK_FORMAT_UNDEFINED);
 	void Cleanup();
 
 	std::shared_ptr<TextureData> GenerateOrLoadBRDFLutTexture(VesperApp& _app, const std::string& _saveLoadPath, VkExtent2D _extent);
@@ -91,8 +92,9 @@ public:
 private:
 	uint8* LoadTextureData(const std::string& _path, int32& _width, int32& _height, int32& _channels, int32 _desired_channels);
 	void FreeTextureData(uint8* _data);
-	void CreateTextureImage(const uint8* _data, int32 _width, int32 _height, VkFormat _format, VkImage& _image, VmaAllocation& _allocation);
-	VkImageView CreateImageView(VkImage _image, VkFormat _format);
+	void CreateTextureImage(const uint8* _data, int32 _width, int32 _height, VkFormat _format, VkImage& _image, VmaAllocation& _allocation,
+							uint32 _layerCount = 1, uint32 _mipLevels = 1, VkImageCreateFlags _flags = 0);
+	VkImageView CreateImageView(VkImage _image, VkFormat _format, uint32 _layerCount = 1, uint32 _mipLevels = 1);
 	VkSampler CreateTextureSampler();
 
 private:

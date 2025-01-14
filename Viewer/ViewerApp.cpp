@@ -75,6 +75,22 @@ ViewerApp::ViewerApp(Config& _config) :
 	std::shared_ptr<TextureData> brdfLut = m_texturelSystem->GenerateOrLoadBRDFLutTexture(*this, brdfLutPath, extent);
 	LOG(Logger::INFO, "BRDF LUT texture generated/loaded at ", brdfLutPath);
 
+	LOG_NL();
+
+	// CUBEMAP TEXTURE TEST
+	const std::string cubemapTexturesDirectoryPath = GetConfig().TexturesPath + "Yokohama3_CubeMap/";
+	LOG(Logger::INFO, "Loading Cubemap texture: ", cubemapTexturesDirectoryPath);
+
+	std::array<std::string, 6> cubemapTexturesDirectoryFilepaths;
+	cubemapTexturesDirectoryFilepaths[0] = cubemapTexturesDirectoryPath + "negx.jpg";
+	cubemapTexturesDirectoryFilepaths[1] = cubemapTexturesDirectoryPath + "negy.jpg";
+	cubemapTexturesDirectoryFilepaths[2] = cubemapTexturesDirectoryPath + "negz.jpg";
+	cubemapTexturesDirectoryFilepaths[3] = cubemapTexturesDirectoryPath + "posx.jpg";
+	cubemapTexturesDirectoryFilepaths[4] = cubemapTexturesDirectoryPath + "posy.jpg";
+	cubemapTexturesDirectoryFilepaths[5] = cubemapTexturesDirectoryPath + "posz.jpg";
+
+	std::shared_ptr<TextureData> cubeMap = m_texturelSystem->LoadCubemap(cubemapTexturesDirectoryFilepaths);
+	LOG(Logger::INFO, "Cubemap loaded!");
 
 
 	//////////////////////////////////////////////////////////////////////////

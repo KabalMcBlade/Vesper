@@ -859,14 +859,14 @@ void Device::RecordCopyBuffer(VkCommandBuffer _commandBuffer, VkBuffer _srcBuffe
 	vkCmdCopyBuffer(_commandBuffer, _srcBuffer, _dstBuffer, 1, &copyRegion);
 }
 
-void Device::RecordCopyBufferToImage(VkCommandBuffer _commandBuffer, VkBuffer _buffer, VkImage _image, uint32 _width, uint32 _height, uint32 _layerCount)
+void Device::RecordCopyBufferToImage(VkCommandBuffer _commandBuffer, VkBuffer _buffer, VkImage _image, uint32 _width, uint32 _height, uint32 _layerCount, uint32 _mipLevel)
 {
 	VkBufferImageCopy region{};
 	region.bufferOffset = 0;
 	region.bufferRowLength = 0;
 	region.bufferImageHeight = 0;
 	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	region.imageSubresource.mipLevel = 0;
+	region.imageSubresource.mipLevel = _mipLevel - 1;
 	region.imageSubresource.baseArrayLayer = 0;
 	region.imageSubresource.layerCount = _layerCount;
 	region.imageOffset = { 0, 0, 0 };
@@ -874,14 +874,14 @@ void Device::RecordCopyBufferToImage(VkCommandBuffer _commandBuffer, VkBuffer _b
 	vkCmdCopyBufferToImage(_commandBuffer, _buffer, _image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 }
 
-void Device::RecordCopyImageToBuffer(VkCommandBuffer _commandBuffer, VkImage _image, VkBuffer _buffer, uint32 _width, uint32 _height, uint32 _layerCount)
+void Device::RecordCopyImageToBuffer(VkCommandBuffer _commandBuffer, VkImage _image, VkBuffer _buffer, uint32 _width, uint32 _height, uint32 _layerCount, uint32 _mipLevel)
 {
 	VkBufferImageCopy region{};
 	region.bufferOffset = 0;
 	region.bufferRowLength = 0;
 	region.bufferImageHeight = 0;
 	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	region.imageSubresource.mipLevel = 0;
+	region.imageSubresource.mipLevel = _mipLevel - 1;
 	region.imageSubresource.baseArrayLayer = 0;
 	region.imageSubresource.layerCount = _layerCount;
 	region.imageOffset = { 0, 0, 0 };
@@ -905,7 +905,7 @@ void Device::RecordCopyImageToBuffer(VkCommandBuffer _commandBuffer, VkImage _im
  * m_device.TransitionImageLayout(Image, Format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
  *
  */
-void Device::RecordTransitionImageLayout(VkCommandBuffer _commandBuffer, VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout)
+void Device::RecordTransitionImageLayout(VkCommandBuffer _commandBuffer, VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout, uint32 _layerCount, uint32 _mipLevel)
 {
 	VkImageMemoryBarrier barrier{};
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -932,9 +932,9 @@ void Device::RecordTransitionImageLayout(VkCommandBuffer _commandBuffer, VkImage
 	}
 
 	barrier.subresourceRange.baseMipLevel = 0;
-	barrier.subresourceRange.levelCount = 1;
+	barrier.subresourceRange.levelCount = _mipLevel;
 	barrier.subresourceRange.baseArrayLayer = 0;
-	barrier.subresourceRange.layerCount = 1;
+	barrier.subresourceRange.layerCount = _layerCount;
 
 	VkPipelineStageFlags sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 	VkPipelineStageFlags destinationStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
@@ -1025,40 +1025,40 @@ void Device::CopyBuffer(VkCommandBuffer _commandBuffer, VkBuffer _srcBuffer, VkB
 	RecordCopyBuffer(_commandBuffer, _srcBuffer, _dstBuffer, _size);
 }
 
-void Device::CopyBufferToImage(VkBuffer _buffer, VkImage _image, uint32 _width, uint32 _height, uint32 _layerCount)
+void Device::CopyBufferToImage(VkBuffer _buffer, VkImage _image, uint32 _width, uint32 _height, uint32 _layerCount, uint32 _mipLevel)
 {
 	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
-	RecordCopyBufferToImage(commandBuffer, _buffer, _image, _width, _height, _layerCount);
+	RecordCopyBufferToImage(commandBuffer, _buffer, _image, _width, _height, _layerCount, _mipLevel);
 	EndSingleTimeCommands(commandBuffer);
 }
 
-void Device::CopyBufferToImage(VkCommandBuffer _commandBuffer, VkBuffer _buffer, VkImage _image, uint32 _width, uint32 _height, uint32 _layerCount)
+void Device::CopyBufferToImage(VkCommandBuffer _commandBuffer, VkBuffer _buffer, VkImage _image, uint32 _width, uint32 _height, uint32 _layerCount, uint32 _mipLevel)
 {
-	RecordCopyBufferToImage(_commandBuffer, _buffer, _image, _width, _height, _layerCount);
+	RecordCopyBufferToImage(_commandBuffer, _buffer, _image, _width, _height, _layerCount, _mipLevel);
 }
 
-void Device::CopyImageToBuffer(VkImage _image, VkBuffer _buffer, uint32 _width, uint32 _height, uint32 _layerCount)
+void Device::CopyImageToBuffer(VkImage _image, VkBuffer _buffer, uint32 _width, uint32 _height, uint32 _layerCount, uint32 _mipLevel)
 {
 	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
-	RecordCopyImageToBuffer(commandBuffer, _image, _buffer, _width, _height, _layerCount);
+	RecordCopyImageToBuffer(commandBuffer, _image, _buffer, _width, _height, _layerCount, _mipLevel);
 	EndSingleTimeCommands(commandBuffer);
 }
 
-void Device::CopyImageToBuffer(VkCommandBuffer _commandBuffer, VkImage _image, VkBuffer _buffer, uint32 _width, uint32 _height, uint32 _layerCount)
+void Device::CopyImageToBuffer(VkCommandBuffer _commandBuffer, VkImage _image, VkBuffer _buffer, uint32 _width, uint32 _height, uint32 _layerCount, uint32 _mipLevel)
 {
-	RecordCopyImageToBuffer(_commandBuffer, _image, _buffer, _width, _height, _layerCount);
+	RecordCopyImageToBuffer(_commandBuffer, _image, _buffer, _width, _height, _layerCount, _mipLevel);
 }
 
-void Device::TransitionImageLayout(VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout)
+void Device::TransitionImageLayout(VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout, uint32 _layerCount, uint32 _mipLevel)
 {
 	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
-	RecordTransitionImageLayout(commandBuffer, _image, _format, _oldLayout, _newLayout);
+	RecordTransitionImageLayout(commandBuffer, _image, _format, _oldLayout, _newLayout, _layerCount, _mipLevel);
 	EndSingleTimeCommands(commandBuffer);
 }
 
-void Device::TransitionImageLayout(VkCommandBuffer _commandBuffer, VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout)
+void Device::TransitionImageLayout(VkCommandBuffer _commandBuffer, VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout, uint32 _layerCount, uint32 _mipLevel)
 {
-	RecordTransitionImageLayout(_commandBuffer, _image, _format, _oldLayout, _newLayout);
+	RecordTransitionImageLayout(_commandBuffer, _image, _format, _oldLayout, _newLayout, _layerCount, _mipLevel);
 }
 
 VESPERENGINE_NAMESPACE_END

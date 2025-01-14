@@ -182,6 +182,99 @@ std::shared_ptr<TextureData> TextureSystem::LoadTexture(const DefaultTextureType
 	return LoadTexture(_defaultTexture.Name, _defaultTexture.Format, _defaultTexture.Buffer.data(), _defaultTexture.Width, _defaultTexture.Height);
 }
 
+
+std::shared_ptr<TextureData> TextureSystem::LoadCubemap(const std::array<std::string, 6>& _paths, VkFormat _overrideFormat)
+{
+	std::string hugePathNameForHash{""};
+	for (const std::string& path : _paths)
+	{
+		hugePathNameForHash += path;
+	}
+
+	const uint32 hash = HashString(hugePathNameForHash.c_str());
+
+	auto it = m_textureLookup.find(hash);
+	if (it != m_textureLookup.end())
+	{
+		const int32 index = it->second;
+		return m_textures[index];
+	}
+
+	auto texture = std::make_shared<TextureData>();
+
+	uint32 totalFaceSize = 0;
+	uint32 width = 0;
+	uint32 height = 0;
+
+	std::array<uint8*, 6> faceData;
+	std::array<int32, 6> faceWidths, faceHeights, faceChannels;
+	for (uint32 i = 0; i < 6; ++i)
+	{
+		faceData[i] = LoadTextureData(_paths[i], faceWidths[i], faceHeights[i], faceChannels[i], STBI_rgb_alpha);
+		if (!faceData[i])
+		{
+			throw std::runtime_error("Failed to load texture for cubemap face: " + _paths[i]);
+		}
+
+		if (i == 0)
+		{
+			width = faceWidths[i];
+			height = faceHeights[i];
+			totalFaceSize = width * height * STBI_rgb_alpha; // Calculate size for one face
+		}
+		else if (width != faceWidths[i] || height != faceHeights[i])
+		{
+			throw std::runtime_error("Cubemap faces have mismatched dimensions");
+		}
+	}
+
+	VkFormat format = VK_FORMAT_R8G8B8A8_SRGB; // Default to SRGB 4 channels
+	if (_overrideFormat == VK_FORMAT_UNDEFINED)
+	{
+		if (faceChannels[0] == 1)
+		{
+			format = VK_FORMAT_R8_UNORM; // Single channel (gray-scale)
+		}
+		else if (faceChannels[0] == 3)
+		{
+			format = VK_FORMAT_R8G8B8A8_SRGB; // Convert RGB to RGBA
+		}
+	}
+	else
+	{
+		format = _overrideFormat;
+	}
+
+	// Allocate a single continuous buffer
+	uint8* continuousBuffer = new uint8[totalFaceSize * 6];
+
+	// Copy all face data into the continuous buffer
+	for (uint32 i = 0; i < 6; ++i)
+	{
+		std::memcpy(continuousBuffer + i * totalFaceSize, faceData[i], totalFaceSize);
+		FreeTextureData(faceData[i]);
+		faceData[i] = continuousBuffer + i * totalFaceSize; // Optionally map pointers back to the single buffer
+	}
+
+	CreateTextureImage(continuousBuffer, width, height, format, texture->Image, texture->AllocationMemory, 6, 1, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT);
+
+	texture->ImageView = CreateImageView(texture->Image, format, 6, 1);
+
+	texture->Sampler = CreateTextureSampler();
+
+	// free local buffer
+	delete[] continuousBuffer;
+
+	m_textures.push_back(texture);
+
+	const int32 index = static_cast<int32>(m_textures.size() - 1);
+	m_textureLookup[hash] = index;
+
+	texture->Index = index;
+
+	return texture;
+}
+
 std::shared_ptr<TextureData> TextureSystem::GenerateOrLoadBRDFLutTexture(VesperApp& _app, const std::string& _saveLoadPath, VkExtent2D _extent)
 {
 	const uint32 hash = HashString(_saveLoadPath.c_str());
@@ -227,9 +320,10 @@ void TextureSystem::FreeTextureData(uint8* _data)
 	stbi_image_free(_data);
 }
 
-void TextureSystem::CreateTextureImage(const uint8* _data, int32 _width, int32 _height, VkFormat _format, VkImage& _image, VmaAllocation& _allocation)
+void TextureSystem::CreateTextureImage(const uint8* _data, int32 _width, int32 _height, VkFormat _format, VkImage& _image, VmaAllocation& _allocation,
+	uint32 _layerCount, uint32 _mipLevels, VkImageCreateFlags _flags)
 {
-	VkDeviceSize imageSize = _width * _height * 4; // Assuming 4 bytes per pixel (RGBA)
+	VkDeviceSize imageSize = _width * _height * 4 * _layerCount; // Assuming 4 bytes per pixel (RGBA)
 
 	BufferComponent stagingBuffer = m_buffer->Create<BufferComponent>(
 		imageSize,
@@ -251,14 +345,15 @@ void TextureSystem::CreateTextureImage(const uint8* _data, int32 _width, int32 _
 	imageInfo.extent.width = static_cast<uint32>(_width);
 	imageInfo.extent.height = static_cast<uint32>(_height);
 	imageInfo.extent.depth = 1;
-	imageInfo.mipLevels = 1;
-	imageInfo.arrayLayers = 1;
+	imageInfo.mipLevels = _mipLevels;
+	imageInfo.arrayLayers = _layerCount;
 	imageInfo.format = _format;
 	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	imageInfo.flags = _flags;
 
 	// VMA_MEMORY_USAGE_GPU_ONLY - Check internal usage for VmaAllocationCreateInfo
 	m_device.CreateImageWithInfo(imageInfo, _image, _allocation);
@@ -266,9 +361,9 @@ void TextureSystem::CreateTextureImage(const uint8* _data, int32 _width, int32 _
 	// Copy data from staging buffer to Vulkan image
 	VkCommandBuffer commandBuffer = m_device.BeginSingleTimeCommands();
 
-	m_device.TransitionImageLayout(commandBuffer, _image, _format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-	m_device.CopyBufferToImage(commandBuffer, stagingBuffer.Buffer, _image, _width, _height, 1);
-	m_device.TransitionImageLayout(commandBuffer, _image, _format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	m_device.TransitionImageLayout(commandBuffer, _image, _format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, _layerCount, _mipLevels);
+	m_device.CopyBufferToImage(commandBuffer, stagingBuffer.Buffer, _image, _width, _height, _layerCount/*, _mipLevels*/);
+	m_device.TransitionImageLayout(commandBuffer, _image, _format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, _layerCount, _mipLevels);
 
 	m_device.EndSingleTimeCommands(commandBuffer);
 
@@ -276,12 +371,22 @@ void TextureSystem::CreateTextureImage(const uint8* _data, int32 _width, int32 _
 	m_buffer->Destroy(stagingBuffer);
 }
 
-VkImageView TextureSystem::CreateImageView(VkImage _image, VkFormat _format)
+VkImageView TextureSystem::CreateImageView(VkImage _image, VkFormat _format, uint32 _layerCount, uint32 _mipLevels)
 {
 	VkImageViewCreateInfo viewInfo{};
 	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	viewInfo.image = _image;
-	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	viewInfo.viewType = [_layerCount]()
+		{
+			if (_layerCount == 6)
+			{
+				return VK_IMAGE_VIEW_TYPE_CUBE;
+			}
+			else
+			{
+				return VK_IMAGE_VIEW_TYPE_2D;
+			}
+		}();
 	viewInfo.format = _format;
 	viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
 	viewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -289,9 +394,9 @@ VkImageView TextureSystem::CreateImageView(VkImage _image, VkFormat _format)
 	viewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
 	viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	viewInfo.subresourceRange.baseMipLevel = 0;
-	viewInfo.subresourceRange.levelCount = 1;
+	viewInfo.subresourceRange.levelCount = _mipLevels;
 	viewInfo.subresourceRange.baseArrayLayer = 0;
-	viewInfo.subresourceRange.layerCount = 1;
+	viewInfo.subresourceRange.layerCount = _layerCount;
 
 	VkImageView imageView;
 	if (vkCreateImageView(m_device.GetDevice(), &viewInfo, nullptr, &imageView) != VK_SUCCESS)
