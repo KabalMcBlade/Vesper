@@ -7,6 +7,7 @@
 #include "Backend/offscreen_renderer.h"
 
 #include "Systems/brdf_lut_generation_system.h"
+#include "Systems/hdr_cubemap_generation_system.h"
 
 #include "App/file_system.h"
 
@@ -83,8 +84,95 @@ const TextureSystem::DefaultTextureType TextureSystem::EmissiveTexture =
 };
 
 
-TextureSystem::TextureSystem(Device& _device)
-	: m_device(_device)
+int32 TextureSystem::GetBytesPerPixel(VkFormat _format)
+{
+	switch (_format) {
+	case VK_FORMAT_R8_UNORM:
+	case VK_FORMAT_R8_SNORM:
+	case VK_FORMAT_R8_UINT:
+	case VK_FORMAT_R8_SINT:
+	case VK_FORMAT_R8_SRGB:
+		return 1; // 1 byte per pixel
+
+	case VK_FORMAT_R8G8_UNORM:
+	case VK_FORMAT_R8G8_SNORM:
+	case VK_FORMAT_R8G8_UINT:
+	case VK_FORMAT_R8G8_SINT:
+	case VK_FORMAT_R8G8_SRGB:
+		return 2; // 2 bytes per pixel
+
+	case VK_FORMAT_R8G8B8_UNORM:
+	case VK_FORMAT_R8G8B8_SNORM:
+	case VK_FORMAT_R8G8B8_UINT:
+	case VK_FORMAT_R8G8B8_SINT:
+	case VK_FORMAT_R8G8B8_SRGB:
+	case VK_FORMAT_B8G8R8_UNORM:
+	case VK_FORMAT_B8G8R8_SNORM:
+	case VK_FORMAT_B8G8R8_UINT:
+	case VK_FORMAT_B8G8R8_SINT:
+	case VK_FORMAT_B8G8R8_SRGB:
+		return 3; // 3 bytes per pixel
+
+	case VK_FORMAT_R8G8B8A8_UNORM:
+	case VK_FORMAT_R8G8B8A8_SNORM:
+	case VK_FORMAT_R8G8B8A8_UINT:
+	case VK_FORMAT_R8G8B8A8_SINT:
+	case VK_FORMAT_R8G8B8A8_SRGB:
+	case VK_FORMAT_B8G8R8A8_UNORM:
+	case VK_FORMAT_B8G8R8A8_SNORM:
+	case VK_FORMAT_B8G8R8A8_UINT:
+	case VK_FORMAT_B8G8R8A8_SINT:
+	case VK_FORMAT_B8G8R8A8_SRGB:
+		return 4; // 4 bytes per pixel
+
+	case VK_FORMAT_R16_UNORM:
+	case VK_FORMAT_R16_SNORM:
+	case VK_FORMAT_R16_UINT:
+	case VK_FORMAT_R16_SINT:
+	case VK_FORMAT_R16_SFLOAT:
+		return 2; // 2 bytes per pixel
+
+	case VK_FORMAT_R16G16_UNORM:
+	case VK_FORMAT_R16G16_SNORM:
+	case VK_FORMAT_R16G16_UINT:
+	case VK_FORMAT_R16G16_SINT:
+	case VK_FORMAT_R16G16_SFLOAT:
+		return 4; // 4 bytes per pixel
+
+	case VK_FORMAT_R16G16B16_UNORM:
+	case VK_FORMAT_R16G16B16_SNORM:
+	case VK_FORMAT_R16G16B16_UINT:
+	case VK_FORMAT_R16G16B16_SINT:
+	case VK_FORMAT_R16G16B16_SFLOAT:
+		return 6; // 6 bytes per pixel
+
+	case VK_FORMAT_R16G16B16A16_UNORM:
+	case VK_FORMAT_R16G16B16A16_SNORM:
+	case VK_FORMAT_R16G16B16A16_UINT:
+	case VK_FORMAT_R16G16B16A16_SINT:
+	case VK_FORMAT_R16G16B16A16_SFLOAT:
+		return 8; // 8 bytes per pixel
+
+	case VK_FORMAT_R32_SFLOAT:
+		return 4; // 4 bytes per pixel
+
+	case VK_FORMAT_R32G32_SFLOAT:
+		return 8; // 8 bytes per pixel
+
+	case VK_FORMAT_R32G32B32_SFLOAT:
+		return 12; // 12 bytes per pixel
+
+	case VK_FORMAT_R32G32B32A32_SFLOAT:
+		return 16; // 16 bytes per pixel
+
+	default:
+		return -1; // Unsupported format
+	}
+}
+
+TextureSystem::TextureSystem(VesperApp& _app, Device& _device)
+	: m_app(_app)
+	, m_device(_device)
 {
 	m_buffer = std::make_unique<Buffer>(m_device);
 }
@@ -275,7 +363,97 @@ std::shared_ptr<TextureData> TextureSystem::LoadCubemap(const std::array<std::st
 	return texture;
 }
 
-std::shared_ptr<TextureData> TextureSystem::GenerateOrLoadBRDFLutTexture(VesperApp& _app, const std::string& _saveLoadPath, VkExtent2D _extent)
+std::shared_ptr<TextureData> TextureSystem::LoadCubemap(const std::string& _hdrPath, VkFormat _overrideFormat)
+{
+	const uint32 hash = HashString(_hdrPath.c_str());
+
+	auto it = m_textureLookup.find(hash);
+	if (it != m_textureLookup.end())
+	{
+		const int32 index = it->second;
+		return m_textures[index];
+	}
+
+	auto texture = std::make_shared<TextureData>();
+
+	// Load the HDR texture
+	int32 width, height, channels;
+	float* hdrData = stbi_loadf(_hdrPath.c_str(), &width, &height, &channels, STBI_rgb_alpha);
+	if (!hdrData)
+	{
+		throw std::runtime_error("Failed to load HDR file: " + _hdrPath);
+	}
+
+	// Create an offscreen renderer for rendering cubemap faces
+	VkFormat format = VK_FORMAT_R32G32B32A32_SFLOAT;
+	if (_overrideFormat == VK_FORMAT_UNDEFINED)
+	{
+		if (channels == 1)
+		{
+			format = VK_FORMAT_R32_SFLOAT;		// Single channel (gray-scale)
+		}
+		else if (channels == 3)
+		{
+			format = VK_FORMAT_R32G32B32A32_SFLOAT;	// Convert RGB to RGBA
+		}
+	}
+	else
+	{
+		format = _overrideFormat;
+	}
+
+
+	const uint32 cubemapSize = 512; // Adjust size as needed
+	std::unique_ptr<OffscreenRenderer> offscreenRenderer = std::make_unique<OffscreenRenderer>(m_device, VkExtent2D{ cubemapSize, cubemapSize }, format, 6);
+	std::unique_ptr<HDRCubemapGenerationSystem> hdrCubemapGeneration = std::make_unique<HDRCubemapGenerationSystem>(m_app, m_device, offscreenRenderer->GetOffscreenSwapChainRenderPass(), width, height);
+
+	// Upload the HDR data to a Vulkan texture
+	VkImage hdrImage;
+	VmaAllocation hdrImageAllocation;
+
+	CreateTextureImage(hdrData, width, height, format, hdrImage, hdrImageAllocation);
+
+	VkImageView hdrImageView = CreateImageView(hdrImage, format);
+	VkSampler hdrImageSampler = CreateTextureSampler();
+
+	// Free HDR data
+	stbi_image_free(hdrData);
+
+	// Create a cubemap texture
+	CreateTextureImage(nullptr, cubemapSize, cubemapSize, format, texture->Image, texture->AllocationMemory, 6, 1, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT);
+
+	texture->ImageView = CreateImageView(texture->Image, format, 6, 1);
+
+	// Render the cubemap faces
+	auto commandBuffer = offscreenRenderer->BeginFrame();
+	for (uint32 face = 0; face < 6; ++face)
+	{
+		offscreenRenderer->BeginOffscreenSwapChainRenderPass(commandBuffer, face, 1);
+
+		hdrCubemapGeneration->Generate(commandBuffer, hdrImageView, hdrImageSampler, cubemapSize, face);
+
+		offscreenRenderer->EndOffscreenSwapChainRenderPass(commandBuffer);
+	}
+	offscreenRenderer->EndFrame();
+
+	texture->Sampler = CreateTextureSampler();
+
+	// Cleanup HDR image and view
+	vkDestroyImageView(m_device.GetDevice(), hdrImageView, nullptr);
+	vkDestroySampler(m_device.GetDevice(), hdrImageSampler, nullptr);
+	vmaDestroyImage(m_device.GetAllocator(), hdrImage, hdrImageAllocation);
+
+	m_textures.push_back(texture);
+
+	const int32 index = static_cast<int32>(m_textures.size() - 1);
+	m_textureLookup[hash] = index;
+
+	texture->Index = index;
+
+	return texture;
+}
+
+std::shared_ptr<TextureData> TextureSystem::GenerateOrLoadBRDFLutTexture(const std::string& _saveLoadPath, VkExtent2D _extent)
 {
 	const uint32 hash = HashString(_saveLoadPath.c_str());
 
@@ -287,7 +465,7 @@ std::shared_ptr<TextureData> TextureSystem::GenerateOrLoadBRDFLutTexture(VesperA
 	}
 
 	std::unique_ptr<OffscreenRenderer> offscreenRenderer = std::make_unique<OffscreenRenderer>(m_device, _extent, VK_FORMAT_R8G8B8A8_UNORM);
-	std::unique_ptr<BRDFLUTGenerationSystem> m_brdfLutGenerationSystem = std::make_unique<BRDFLUTGenerationSystem>(_app, m_device, offscreenRenderer->GetOffscreenSwapChainRenderPass());
+	std::unique_ptr<BRDFLUTGenerationSystem> m_brdfLutGenerationSystem = std::make_unique<BRDFLUTGenerationSystem>(m_app, m_device, offscreenRenderer->GetOffscreenSwapChainRenderPass());
 
 	auto commandBuffer = offscreenRenderer->BeginFrame();
 	offscreenRenderer->BeginOffscreenSwapChainRenderPass(commandBuffer);
@@ -318,57 +496,6 @@ uint8* TextureSystem::LoadTextureData(const std::string& _path, int32& _width, i
 void TextureSystem::FreeTextureData(uint8* _data)
 {
 	stbi_image_free(_data);
-}
-
-void TextureSystem::CreateTextureImage(const uint8* _data, int32 _width, int32 _height, VkFormat _format, VkImage& _image, VmaAllocation& _allocation,
-	uint32 _layerCount, uint32 _mipLevels, VkImageCreateFlags _flags)
-{
-	VkDeviceSize imageSize = _width * _height * 4 * _layerCount; // Assuming 4 bytes per pixel (RGBA)
-
-	BufferComponent stagingBuffer = m_buffer->Create<BufferComponent>(
-		imageSize,
-		1,
-		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		VMA_MEMORY_USAGE_CPU_ONLY,
-		VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
-	);
-
-	m_buffer->Map(stagingBuffer);
-	m_buffer->WriteToBuffer(stagingBuffer.MappedMemory, (void*)_data, static_cast<size_t>(imageSize));
-	m_buffer->Unmap(stagingBuffer);
-
-
-	// Create the Vulkan image
-	VkImageCreateInfo imageInfo{};
-	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	imageInfo.imageType = VK_IMAGE_TYPE_2D;
-	imageInfo.extent.width = static_cast<uint32>(_width);
-	imageInfo.extent.height = static_cast<uint32>(_height);
-	imageInfo.extent.depth = 1;
-	imageInfo.mipLevels = _mipLevels;
-	imageInfo.arrayLayers = _layerCount;
-	imageInfo.format = _format;
-	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-	imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	imageInfo.flags = _flags;
-
-	// VMA_MEMORY_USAGE_GPU_ONLY - Check internal usage for VmaAllocationCreateInfo
-	m_device.CreateImageWithInfo(imageInfo, _image, _allocation);
-
-	// Copy data from staging buffer to Vulkan image
-	VkCommandBuffer commandBuffer = m_device.BeginSingleTimeCommands();
-
-	m_device.TransitionImageLayout(commandBuffer, _image, _format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, _layerCount, _mipLevels);
-	m_device.CopyBufferToImage(commandBuffer, stagingBuffer.Buffer, _image, _width, _height, _layerCount/*, _mipLevels*/);
-	m_device.TransitionImageLayout(commandBuffer, _image, _format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, _layerCount, _mipLevels);
-
-	m_device.EndSingleTimeCommands(commandBuffer);
-
-	// Cleanup staging buffer
-	m_buffer->Destroy(stagingBuffer);
 }
 
 VkImageView TextureSystem::CreateImageView(VkImage _image, VkFormat _format, uint32 _layerCount, uint32 _mipLevels)

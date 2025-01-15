@@ -49,9 +49,65 @@ public:
 	static const DefaultTextureType SheenTexture;
 	static const DefaultTextureType EmissiveTexture;
 
+public:
+	static int32 GetBytesPerPixel(VkFormat _format);
+
+	template <typename T>
+	static void ValidateFormatCompatibility(VkFormat format)
+	{
+		// Handle uint8_t formats
+		if constexpr (std::is_same<T, uint8_t>::value)
+		{
+			if (format != VK_FORMAT_R8_UNORM && format != VK_FORMAT_R8_SNORM &&
+				format != VK_FORMAT_R8_UINT && format != VK_FORMAT_R8_SRGB &&
+				format != VK_FORMAT_R8G8_UNORM && format != VK_FORMAT_R8G8_SNORM &&
+				format != VK_FORMAT_R8G8_UINT && format != VK_FORMAT_R8G8_SRGB &&
+				format != VK_FORMAT_R8G8B8_UNORM && format != VK_FORMAT_R8G8B8_SNORM &&
+				format != VK_FORMAT_R8G8B8_UINT && format != VK_FORMAT_R8G8B8_SRGB &&
+				format != VK_FORMAT_R8G8B8A8_UNORM && format != VK_FORMAT_R8G8B8A8_SNORM &&
+				format != VK_FORMAT_R8G8B8A8_UINT && format != VK_FORMAT_R8G8B8A8_SRGB)
+			{
+				throw std::invalid_argument("Format is incompatible with uint8_t data type.");
+			}
+		}
+		// Handle int8_t formats
+		else if constexpr (std::is_same<T, int8_t>::value)
+		{
+			if (format != VK_FORMAT_R8_SINT && format != VK_FORMAT_R8G8_SINT &&
+				format != VK_FORMAT_R8G8B8_SINT && format != VK_FORMAT_R8G8B8A8_SINT)
+			{
+				throw std::invalid_argument("Format is incompatible with int8_t data type.");
+			}
+		}
+		// Handle float formats
+		else if constexpr (std::is_same<T, float>::value)
+		{
+			if (format != VK_FORMAT_R16_SFLOAT && format != VK_FORMAT_R16G16_SFLOAT &&
+				format != VK_FORMAT_R16G16B16_SFLOAT && format != VK_FORMAT_R16G16B16A16_SFLOAT &&
+				format != VK_FORMAT_R32_SFLOAT && format != VK_FORMAT_R32G32_SFLOAT &&
+				format != VK_FORMAT_R32G32B32_SFLOAT && format != VK_FORMAT_R32G32B32A32_SFLOAT)
+			{
+				throw std::invalid_argument("Format is incompatible with float data type.");
+			}
+		}
+		// Handle int32_t formats
+		else if constexpr (std::is_same<T, int32_t>::value)
+		{
+			if (format != VK_FORMAT_R32_SINT && format != VK_FORMAT_R32G32_SINT &&
+				format != VK_FORMAT_R32G32B32_SINT && format != VK_FORMAT_R32G32B32A32_SINT)
+			{
+				throw std::invalid_argument("Format is incompatible with int32_t data type.");
+			}
+		}
+		else
+		{
+			throw std::invalid_argument("Unsupported data type.");
+		}
+	}
+
 
 public:
-	TextureSystem(Device& _device);
+	TextureSystem(VesperApp& _app, Device& _device);
 	~TextureSystem() = default;
 
 	TextureSystem(const TextureSystem&) = delete;
@@ -63,9 +119,10 @@ public:
 	std::shared_ptr<TextureData> LoadTexture(const std::string& _name, VkFormat _format, const uint8* _data, int32 _width, int32 _height);
 	std::shared_ptr<TextureData> LoadTexture(const DefaultTextureType& _defaultTexture);
 	std::shared_ptr<TextureData> LoadCubemap(const std::array<std::string, 6>& _paths, VkFormat _overrideFormat = VK_FORMAT_UNDEFINED);
+	std::shared_ptr<TextureData> LoadCubemap(const std::string& _hdrPath, VkFormat _overrideFormat = VK_FORMAT_UNDEFINED);
 	void Cleanup();
 
-	std::shared_ptr<TextureData> GenerateOrLoadBRDFLutTexture(VesperApp& _app, const std::string& _saveLoadPath, VkExtent2D _extent);
+	std::shared_ptr<TextureData> GenerateOrLoadBRDFLutTexture(const std::string& _saveLoadPath, VkExtent2D _extent);
 
 	VESPERENGINE_INLINE std::shared_ptr<TextureData> GetTexture(uint32 _index) const
 	{
@@ -92,12 +149,102 @@ public:
 private:
 	uint8* LoadTextureData(const std::string& _path, int32& _width, int32& _height, int32& _channels, int32 _desired_channels);
 	void FreeTextureData(uint8* _data);
-	void CreateTextureImage(const uint8* _data, int32 _width, int32 _height, VkFormat _format, VkImage& _image, VmaAllocation& _allocation,
-							uint32 _layerCount = 1, uint32 _mipLevels = 1, VkImageCreateFlags _flags = 0);
+
+	template <typename T>
+	void CreateTextureImage(const T* _data, int32 _width, int32 _height, VkFormat _format, VkImage& _image, VmaAllocation& _allocation,
+							uint32 _layerCount = 1, uint32 _mipLevels = 1, VkImageCreateFlags _flags = 0)
+	{
+		static_assert(std::is_same<T, uint8_t>::value || std::is_same<T, float>::value, "Unsupported data type. Only uint8 and float are allowed.");
+
+#ifdef _DEBUG
+		ValidateFormatCompatibility<T>(_format);
+#endif
+
+		const int32 bpp = GetBytesPerPixel(_format);
+		assert(bpp != -1 && "Unsupported image format");
+
+		VkDeviceSize imageSize = _width * _height * bpp * _layerCount;
+
+		BufferComponent stagingBuffer = m_buffer->Create<BufferComponent>(
+			imageSize,
+			1,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VMA_MEMORY_USAGE_CPU_ONLY,
+			VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT
+		);
+
+		m_buffer->Map(stagingBuffer);
+		m_buffer->WriteToBuffer(stagingBuffer.MappedMemory, (void*)_data, static_cast<size_t>(imageSize));
+		m_buffer->Unmap(stagingBuffer);
+
+
+		// Create the Vulkan image
+		VkImageCreateInfo imageInfo{};
+		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageInfo.imageType = VK_IMAGE_TYPE_2D;
+		imageInfo.extent.width = static_cast<uint32>(_width);
+		imageInfo.extent.height = static_cast<uint32>(_height);
+		imageInfo.extent.depth = 1;
+		imageInfo.mipLevels = _mipLevels;
+		imageInfo.arrayLayers = _layerCount;
+		imageInfo.format = _format;
+		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		imageInfo.flags = _flags;
+
+		// VMA_MEMORY_USAGE_GPU_ONLY - Check internal usage for VmaAllocationCreateInfo
+		m_device.CreateImageWithInfo(imageInfo, _image, _allocation);
+
+		// Copy data from staging buffer to Vulkan image
+		VkCommandBuffer commandBuffer = m_device.BeginSingleTimeCommands();
+
+		m_device.TransitionImageLayout(commandBuffer, _image, _format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, _layerCount, _mipLevels);
+		m_device.CopyBufferToImage(commandBuffer, stagingBuffer.Buffer, _image, _width, _height, _layerCount, _mipLevels);
+		m_device.TransitionImageLayout(commandBuffer, _image, _format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, _layerCount, _mipLevels);
+
+		m_device.EndSingleTimeCommands(commandBuffer);
+
+		// Cleanup staging buffer
+		m_buffer->Destroy(stagingBuffer);
+	}
+
+	// nullptr does not have a deduced type, so cannot specialize the template, so I made an overload, but I keep in the header for reference!
+	void CreateTextureImage(const std::nullptr_t*, int32 width, int32 height, VkFormat format, VkImage& image, VmaAllocation& allocation,
+		uint32 layerCount, uint32 mipLevels, VkImageCreateFlags flags)
+	{
+		// Create the Vulkan image
+		VkImageCreateInfo imageInfo{};
+		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageInfo.imageType = VK_IMAGE_TYPE_2D;
+		imageInfo.extent.width = static_cast<uint32>(width);
+		imageInfo.extent.height = static_cast<uint32>(height);
+		imageInfo.extent.depth = 1;
+		imageInfo.mipLevels = mipLevels;
+		imageInfo.arrayLayers = layerCount;
+		imageInfo.format = format;
+		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT; // Allow rendering to this image
+		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		imageInfo.flags = flags;
+
+		m_device.CreateImageWithInfo(imageInfo, image, allocation);
+
+		// Transition the image layout to be ready for rendering
+		VkCommandBuffer commandBuffer = m_device.BeginSingleTimeCommands();
+		m_device.TransitionImageLayout(commandBuffer, image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0, layerCount, mipLevels);
+		m_device.EndSingleTimeCommands(commandBuffer);
+	}
+
 	VkImageView CreateImageView(VkImage _image, VkFormat _format, uint32 _layerCount = 1, uint32 _mipLevels = 1);
 	VkSampler CreateTextureSampler();
 
 private:
+	VesperApp& m_app;
 	Device& m_device;
 	std::unique_ptr<Buffer> m_buffer;
 	std::vector<std::shared_ptr<TextureData>> m_textures;

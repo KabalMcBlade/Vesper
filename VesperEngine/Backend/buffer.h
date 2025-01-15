@@ -68,7 +68,7 @@ public:
 				_allocationFlags,
 				bufferObject.Buffer,
 				bufferObject.AllocationMemory,
-				bufferObject.AlignedSize,
+				_minOffsetAlignment,
 				_isPersistent
 			);
 		}

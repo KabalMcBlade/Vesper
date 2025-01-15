@@ -19,14 +19,14 @@
 VESPERENGINE_NAMESPACE_BEGIN
 
 
-OffscreenSwapChain::OffscreenSwapChain(Device& _device, VkExtent2D _imageExtent, VkFormat _imageFormat)
+OffscreenSwapChain::OffscreenSwapChain(Device& _device, VkExtent2D _imageExtent, VkFormat _imageFormat, uint32 _imageLayerCount)
 	: m_device{ _device }
 	, m_imageExtent{ _imageExtent }
 	, m_imageFormat{ _imageFormat }
 {
 	m_buffer = std::make_unique<Buffer>(m_device);
 
-	CreateOffscreenImage();
+	CreateOffscreenImage(_imageLayerCount);
 	CreateRenderPass();
 	CreateFramebuffer();
 }
@@ -39,14 +39,14 @@ OffscreenSwapChain::~OffscreenSwapChain()
 	vmaDestroyImage(m_device.GetAllocator(), m_offscreenImage, m_offscreenImageMemory);
 }
 
-void OffscreenSwapChain::CreateOffscreenImage() 
+void OffscreenSwapChain::CreateOffscreenImage(uint32 _imageLayerCount)
 {
 	VkImageCreateInfo imageInfo{};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	imageInfo.imageType = VK_IMAGE_TYPE_2D;
 	imageInfo.extent = { m_imageExtent.width, m_imageExtent.height, 1 };
 	imageInfo.mipLevels = 1;
-	imageInfo.arrayLayers = 1;
+	imageInfo.arrayLayers = _imageLayerCount;
 	imageInfo.format = m_imageFormat;
 	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;

@@ -4,8 +4,6 @@
 
 #include "Systems/brdf_lut_generation_system.h"
 
-#include "../stb/stb_image_write.h"
-
 
 VESPERENGINE_NAMESPACE_BEGIN
 

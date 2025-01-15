@@ -50,7 +50,7 @@ ViewerApp::ViewerApp(Config& _config) :
 
 	m_entityHandlerSystem = std::make_unique<EntityHandlerSystem>(*this, *m_device, *m_renderer);
 	m_gameEntitySystem = std::make_unique<GameEntitySystem>(*this);
-	m_texturelSystem = std::make_unique<TextureSystem>(*m_device);
+	m_texturelSystem = std::make_unique<TextureSystem>(*this, *m_device);
 	m_materialSystem = std::make_unique<MaterialSystem>(*m_device, *m_texturelSystem);
 	m_modelSystem = std::make_unique<ModelSystem>(*this, *m_device, *m_materialSystem);
 
@@ -72,7 +72,7 @@ ViewerApp::ViewerApp(Config& _config) :
 	VkExtent2D extent;
 	extent.width = 512;
 	extent.height = 512;
-	std::shared_ptr<TextureData> brdfLut = m_texturelSystem->GenerateOrLoadBRDFLutTexture(*this, brdfLutPath, extent);
+	std::shared_ptr<TextureData> brdfLut = m_texturelSystem->GenerateOrLoadBRDFLutTexture(brdfLutPath, extent);
 	LOG(Logger::INFO, "BRDF LUT texture generated/loaded at ", brdfLutPath);
 
 	LOG_NL();
@@ -92,6 +92,14 @@ ViewerApp::ViewerApp(Config& _config) :
 	std::shared_ptr<TextureData> cubeMap = m_texturelSystem->LoadCubemap(cubemapTexturesDirectoryFilepaths);
 	LOG(Logger::INFO, "Cubemap loaded!");
 
+	// CUBEMAP HDR TEXTURE TEST
+	const std::string cubemapHdrTexturesPath = GetConfig().TexturesPath + "misty_pines_4k.hdr";
+	LOG(Logger::INFO, "Loading Cubemap texture: ", cubemapHdrTexturesPath);
+
+	std::shared_ptr<TextureData> cubeMapHdr = m_texturelSystem->LoadCubemap(cubemapHdrTexturesPath);
+	LOG(Logger::INFO, "Cubemap HDR loaded!");
+
+	LOG_NL();
 
 	//////////////////////////////////////////////////////////////////////////
 	// Game side initialization

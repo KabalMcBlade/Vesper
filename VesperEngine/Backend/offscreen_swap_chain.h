@@ -26,7 +26,7 @@ VESPERENGINE_NAMESPACE_BEGIN
 class VESPERENGINE_API OffscreenSwapChain final
 {
 public:
-	OffscreenSwapChain(Device& _device, VkExtent2D _imageExtent, VkFormat _imageFormat);
+	OffscreenSwapChain(Device& _device, VkExtent2D _imageExtent, VkFormat _imageFormat, uint32 _imageLayerCount = 1);
 	~OffscreenSwapChain();
 
 	OffscreenSwapChain(const OffscreenSwapChain&) = delete;
@@ -51,7 +51,7 @@ public:
 	void FlushBufferToFile(const std::string& _filePath, BufferComponent& _stagingBuffer);
 
 private:
-	void CreateOffscreenImage();
+	void CreateOffscreenImage(uint32 _imageLayerCount);
 	void CreateRenderPass();
 	void CreateFramebuffer();
 

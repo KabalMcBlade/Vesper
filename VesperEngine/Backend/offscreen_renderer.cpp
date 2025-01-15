@@ -11,10 +11,10 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-OffscreenRenderer::OffscreenRenderer(Device& _device, VkExtent2D _extent, VkFormat _format)
+OffscreenRenderer::OffscreenRenderer(Device& _device, VkExtent2D _extent, VkFormat _format, uint32 _imageLayerCount)
 	: m_device { _device }
 {
-	m_offscreenSwapChain = std::make_unique<OffscreenSwapChain>(_device, _extent, _format);
+	m_offscreenSwapChain = std::make_unique<OffscreenSwapChain>(_device, _extent, _format, _imageLayerCount);
 	CreateCommandBuffer();
 }
 
@@ -84,7 +84,7 @@ void OffscreenRenderer::EndFrame()
 	m_isFrameStarted = false;
 }
 
-void OffscreenRenderer::BeginOffscreenSwapChainRenderPass(VkCommandBuffer _commandBuffer)
+void OffscreenRenderer::BeginOffscreenSwapChainRenderPass(VkCommandBuffer _commandBuffer, uint32 _baseLayerIndex, uint32 _layerCount, uint32 _mipLevel)
 {
 	assertMsgReturnVoid(IsFrameStarted(), "Cannot call BeginOffscreenSwapChainRenderPass while the frame is not in progress");
 	assertMsgReturnVoid(_commandBuffer == GetCurrentCommandBuffer(), "Cannot begin render pass on command buffer from a different frame");
@@ -92,7 +92,10 @@ void OffscreenRenderer::BeginOffscreenSwapChainRenderPass(VkCommandBuffer _comma
 	m_device.TransitionImageLayout(_commandBuffer, m_offscreenSwapChain->GetOffscreenImage(),
 		m_offscreenSwapChain->GetSwapChainImageFormat(),
 		VK_IMAGE_LAYOUT_UNDEFINED,
-		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+		_baseLayerIndex,
+		_layerCount,
+		_mipLevel);
 
 	// we record the render pass to begin with
 	VkRenderPassBeginInfo renderPassInfo{};

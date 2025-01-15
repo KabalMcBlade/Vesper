@@ -21,7 +21,7 @@ VESPERENGINE_NAMESPACE_BEGIN
 class VESPERENGINE_API OffscreenRenderer final
 {
 public:
-	OffscreenRenderer(Device& _device, VkExtent2D _extent, VkFormat _format);
+	OffscreenRenderer(Device& _device, VkExtent2D _extent, VkFormat _format, uint32 _imageLayerCount = 1);
 	~OffscreenRenderer();
 
 	OffscreenRenderer(const OffscreenRenderer&) = delete;
@@ -42,7 +42,7 @@ public:
 	VkCommandBuffer BeginFrame();
 	void EndFrame();
 
-	void BeginOffscreenSwapChainRenderPass(VkCommandBuffer _commandBuffer);
+	void BeginOffscreenSwapChainRenderPass(VkCommandBuffer _commandBuffer, uint32 _baseLayerIndex = 0, uint32 _layerCount = 1, uint32 _mipLevel = 1);
 	void EndOffscreenSwapChainRenderPass(VkCommandBuffer _commandBuffer);
 
 	BufferComponent PrepareImageCopy(VkCommandBuffer _commandBuffer);

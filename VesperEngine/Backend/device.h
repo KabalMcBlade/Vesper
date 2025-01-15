@@ -46,6 +46,7 @@ public:
 
 	VESPERENGINE_INLINE const VkCommandPool GetCommandPool() const { return m_commandPool; }
 	VESPERENGINE_INLINE const VkDevice GetDevice() const { return m_device; }
+	VESPERENGINE_INLINE const VkPhysicalDevice GetPhysicalDevice() const { return m_physicalDevice; }
 	VESPERENGINE_INLINE const VkSurfaceKHR GetSurface() const { return m_surface; }
 	VESPERENGINE_INLINE const VkQueue GetGraphicsQueue() const { return m_graphicsQueue; }
 	VESPERENGINE_INLINE const VkQueue GetPresentQueue() const { return m_presentQueue; }
@@ -93,12 +94,12 @@ public:
 	void CopyBuffer(VkCommandBuffer _commandBuffer, VkBuffer _srcBuffer, VkBuffer _dstBuffer, VkDeviceSize _size);
 	void CopyBufferToImage(VkCommandBuffer _commandBuffer, VkBuffer _buffer, VkImage _image, uint32 _width, uint32 _height, uint32 _layerCount = 1, uint32 _mipLevel = 1);
 	void CopyImageToBuffer(VkCommandBuffer _commandBuffer, VkImage _image, VkBuffer _buffer, uint32 _width, uint32 _height, uint32 _layerCount = 1, uint32 _mipLevel = 1);
-	void TransitionImageLayout(VkCommandBuffer _commandBuffer, VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout, uint32 _layerCount = 1, uint32 _mipLevel = 1);
+	void TransitionImageLayout(VkCommandBuffer _commandBuffer, VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout, uint32 _baseLayerIndex = 0, uint32 _layerCount = 1, uint32 _mipLevel = 1);
 	// The below methods are executed withing a single time command buffer, so they are atomic
 	void CopyBuffer(VkBuffer _srcBuffer, VkBuffer _dstBuffer, VkDeviceSize _size);
 	void CopyBufferToImage(VkBuffer _buffer, VkImage _image, uint32 _width, uint32 _height, uint32 _layerCount = 1, uint32 _mipLevel = 1);
 	void CopyImageToBuffer(VkImage _image, VkBuffer _buffer, uint32 _width, uint32 _height, uint32 _layerCount = 1, uint32 _mipLevel = 1);
-	void TransitionImageLayout(VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout, uint32 _layerCount = 1, uint32 _mipLevel = 1);
+	void TransitionImageLayout(VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout, uint32 _baseLayerIndex = 0, uint32 _layerCount = 1, uint32 _mipLevel = 1);
 
 private:
 	// VMA memory settings!
@@ -127,7 +128,7 @@ private:
 	void RecordCopyBuffer(VkCommandBuffer _commandBuffer, VkBuffer _srcBuffer, VkBuffer _dstBuffer, VkDeviceSize _size);
 	void RecordCopyBufferToImage(VkCommandBuffer _commandBuffer, VkBuffer _buffer, VkImage _image, uint32 _width, uint32 _height, uint32 _layerCount, uint32 _mipLevel);
 	void RecordCopyImageToBuffer(VkCommandBuffer _commandBuffer, VkImage _image, VkBuffer _buffer, uint32 _width, uint32 _height, uint32 _layerCount, uint32 _mipLevel);
-	void RecordTransitionImageLayout(VkCommandBuffer _commandBuffer, VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout, uint32 _layerCount, uint32 _mipLevel);
+	void RecordTransitionImageLayout(VkCommandBuffer _commandBuffer, VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout, uint32 _baseLayerIndex, uint32 _layerCount, uint32 _mipLevel);
 
 	// helper functions
 	bool IsDeviceSuitable(VkPhysicalDevice _device);
