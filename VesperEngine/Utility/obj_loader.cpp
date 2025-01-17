@@ -2,14 +2,17 @@
 // File: C:\Projects\Vesper\VesperEngine\Utility\obj_loader.cpp
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
-#include "obj_loader.h"
-
-#include "App/vesper_app.h"
-#include "App/config.h"
-#include "App/file_system.h"
-
+#include "Utility/obj_loader.h"
 #include "Utility/hash.h"
 #include "Utility/logger.h"
+
+#include "App/vesper_app.h"
+#include "App/file_system.h"
+
+#include "Backend/device.h"
+#include "Backend/model_data.h"
+
+#include "Systems/material_system.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/hash.hpp"
@@ -19,7 +22,6 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
-#include <iostream>
 #include <stdexcept>
 #include <unordered_map>
 

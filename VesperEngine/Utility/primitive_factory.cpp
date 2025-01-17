@@ -2,10 +2,13 @@
 // File: C:\Projects\Vesper\VesperEngine\Utility\primitive_factory.cpp
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
-#include "primitive_factory.h"
-
+#include "Utility/primitive_factory.h"
 #include "Utility/logger.h"
+
+#include "Backend/model_data.h"
+
 #include "Systems/material_system.h"
+
 
 VESPERENGINE_NAMESPACE_BEGIN
 

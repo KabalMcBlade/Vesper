@@ -6,10 +6,6 @@
 
 #include "Core/core_defines.h"
 
-#include "Backend/model_data.h"
-
-#include "Systems/material_system.h"
-
 #define GLM_FORCE_INTRINSICS
 //#define GLM_FORCE_SSE2		// or GLM_FORCE_SSE42 or else, but the above one use compiler to find out which one is enabled
 #define GLM_FORCE_ALIGNED
@@ -23,6 +19,10 @@
 
 
 VESPERENGINE_NAMESPACE_BEGIN
+
+class MaterialSystem;
+
+struct ModelData;
 
 class VESPERENGINE_API PrimitiveFactory
 {

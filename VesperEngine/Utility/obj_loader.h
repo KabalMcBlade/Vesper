@@ -6,19 +6,17 @@
 
 #include "Core/core_defines.h"
 
-#include "Backend/device.h"
-#include "Backend/model_data.h"
-
-#include "Systems/material_system.h"
-
 #include <string>
 #include <memory>
 #include <vector>
 
-
 VESPERENGINE_NAMESPACE_BEGIN
 
 class VesperApp;
+class Device;
+class MaterialSystem;
+
+struct ModelData;
 
 class VESPERENGINE_API ObjLoader
 {

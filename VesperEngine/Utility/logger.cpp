@@ -2,12 +2,9 @@
 // File: C:\Projects\Vesper\VesperEngine\Utility\logger.cpp
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
-#include "logger.h"
+#include "Utility/logger.h"
 
 #include <iostream>
-#include <ctime>
-#include <iomanip> // for std::put_time
-#include <ctime>
 #include <ctime>
 
 
