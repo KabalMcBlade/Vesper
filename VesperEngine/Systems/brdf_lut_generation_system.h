@@ -12,14 +12,14 @@
 #include "Backend/buffer.h"
 #include "Backend/model_data.h"
 
-#include "Systems/core_render_system.h"
+#include "Systems/base_render_system.h"
 
 #include "App/vesper_app.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-class VESPERENGINE_API BRDFLUTGenerationSystem : public CoreRenderSystem
+class VESPERENGINE_API BRDFLUTGenerationSystem : public BaseRenderSystem
 {
 public:
 	BRDFLUTGenerationSystem(VesperApp& _app, Device& _device, VkRenderPass _renderPass);

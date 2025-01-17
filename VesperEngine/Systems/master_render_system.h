@@ -18,7 +18,7 @@
 #include "Components/graphics_components.h"
 #include "Components/camera_components.h"
 
-#include "Systems/core_render_system.h"
+#include "Systems/base_render_system.h"
 #include "Systems/texture_system.h"
 #include "Systems/material_system.h"
 
@@ -36,7 +36,7 @@ VESPERENGINE_NAMESPACE_BEGIN
  * 
  */
 
-class VESPERENGINE_API MasterRenderSystem : public CoreRenderSystem
+class VESPERENGINE_API MasterRenderSystem : public BaseRenderSystem
 {
 public:
 	static constexpr uint32 kGlobalBindingSceneIndex = 0u;

@@ -38,7 +38,7 @@
 #include "Systems/model_system.h"
 #include "Systems/texture_system.h"
 #include "Systems/material_system.h"
-#include "Systems/core_render_system.h"
+#include "Systems/base_render_system.h"
 #include "Systems/master_render_system.h"
 #include "Systems/opaque_render_system.h"
 #include "Systems/camera_system.h"

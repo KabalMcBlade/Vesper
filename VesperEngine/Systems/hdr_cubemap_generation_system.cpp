@@ -99,7 +99,7 @@ struct VESPERENGINE_ALIGN16 PushViewProjection
 
 HDRCubemapGenerationSystem::HDRCubemapGenerationSystem(VesperApp& _app, Device& _device, VkRenderPass _renderPass, uint32 _width, uint32 _height)
 	: m_app{ _app }
-	, CoreRenderSystem(_device)
+	, BaseRenderSystem(_device)
 {
 	m_buffer = std::make_unique<Buffer>(m_device);
 

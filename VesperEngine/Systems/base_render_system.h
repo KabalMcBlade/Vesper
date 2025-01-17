@@ -1,5 +1,5 @@
 // Copyright (c) 2025-2025 Michele Condo'
-// File: C:\Projects\Vesper\VesperEngine\Systems\core_render_system.h
+// File: C:\Projects\Vesper\VesperEngine\Systems\base_render_system.h
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
 #pragma once
@@ -17,14 +17,14 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-class VESPERENGINE_API CoreRenderSystem
+class VESPERENGINE_API BaseRenderSystem
 {
 public:
-	CoreRenderSystem(Device& _device);
-	virtual ~CoreRenderSystem();
+	BaseRenderSystem(Device& _device);
+	virtual ~BaseRenderSystem();
 
-	CoreRenderSystem(const CoreRenderSystem&) = delete;
-	CoreRenderSystem& operator=(const CoreRenderSystem&) = delete;
+	BaseRenderSystem(const BaseRenderSystem&) = delete;
+	BaseRenderSystem& operator=(const BaseRenderSystem&) = delete;
 
 	void CreatePipelineLayout(const std::vector<VkDescriptorSetLayout>& _descriptorSetLayouts);
 

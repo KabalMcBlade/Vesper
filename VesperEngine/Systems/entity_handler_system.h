@@ -18,7 +18,7 @@
 #include "Components/graphics_components.h"
 #include "Components/camera_components.h"
 
-#include "Systems/core_render_system.h"
+#include "Systems/base_render_system.h"
 #include "Systems/uniform_buffer.h"
 
 #include "ECS/ECS/ecs.h"

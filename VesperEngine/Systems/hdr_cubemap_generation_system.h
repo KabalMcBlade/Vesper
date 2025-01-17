@@ -13,7 +13,7 @@
 #include "Backend/descriptors.h"
 #include "Backend/model_data.h"
 
-#include "Systems/core_render_system.h"
+#include "Systems/base_render_system.h"
 
 #include "App/vesper_app.h"
 
@@ -29,7 +29,7 @@ enum class HDRProjectionType : uint8
 	LatLongCubemap
 };
 
-class VESPERENGINE_API HDRCubemapGenerationSystem : public CoreRenderSystem
+class VESPERENGINE_API HDRCubemapGenerationSystem : public BaseRenderSystem
 {
 public:
 	static HDRProjectionType DetectHDRProjectionType(int32 _width, int32 _height);

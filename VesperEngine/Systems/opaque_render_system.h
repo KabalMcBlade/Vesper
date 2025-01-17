@@ -13,7 +13,7 @@
 #include "Backend/descriptors.h"
 #include "Backend/renderer.h"
 
-#include "Systems/core_render_system.h"
+#include "Systems/base_render_system.h"
 #include "Systems/master_render_system.h"
 
 #include "Components/graphics_components.h"
@@ -36,7 +36,7 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-class VESPERENGINE_API OpaqueRenderSystem final : public CoreRenderSystem
+class VESPERENGINE_API OpaqueRenderSystem final : public BaseRenderSystem
 {
 public:
 	static constexpr uint32 kPhongAmbientTextureBindingIndex = 0u;

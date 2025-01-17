@@ -44,7 +44,7 @@ OpaqueRenderSystem::OpaqueRenderSystem(VesperApp& _app, Device& _device, Rendere
 	VkDescriptorSetLayout _globalDescriptorSetLayout,
 	VkDescriptorSetLayout _entityDescriptorSetLayout,
 	VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout)
-	: CoreRenderSystem{ _device }
+	: BaseRenderSystem{ _device }
 	, m_app(_app)
 	, m_renderer(_renderer)
 {

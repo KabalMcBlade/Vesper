@@ -1,18 +1,18 @@
 // Copyright (c) 2025-2025 Michele Condo'
-// File: C:\Projects\Vesper\VesperEngine\Systems\core_render_system.cpp
+// File: C:\Projects\Vesper\VesperEngine\Systems\base_render_system.cpp
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
-#include "Systems/core_render_system.h"
+#include "Systems/base_render_system.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-CoreRenderSystem::CoreRenderSystem(Device& _device)
+BaseRenderSystem::BaseRenderSystem(Device& _device)
 	: m_device{ _device }
 {
 }
 
-CoreRenderSystem::~CoreRenderSystem()
+BaseRenderSystem::~BaseRenderSystem()
 {
 	if (m_pipelineLayout != VK_NULL_HANDLE) 
 	{
@@ -20,7 +20,7 @@ CoreRenderSystem::~CoreRenderSystem()
 	}
 }
 
-void CoreRenderSystem::CreatePipelineLayout(const std::vector<VkDescriptorSetLayout>& _descriptorSetLayouts)
+void BaseRenderSystem::CreatePipelineLayout(const std::vector<VkDescriptorSetLayout>& _descriptorSetLayouts)
 {
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -35,7 +35,7 @@ void CoreRenderSystem::CreatePipelineLayout(const std::vector<VkDescriptorSetLay
 	}
 }
 
-void CoreRenderSystem::PushConstants(VkCommandBuffer _commandBuffer, const uint32 _pushConstantIndex, const void* _pushConstantValue) const
+void BaseRenderSystem::PushConstants(VkCommandBuffer _commandBuffer, const uint32 _pushConstantIndex, const void* _pushConstantValue) const
 {
 	assertMsgReturnVoid(_pushConstantIndex >= 0 && _pushConstantIndex < m_pushConstants.size(), "_pushConstantIndex out of range!");
 
@@ -46,7 +46,7 @@ void CoreRenderSystem::PushConstants(VkCommandBuffer _commandBuffer, const uint3
 		_pushConstantValue);
 }
 
-void CoreRenderSystem::PushConstants(VkCommandBuffer _commandBuffer, std::vector<const void*> _pushConstantValues) const
+void BaseRenderSystem::PushConstants(VkCommandBuffer _commandBuffer, std::vector<const void*> _pushConstantValues) const
 {
 	assertMsgReturnVoid(_pushConstantValues.size() == m_pushConstants.size(), "_pushConstantValues size mismatch!");
 
@@ -57,7 +57,7 @@ void CoreRenderSystem::PushConstants(VkCommandBuffer _commandBuffer, std::vector
 	}
 }
 
-void CoreRenderSystem::Bind(const VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer) const
+void BaseRenderSystem::Bind(const VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer) const
 {
 	VkBuffer buffers[] = { _vertexBufferComponent.Buffer };
 	VkDeviceSize offsets[] = { 0 };
@@ -65,18 +65,18 @@ void CoreRenderSystem::Bind(const VertexBufferComponent& _vertexBufferComponent,
 	vkCmdBindVertexBuffers(_commandBuffer, 0, 1, buffers, offsets);
 }
 
-void CoreRenderSystem::Bind(const VertexBufferComponent& _vertexBufferComponent, const IndexBufferComponent& _indexBufferComponent, VkCommandBuffer _commandBuffer) const
+void BaseRenderSystem::Bind(const VertexBufferComponent& _vertexBufferComponent, const IndexBufferComponent& _indexBufferComponent, VkCommandBuffer _commandBuffer) const
 {
 	Bind(_vertexBufferComponent, _commandBuffer);
 	vkCmdBindIndexBuffer(_commandBuffer, _indexBufferComponent.Buffer, 0, VK_INDEX_TYPE_UINT32);
 }
 
-void CoreRenderSystem::Draw(const VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer, uint32 _instanceCount) const
+void BaseRenderSystem::Draw(const VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer, uint32 _instanceCount) const
 {
 	vkCmdDraw(_commandBuffer, _vertexBufferComponent.Count, _instanceCount, 0, 0);
 }
 
-void CoreRenderSystem::Draw(const IndexBufferComponent& _indexBufferComponent, VkCommandBuffer _commandBuffer, uint32 _instanceCount) const
+void BaseRenderSystem::Draw(const IndexBufferComponent& _indexBufferComponent, VkCommandBuffer _commandBuffer, uint32 _instanceCount) const
 {
 	vkCmdDrawIndexed(_commandBuffer, _indexBufferComponent.Count, _instanceCount, 0, 0, 0);
 }

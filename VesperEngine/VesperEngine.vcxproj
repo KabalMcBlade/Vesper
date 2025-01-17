@@ -133,7 +133,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ $(IntDir
     <ClInclude Include="ECS\ECS\types.h" />
     <ClInclude Include="ECS\ECS\utility.h" />
     <ClInclude Include="Systems\brdf_lut_generation_system.h" />
-    <ClInclude Include="Systems\core_render_system.h" />
+    <ClInclude Include="Systems\base_render_system.h" />
     <ClInclude Include="Systems\entity_handler_system.h" />
     <ClInclude Include="Systems\hdr_cubemap_generation_system.h" />
     <ClInclude Include="Systems\material_system.h" />
@@ -184,7 +184,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ $(IntDir
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Systems\brdf_lut_generation_system.cpp" />
-    <ClCompile Include="Systems\core_render_system.cpp" />
+    <ClCompile Include="Systems\base_render_system.cpp" />
     <ClCompile Include="Systems\entity_handler_system.cpp" />
     <ClCompile Include="Systems\hdr_cubemap_generation_system.cpp" />
     <ClCompile Include="Systems\material_system.cpp" />

@@ -13,7 +13,7 @@ VESPERENGINE_NAMESPACE_BEGIN
 
 
 MasterRenderSystem::MasterRenderSystem(Device& _device, Renderer& _renderer)
-	: CoreRenderSystem(_device)
+	: BaseRenderSystem(_device)
 	, m_renderer(_renderer)
 {
 	// IS ONLY FOR TESTING!!!

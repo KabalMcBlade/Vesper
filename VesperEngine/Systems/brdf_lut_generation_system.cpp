@@ -14,7 +14,7 @@ struct VESPERENGINE_ALIGN16 PushResolution
 
 BRDFLUTGenerationSystem::BRDFLUTGenerationSystem(VesperApp& _app, Device& _device, VkRenderPass _renderPass)
 	: m_app{ _app }
-	, CoreRenderSystem(_device)
+	, BaseRenderSystem(_device)
 {
 	m_buffer = std::make_unique<Buffer>(m_device);
 
