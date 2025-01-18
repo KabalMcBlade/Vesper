@@ -15,8 +15,9 @@
 #define GLM_FORCE_SWIZZLE
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include "glm/glm.hpp"
+#define GLM_ENABLE_EXPERIMENTAL
 #include "glm/ext.hpp"
+#include "glm/glm.hpp"
 
 // ONLY IF USING VESPER ENGINE AS DLL, IF USING AS STATIC LIB, DON'T ADD!
 #if defined(VESPERENGINE_DLL_IMPORT)

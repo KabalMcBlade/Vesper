@@ -4,6 +4,8 @@
 
 #include "Backend/buffer.h"
 
+#include "Core/memory_copy.h"
+
 #include <cassert>
 #include <cstring>
 
