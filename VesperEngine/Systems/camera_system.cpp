@@ -2,21 +2,14 @@
 // File: C:\Projects\Vesper\VesperEngine\Systems\camera_system.cpp
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
-#include "camera_system.h"
+#include "Systems/camera_system.h"
+
+#include "Components/camera_components.h"
+#include "Components/object_components.h"
 
 #include "App/vesper_app.h"
 
-#define GLM_FORCE_INTRINSICS
-//#define GLM_FORCE_SSE2		// or GLM_FORCE_SSE42 or else, but the above one use compiler to find out which one is enabled
-#define GLM_FORCE_ALIGNED
-#define GLM_FORCE_SWIZZLE
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define GLM_ENABLE_EXPERIMENTAL
-#include "glm/glm.hpp"
-#include "glm/ext.hpp"
-#include "gtx/quaternion.hpp"
-#include "gtx/euler_angles.hpp"
+#include "ECS/ECS/ecs.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN
@@ -127,7 +120,7 @@ void CameraSystem::SetPerspectiveProjection(CameraComponent& _camera, float _fov
 	_camera.ProjectionMatrix[3][2] = -(_far * _near) / (_far - _near);
 }
 
-void CameraSystem::SetViewDirection(CameraComponent& _camera, const glm::vec3& _position, glm::vec3 _direction, glm::vec3 _up) const
+void CameraSystem::SetViewDirection(CameraComponent& _camera, const glm::vec3 _position, const glm::vec3 _direction, const glm::vec3 _up) const
 {
 	// same as glm::lookAt, but have direction directly
 	const glm::vec3 w{ glm::normalize(_direction) };
@@ -149,7 +142,7 @@ void CameraSystem::SetViewDirection(CameraComponent& _camera, const glm::vec3& _
 	_camera.ViewMatrix[3][2] = -glm::dot(w, _position);
 }
 
-void CameraSystem::SetViewTarget(CameraComponent& _camera, const glm::vec3& _position, glm::vec3 _target, glm::vec3 _up) const
+void CameraSystem::SetViewTarget(CameraComponent& _camera, const glm::vec3 _position, const glm::vec3 _target, const glm::vec3 _up) const
 {
 	assertMsgReturnVoid(glm::length(_target - _position) > 0.0f, "The direction cannot be 0");
 	
@@ -157,7 +150,7 @@ void CameraSystem::SetViewTarget(CameraComponent& _camera, const glm::vec3& _pos
 	SetViewDirection(_camera, _position, _target - _position, _up);
 }
 
-void CameraSystem::SetViewRotation(CameraComponent& _camera, const glm::vec3& _position, const float _yaw, const float _pitch, const float _roll) const
+void CameraSystem::SetViewRotation(CameraComponent& _camera, const glm::vec3 _position, const float _yaw, const float _pitch, const float _roll) const
 {
 	const float c3 = glm::cos(_roll);
 	const float s3 = glm::sin(_roll);

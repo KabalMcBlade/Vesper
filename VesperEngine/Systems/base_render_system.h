@@ -4,18 +4,18 @@
 
 #pragma once
 
-#include "vulkan/vulkan.h"
-
 #include "Core/core_defines.h"
 
-#include "Components/graphics_components.h"
+#include "vulkan/vulkan.h"
 
-#include "Backend/device.h"
-#include "Backend/pipeline.h"
-#include "Backend/frame_info.h"
+#include <vector>
 
 
 VESPERENGINE_NAMESPACE_BEGIN
+
+class Device;
+struct IndexBufferComponent;
+struct VertexBufferComponent;
 
 class VESPERENGINE_API BaseRenderSystem
 {

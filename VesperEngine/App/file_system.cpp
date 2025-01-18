@@ -2,12 +2,12 @@
 // File: C:\Projects\Vesper\VesperEngine\App\file_system.cpp
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
-#include "file_system.h"
+#include "App/file_system.h"
 
 #include <filesystem>
 
-VESPERENGINE_NAMESPACE_BEGIN
 
+VESPERENGINE_NAMESPACE_BEGIN
 
 bool FileSystem::IsAbsolutePath(const std::string& _filePath)
 {

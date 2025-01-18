@@ -4,17 +4,6 @@
 
 #include "KeyboardMovementCameraController.h"
 
-#define GLM_FORCE_INTRINSICS
-//#define GLM_FORCE_SSE2		// or GLM_FORCE_SSE42 or else, but the above one use compiler to find out which one is enabled
-#define GLM_FORCE_ALIGNED
-#define GLM_FORCE_SWIZZLE
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define GLM_ENABLE_EXPERIMENTAL
-#include "glm/glm.hpp"
-#include "glm/ext.hpp"
-#include "gtx/quaternion.hpp"
-#include "gtx/euler_angles.hpp"
 
 VESPERENGINE_USING_NAMESPACE
 

@@ -2,25 +2,16 @@
 // File: C:\Projects\Vesper\VesperEngine\Systems\material_system.cpp
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
-#include "material_system.h"
-
-#include "Backend/offscreen_renderer.h"
-
-#include "App/vesper_app.h"
-#include "App/file_system.h"
-
+#include "Systems/material_system.h"
+#include "Systems/texture_system.h"
 #include "Systems/uniform_buffer.h"
 
+#include "Core/glm_config.h"
+
+#include "Backend/device.h"
+#include "Backend/buffer.h"
+
 #include "Utility/hash.h"
-#include "Utility/logger.h"
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include "glm/gtx/hash.hpp"
-
-
-#include "../stb/stb_image.h"
-
-#include <random>
 
 
 VESPERENGINE_NAMESPACE_BEGIN

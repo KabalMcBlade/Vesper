@@ -4,6 +4,14 @@
 
 #include "Systems/brdf_lut_generation_system.h"
 
+#include "Backend/device.h"
+#include "Backend/buffer.h"
+#include "Backend/model_data.h"
+#include "Backend/pipeline.h"
+
+#include "App/vesper_app.h"
+#include "App/config.h"
+
 
 VESPERENGINE_NAMESPACE_BEGIN
 

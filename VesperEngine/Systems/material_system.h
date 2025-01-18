@@ -4,27 +4,25 @@
 
 #pragma once
 
-#include "vulkan/vulkan.h"
-
 #include "Core/core_defines.h"
-
-#include "Backend/device.h"
-#include "Backend/buffer.h"
 
 #include "Backend/model_data.h"
 
-#include "Components/graphics_components.h"
-
-#include "Systems/texture_system.h"
-
-#include "ECS/ECS/ecs.h"
+#include "vulkan/vulkan.h"
 
 #include <any>
-#include "uniform_buffer.h"
+#include <string>
+#include <vector>
+#include <memory>
 
 
 VESPERENGINE_NAMESPACE_BEGIN
 
+class Buffer;
+class TextureSystem;
+class Device;
+
+struct MaterialData;
 
 /**
  * 2D Sampler list 
@@ -97,7 +95,7 @@ public:
 		bool _bIsTransparent,
 		MaterialType _type);
 
-	std::shared_ptr<MaterialData>  CreateMaterial(const DefaultMaterialType& _defaultMaterial);
+	std::shared_ptr<MaterialData> CreateMaterial(const DefaultMaterialType& _defaultMaterial);
 
 	VESPERENGINE_INLINE std::shared_ptr<MaterialData> GetMaterial(uint32 _index) const
 	{

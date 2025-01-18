@@ -4,20 +4,13 @@
 
 #pragma once
 
-#include "vulkan/vulkan.h"
-
 #include "Core/core_defines.h"
 
-#include "Backend/device.h"
-#include "Backend/buffer.h"
-#include "Backend/model_data.h"
-
 #include "Components/graphics_components.h"
-#include "Components/object_components.h"
 
-#include "Systems/material_system.h"
+#include "ECS/ECS/entity.h"
 
-#include "ECS/ECS/ecs.h"
+#include "vulkan/vulkan.h"
 
 #include <vector>
 #include <memory>
@@ -26,6 +19,12 @@
 VESPERENGINE_NAMESPACE_BEGIN
 
 class VesperApp;
+class Device;
+class MaterialSystem;
+class Buffer;
+
+struct ModelData;
+struct Vertex;
 
 class VESPERENGINE_API ModelSystem
 {

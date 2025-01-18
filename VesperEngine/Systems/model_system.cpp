@@ -2,17 +2,19 @@
 // File: C:\Projects\Vesper\VesperEngine\Systems\model_system.cpp
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
-#include "model_system.h"
-
-#include "Core/memory_copy.h"
+#include "Systems/model_system.h"
+#include "Systems/material_system.h"
 
 #include "Backend/device.h"
+#include "Backend/buffer.h"
+#include "Backend/model_data.h"
 
 #include "Components/pipeline_components.h"
+#include "Components/object_components.h"
 
 #include "App/vesper_app.h"
 
-#include "Utility/logger.h"
+#include "ECS/ECS/ecs.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN

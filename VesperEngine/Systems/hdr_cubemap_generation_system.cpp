@@ -4,9 +4,31 @@
 
 #include "Systems/hdr_cubemap_generation_system.h"
 
+#include "Core/glm_config.h"
+
+#include "Backend/pipeline.h"
+#include "Backend/device.h"
+#include "Backend/buffer.h"
+#include "Backend/descriptors.h"
+#include "Backend/model_data.h"
+
+#include "App/vesper_app.h"
+#include "App/config.h"
+
 
 VESPERENGINE_NAMESPACE_BEGIN
 
+glm::mat4 GetCubemapFaceViewMatrix(uint32 _face)
+{
+	static const glm::vec3 targets[] = {
+		{1, 0, 0},  {-1, 0, 0},  {0, 1, 0},  {0, -1, 0},  {0, 0, 1},  {0, 0, -1},
+	};
+	static const glm::vec3 ups[] = {
+		{0, -1, 0}, {0, -1, 0}, {0, 0, 1},  {0, 0, -1},  {0, -1, 0}, {0, -1, 0},
+	};
+
+	return glm::lookAt(glm::vec3(0.0f), targets[_face], ups[_face]);
+}
 
 HDRProjectionType HDRCubemapGenerationSystem::DetectHDRProjectionType(int32 _width, int32 _height)
 {
@@ -202,18 +224,6 @@ void HDRCubemapGenerationSystem::CreatePipeline(VkRenderPass _renderPass)
 		std::vector{ ShaderInfo{m_app.GetConfig().ShadersPath + "fullscreen.vert.spv", ShaderType::Vertex}, ShaderInfo{m_app.GetConfig().ShadersPath + "hdr_cubemap_shader.frag.spv", ShaderType::Fragment}, },
 		pipelineConfig
 	);
-}
-
-glm::mat4 HDRCubemapGenerationSystem::GetCubemapFaceViewMatrix(uint32 _face)
-{
-	static const glm::vec3 targets[] = {
-		{1, 0, 0},  {-1, 0, 0},  {0, 1, 0},  {0, -1, 0},  {0, 0, 1},  {0, 0, -1},
-	};
-	static const glm::vec3 ups[] = {
-		{0, -1, 0}, {0, -1, 0}, {0, 0, 1},  {0, 0, -1},  {0, -1, 0}, {0, -1, 0},
-	};
-
-	return glm::lookAt(glm::vec3(0.0f), targets[_face], ups[_face]);
 }
 
 VESPERENGINE_NAMESPACE_END

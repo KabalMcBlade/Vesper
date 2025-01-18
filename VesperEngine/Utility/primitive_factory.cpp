@@ -5,6 +5,7 @@
 #include "Utility/primitive_factory.h"
 #include "Utility/logger.h"
 
+#include "Backend/buffer.h"
 #include "Backend/model_data.h"
 
 #include "Systems/material_system.h"

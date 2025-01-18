@@ -4,30 +4,27 @@
 
 #pragma once
 
-#include "vulkan/vulkan.h"
-
-#include "App/vesper_app.h"
-
-#include "Backend/buffer.h"
-#include "Backend/device.h"
-#include "Backend/descriptors.h"
-#include "Backend/renderer.h"
-
 #include "Core/core_defines.h"
 
-#include "Components/graphics_components.h"
-#include "Components/camera_components.h"
+#include "Backend/descriptors.h"
 
-#include "Systems/base_render_system.h"
-#include "Systems/uniform_buffer.h"
+#include "ECS/ECS/entity.h"
 
-#include "ECS/ECS/ecs.h"
+#include "vulkan/vulkan.h"
 
-#include <functional>
+#include <vector>
+#include <memory>
 
 
 VESPERENGINE_NAMESPACE_BEGIN
 
+class VesperApp;
+class Device;
+class Renderer;
+class Buffer;
+
+struct FrameInfo;
+struct BufferComponent;
 
 class VESPERENGINE_API EntityHandlerSystem
 {

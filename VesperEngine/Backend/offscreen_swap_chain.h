@@ -4,20 +4,19 @@
 
 #pragma once
 
-#include "vulkan/vulkan.h"
-
 #include "Core/core_defines.h"
-
-#include "Backend/device.h"
-#include "Backend/buffer.h"
 
 #include "Components/graphics_components.h"
 
 #include "vma/vk_mem_alloc.h"
+
 #include <memory>
 
 
 VESPERENGINE_NAMESPACE_BEGIN
+
+class Device;
+class Buffer;
 
 /**
  * This is not a real swapchain, since does not need to be presented!

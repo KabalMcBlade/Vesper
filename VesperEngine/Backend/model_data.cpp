@@ -4,9 +4,6 @@
 
 #include "Backend/model_data.h"
 
-#include "vulkan/vulkan.h"
-
-
 VESPERENGINE_NAMESPACE_BEGIN
 
 std::vector<VkVertexInputBindingDescription> Vertex::GetBindingDescriptions()

@@ -6,16 +6,17 @@
 #include "Utility/hash.h"
 #include "Utility/logger.h"
 
+#include "Core/glm_config.h"
+
 #include "App/vesper_app.h"
+#include "App/config.h"
 #include "App/file_system.h"
 
 #include "Backend/device.h"
+#include "Backend/buffer.h"
 #include "Backend/model_data.h"
 
 #include "Systems/material_system.h"
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include "glm/gtx/hash.hpp"
 
 // Maybe to move in a specific loader system for obj
 #define TINYOBJLOADER_USE_MAPBOX_EARCUT	// robust triangulation

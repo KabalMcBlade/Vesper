@@ -2,7 +2,11 @@
 // File: C:\Projects\Vesper\VesperEngine\Backend\renderer.cpp
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
-#include "renderer.h"
+#include "Backend/renderer.h"
+#include "Backend/device.h"
+#include "Backend/descriptors.h"
+
+#include "App/window_handle.h"
 
 #include "Utility/logger.h"
 

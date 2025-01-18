@@ -4,12 +4,9 @@
 
 #pragma once
 
-#include "vulkan/vulkan.h"
-
 #include "Backend/device.h"
 
 #include "Core/core_defines.h"
-#include "Core/memory_copy.h"
 
 #include "vma/vk_mem_alloc.h"
 

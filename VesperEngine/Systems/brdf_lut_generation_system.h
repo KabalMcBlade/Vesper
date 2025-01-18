@@ -4,20 +4,21 @@
 
 #pragma once
 
-#include "vulkan/vulkan.h"
-
 #include "Core/core_defines.h"
-
-#include "Backend/device.h"
-#include "Backend/buffer.h"
-#include "Backend/model_data.h"
 
 #include "Systems/base_render_system.h"
 
-#include "App/vesper_app.h"
+#include "Components/graphics_components.h"
+
+#include "vma/vk_mem_alloc.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN
+
+class VesperApp;
+class Device;
+class Pipeline;
+class Buffer;
 
 class VESPERENGINE_API BRDFLUTGenerationSystem : public BaseRenderSystem
 {

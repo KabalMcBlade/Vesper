@@ -6,6 +6,7 @@
 
 #include "Core/core_defines.h"
 #include "Core/memory_copy.h"
+#include "Core/glm_config.h"
 
 #include "Backend/model_data.h"
 #include "Backend/pipeline.h"

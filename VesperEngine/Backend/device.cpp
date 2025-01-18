@@ -4,23 +4,16 @@
 
 #include "Backend/device.h"
 
+#include "App/window_handle.h"
+
 #include "Utility/logger.h"
 
-#include <cstring>
-#include <iostream>
+#include <string>
 #include <set>
 #include <unordered_set>
 
-//#define VMA_STATIC_VULKAN_FUNCTIONS VK_TRUE
-//#define VMA_DEBUG_GLOBAL_MUTEX VK_TRUE
-//#define VMA_RECORDING_ENABLED PICOVK_ENABLE_VALIDATION
-//#define VMA_VULKAN_VERSION 1003000
-#define VMA_IMPLEMENTATION
-#include "vma/vk_mem_alloc.h"
-
 
 VESPERENGINE_NAMESPACE_BEGIN
-
 
 // local callback functions
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
@@ -29,7 +22,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
 	const VkDebugUtilsMessengerCallbackDataEXT* _pCallbackData,
 	void* _pUserData)
 {
-	std::cerr << "validation layer: " << _pCallbackData->pMessage << std::endl;
+	LOG(Logger::ERROR, "Validation layer: ", _pCallbackData->pMessage);
 
 	return VK_FALSE;
 }

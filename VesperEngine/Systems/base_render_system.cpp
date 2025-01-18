@@ -4,6 +4,10 @@
 
 #include "Systems/base_render_system.h"
 
+#include "Backend/device.h"
+
+#include "Components/graphics_components.h"
+
 
 VESPERENGINE_NAMESPACE_BEGIN
 

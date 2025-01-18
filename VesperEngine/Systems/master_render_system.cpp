@@ -3,14 +3,22 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
 #include "Systems/master_render_system.h"
-
-#include "Backend/swap_chain.h"
-
 #include "Systems/uniform_buffer.h"
 
+#include "Backend/swap_chain.h"
+#include "Backend/buffer.h"
+#include "Backend/pipeline.h"
+#include "Backend/frame_info.h"
+#include "Backend/renderer.h"
+
+#include "Components/graphics_components.h"
+#include "Components/camera_components.h"
+
+#include "Systems/texture_system.h"
+#include "Systems/material_system.h"
+
+
 VESPERENGINE_NAMESPACE_BEGIN
-
-
 
 MasterRenderSystem::MasterRenderSystem(Device& _device, Renderer& _renderer)
 	: BaseRenderSystem(_device)

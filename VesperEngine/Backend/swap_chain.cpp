@@ -4,6 +4,8 @@
 
 #include "Backend/swap_chain.h"
 
+#include "Backend/device.h"
+
 #include "Utility/logger.h"
 
 #include <array>

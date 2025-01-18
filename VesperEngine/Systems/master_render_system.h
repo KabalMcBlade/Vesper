@@ -4,27 +4,27 @@
 
 #pragma once
 
-#include "vulkan/vulkan.h"
-
 #include "Core/core_defines.h"
 
 #include "Backend/device.h"
-#include "Backend/buffer.h"
 #include "Backend/descriptors.h"
-#include "Backend/pipeline.h"
-#include "Backend/frame_info.h"
-#include "Backend/renderer.h"
-
-#include "Components/graphics_components.h"
-#include "Components/camera_components.h"
 
 #include "Systems/base_render_system.h"
-#include "Systems/texture_system.h"
-#include "Systems/material_system.h"
+
+#include "vulkan/vulkan.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN
 
+class TextureSystem;
+class MaterialSystem;
+class DescriptorSetLayout;
+class Buffer;
+class Renderer;
+
+struct CameraComponent;
+struct FrameInfo;
+struct BufferComponent;
 
 /**
  * Vulkan Canonical Viewing Volume

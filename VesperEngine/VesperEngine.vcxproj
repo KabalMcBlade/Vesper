@@ -60,6 +60,7 @@
       <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(VULKAN_SDK)\Include\glm;$(VULKAN_SDK)\Include\vma;$(ProjectDir);$(ProjectDir)ThirdParty\TinyObjLoader;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -91,6 +92,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ $(IntDir
       <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(VULKAN_SDK)\Include\glm;$(VULKAN_SDK)\Include\vma;$(ProjectDir);$(ProjectDir)ThirdParty\TinyObjLoader;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -121,6 +123,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ $(IntDir
     <ClInclude Include="Backend\offscreen_renderer.h" />
     <ClInclude Include="Backend\offscreen_swap_chain.h" />
     <ClInclude Include="Components\pipeline_components.h" />
+    <ClInclude Include="Core\glm_config.h" />
     <ClInclude Include="ECS\ECS\component_manager.h" />
     <ClInclude Include="ECS\ECS\ecs.h" />
     <ClInclude Include="ECS\ECS\entity.h" />
@@ -177,6 +180,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ $(IntDir
     <ClCompile Include="Backend\renderer.cpp" />
     <ClCompile Include="Backend\model_data.cpp" />
     <ClCompile Include="Backend\descriptors.cpp" />
+    <ClCompile Include="Core\vma.cpp" />
     <ClCompile Include="ECS\ECS\component_manager.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>

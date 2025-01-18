@@ -7,7 +7,7 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-WindowHandle::WindowHandle(int32 _width, int32 _height, std::string _name)
+WindowHandle::WindowHandle(int32 _width, int32 _height, const std::string& _name)
 	: m_width{_width}
 	, m_height{ _height }
 	, m_name{ _name }

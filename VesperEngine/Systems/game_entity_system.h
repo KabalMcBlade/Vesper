@@ -4,16 +4,12 @@
 
 #pragma once
 
-#include "vulkan/vulkan.h"
-
 #include "Core/core_defines.h"
 
-#include "Components/graphics_components.h"
-#include "Components/object_components.h"
-#include "Components/camera_components.h"
-#include "Components/pipeline_components.h"
+#include "ECS/ECS/entity.h"
 
-#include "ECS/ECS/ecs.h"
+#include "vulkan/vulkan.h"
+
 
 VESPERENGINE_NAMESPACE_BEGIN
 

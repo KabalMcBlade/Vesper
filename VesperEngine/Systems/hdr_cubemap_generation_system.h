@@ -4,21 +4,25 @@
 
 #pragma once
 
-#include "vulkan/vulkan.h"
-
 #include "Core/core_defines.h"
-
-#include "Backend/device.h"
-#include "Backend/buffer.h"
-#include "Backend/descriptors.h"
-#include "Backend/model_data.h"
 
 #include "Systems/base_render_system.h"
 
-#include "App/vesper_app.h"
+#include "vulkan/vulkan.h"
+
+#include <memory>
+#include <vector>
 
 
 VESPERENGINE_NAMESPACE_BEGIN
+
+class VesperApp;
+class Device;
+class DescriptorPool;
+class DescriptorSetLayout;
+class Buffer;
+class Pipeline;
+struct BufferComponent;
 
 enum class HDRProjectionType : uint8
 {
@@ -56,16 +60,15 @@ public:
 
 private:
 	void CreatePipeline(VkRenderPass _renderPass);
-	glm::mat4 GetCubemapFaceViewMatrix(uint32 _face);
 
 private:
 	VesperApp& m_app;
 	std::unique_ptr<DescriptorPool> m_descriptorPool;
-	HDRProjectionType m_projectionType;
 	std::vector<BufferComponent> m_quadVertexBufferComponent;
 	std::unique_ptr<DescriptorSetLayout> m_hdrGenerationSetLayout;
 	std::unique_ptr<Pipeline> m_pipeline;
 	std::unique_ptr<Buffer> m_buffer;
+	HDRProjectionType m_projectionType;
 };
 
 VESPERENGINE_NAMESPACE_END

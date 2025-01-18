@@ -5,7 +5,6 @@
 #pragma once
 
 #include "Core/core_defines.h"
-#include "App/config.h"
 
 
 namespace ecs {
@@ -14,6 +13,8 @@ namespace ecs {
 }
 
 VESPERENGINE_NAMESPACE_BEGIN
+
+struct Config;
 
 class VESPERENGINE_API VesperApp
 {

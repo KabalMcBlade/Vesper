@@ -4,11 +4,8 @@
 
 #pragma once
 
-#include "vulkan/vulkan.h"
-
 #include "Core/core_defines.h"
 
-#include "Backend/device.h"
 #include "Backend/offscreen_swap_chain.h"
 
 #include "Components/graphics_components.h"
@@ -17,6 +14,9 @@
 
 
 VESPERENGINE_NAMESPACE_BEGIN
+
+class Device;
+class OffscreenSwapChain;
 
 class VESPERENGINE_API OffscreenRenderer final
 {

@@ -3,15 +3,14 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
 #include "Backend/offscreen_swap_chain.h"
-
-#include "Components/graphics_components.h"
+#include "Backend/device.h"
+#include "Backend/buffer.h"
 
 #include "Utility/logger.h"
 
-#include "../stb/stb_image_write.h"
+#include "ThirdParty/stb/stb_image_write.h"
 
-#include <vector>
-#include <cstring>
+#include <string>
 #include <stdexcept>
 #include <array>
 

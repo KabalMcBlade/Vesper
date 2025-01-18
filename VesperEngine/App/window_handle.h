@@ -17,7 +17,7 @@ VESPERENGINE_NAMESPACE_BEGIN
 class VESPERENGINE_API WindowHandle
 {
 public:
-	WindowHandle(int32 _width, int32 _height, std::string _name);
+	WindowHandle(int32 _width, int32 _height, const std::string& _name);
 	virtual ~WindowHandle();
 
 public:

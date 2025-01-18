@@ -4,16 +4,16 @@
 
 #pragma once
 
-#include "vulkan/vulkan.h"
-
 #include "Core/core_defines.h"
-#include "App/window_handle.h"
 
 #include "vma/vk_mem_alloc.h"
+
+#include <vector>
 
 
 VESPERENGINE_NAMESPACE_BEGIN
 
+class WindowHandle;
 
 struct SwapChainSupportDetails
 {
@@ -141,10 +141,10 @@ private:
 	constexpr uint32 GetVulkanApiVersion();
 
 private:
+	WindowHandle& m_window;
 	VkInstance m_instance;
 	VkDebugUtilsMessengerEXT m_debugMessenger;
 	VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
-	WindowHandle& m_window;
 	VkCommandPool m_commandPool;
 
 	VkDevice m_device;

@@ -3,8 +3,8 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
 #include "Backend/pipeline.h"
-
 #include "Backend/model_data.h"
+#include "Backend/device.h"
 
 #include <stdexcept>
 #include <fstream>

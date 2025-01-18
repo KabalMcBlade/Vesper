@@ -9,15 +9,6 @@
 #include <iostream>
 #include <chrono>
 
-#define GLM_FORCE_INTRINSICS
-//#define GLM_FORCE_SSE2		// or GLM_FORCE_SSE42 or else, but the above one use compiler to find out which one is enabled
-#define GLM_FORCE_ALIGNED
-#define GLM_FORCE_SWIZZLE
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define GLM_ENABLE_EXPERIMENTAL
-#include "glm/ext.hpp"
-#include "glm/glm.hpp"
 
 // ONLY IF USING VESPER ENGINE AS DLL, IF USING AS STATIC LIB, DON'T ADD!
 #if defined(VESPERENGINE_DLL_IMPORT)

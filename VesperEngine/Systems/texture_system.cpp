@@ -2,19 +2,19 @@
 // File: C:\Projects\Vesper\VesperEngine\Systems\texture_system.cpp
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
-#include "texture_system.h"
-
-#include "Backend/offscreen_renderer.h"
-
+#include "Systems/texture_system.h"
 #include "Systems/brdf_lut_generation_system.h"
 #include "Systems/hdr_cubemap_generation_system.h"
 
+#include "Backend/offscreen_renderer.h"
+#include "Backend/device.h"
+
+#include "App/vesper_app.h"
 #include "App/file_system.h"
 
 #include "Utility/hash.h"
-#include "Utility/logger.h"
 
-#include "../stb/stb_image.h"
+#include "ThirdParty/stb/stb_image.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN

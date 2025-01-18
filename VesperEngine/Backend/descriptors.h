@@ -4,10 +4,9 @@
 
 #pragma once
 
-#include "vulkan/vulkan.h"
-
 #include "Core/core_defines.h"
-#include "Backend/device.h"
+
+#include "vulkan/vulkan.h"
 
 #include <unordered_map>
 #include <memory>
@@ -15,6 +14,8 @@
 
 
 VESPERENGINE_NAMESPACE_BEGIN
+
+class Device;
 
 //////////////////////////////////////////////////////////////////////////
 class VESPERENGINE_API DescriptorSetLayout

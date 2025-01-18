@@ -4,21 +4,11 @@
 
 #pragma once
 
-#include "vulkan/vulkan.h"
-
 #include "Core/core_defines.h"
 
-#include "Backend/pipeline.h"
-#include "Backend/frame_info.h"
-#include "Backend/descriptors.h"
-#include "Backend/renderer.h"
-
 #include "Systems/base_render_system.h"
-#include "Systems/master_render_system.h"
 
-#include "Components/graphics_components.h"
-
-#include "App/vesper_app.h"
+#include "vulkan/vulkan.h"
 
 #include <memory>
 #include <vector>
@@ -35,6 +25,16 @@
 // set 2: material descriptor set layout
 
 VESPERENGINE_NAMESPACE_BEGIN
+
+class VesperApp;
+class Device;
+class Renderer;
+class Pipeline;
+class DescriptorSetLayout;
+class Buffer;
+
+struct FrameInfo;
+struct BufferComponent;
 
 class VESPERENGINE_API OpaqueRenderSystem final : public BaseRenderSystem
 {

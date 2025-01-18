@@ -2,12 +2,19 @@
 // File: C:\Projects\Vesper\VesperEngine\Systems\entity_handler_system.cpp
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
+#include "Systems/uniform_buffer.h"			// NOTE: dependency forced, compiler need to know the size of the UBOs used here first
 #include "Systems/entity_handler_system.h"
 
 #include "Backend/buffer.h"
 #include "Backend/swap_chain.h"
+#include "Backend/frame_info.h"
+#include "Backend/device.h"
+#include "Backend/renderer.h"
 
-#include "Utility/logger.h"
+#include "Components/graphics_components.h"
+#include "Components/object_components.h"
+
+#include "App/vesper_app.h"
 
 #include "ECS/ECS/ecs.h"
 

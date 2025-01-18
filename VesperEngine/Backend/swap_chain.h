@@ -4,16 +4,17 @@
 
 #pragma once
 
-#include "vulkan/vulkan.h"
-
 #include "Core/core_defines.h"
-#include "Backend/device.h"
 
 #include "vma/vk_mem_alloc.h"
+
 #include <memory>
+#include <vector>
 
 
 VESPERENGINE_NAMESPACE_BEGIN
+
+class Device;
 
 class VESPERENGINE_API SwapChain final
 {

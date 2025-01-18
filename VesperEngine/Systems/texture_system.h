@@ -5,22 +5,24 @@
 #pragma once
 
 
-#include "vulkan/vulkan.h"
-
 #include "Core/core_defines.h"
 
-#include "Backend/device.h"
 #include "Backend/buffer.h"
 #include "Backend/model_data.h"
 
-#include "App/vesper_app.h"
+#include "vulkan/vulkan.h"
 
 #include <unordered_map>
 #include <memory>
 #include <array>
+#include <string>
+#include <vector>
 
 
 VESPERENGINE_NAMESPACE_BEGIN
+
+class VesperApp;
+class Device;
 
 class VESPERENGINE_API TextureSystem final
 {

@@ -5,13 +5,16 @@
 #pragma once
 
 #include "Core/core_defines.h"
-#include "Backend/device.h"
+
+#include "vma/vk_mem_alloc.h"
 
 #include <vector>
 #include <string>
 
 
 VESPERENGINE_NAMESPACE_BEGIN
+
+class Device;
 
 struct PipelineConfigInfo
 {

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Core/core_defines.h"
+#include "Core/glm_config.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN

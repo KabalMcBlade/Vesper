@@ -2,9 +2,16 @@
 // File: C:\Projects\Vesper\VesperEngine\Systems\game_entity_system.cpp
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
-#include "game_entity_system.h"
+#include "Systems/game_entity_system.h"
+
+#include "Components/graphics_components.h"
+#include "Components/object_components.h"
+#include "Components/camera_components.h"
+#include "Components/pipeline_components.h"
 
 #include "App/vesper_app.h"
+
+#include "ECS/ECS/ecs.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN

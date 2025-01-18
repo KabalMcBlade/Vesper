@@ -4,18 +4,23 @@
 
 #pragma once
 
-#include "vulkan/vulkan.h"
-
 #include "Core/core_defines.h"
-#include "Backend/device.h"
+
 #include "Backend/swap_chain.h"
-#include "Backend/descriptors.h"
-#include "App/window_handle.h"
 
 #include "vma/vk_mem_alloc.h"
 
+#include <memory>
+#include <vector>
+#include <unordered_map>
+
 
 VESPERENGINE_NAMESPACE_BEGIN
+
+class SwapChain;
+class DescriptorPool;
+class Device;
+class WindowHandle;
 
 class VESPERENGINE_API Renderer final
 {
