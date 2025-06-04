@@ -74,7 +74,7 @@ private:
 private:
 	VesperApp& m_app;
 	Renderer& m_renderer;
-        std::unique_ptr<Pipeline> m_transparentPipeline;
+    std::unique_ptr<Pipeline> m_transparentPipeline;
 	std::unique_ptr<DescriptorSetLayout> m_materialSetLayout;
 
 	std::unique_ptr<Buffer> m_buffer;
