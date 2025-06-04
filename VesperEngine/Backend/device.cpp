@@ -598,7 +598,9 @@ SwapChainSupportDetails Device::QuerySwapChainSupport(VkPhysicalDevice _device)
 
 constexpr uint32 Device::GetVulkanApiVersion()
 {
-#if VMA_VULKAN_VERSION == 1003000
+#if VMA_VULKAN_VERSION == 1004000
+	return VK_API_VERSION_1_4;
+#elif VMA_VULKAN_VERSION == 1003000
 	return VK_API_VERSION_1_3;
 #elif VMA_VULKAN_VERSION == 1002000
 	return VK_API_VERSION_1_2;
