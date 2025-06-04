@@ -12,7 +12,6 @@
 #include "ViewerApp.h"
 
 #include <cstdlib>
-#include <iostream>
 #include <stdexcept>
 
 VESPERENGINE_USING_NAMESPACE
