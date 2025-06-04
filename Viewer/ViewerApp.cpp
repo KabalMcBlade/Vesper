@@ -48,10 +48,15 @@ ViewerApp::ViewerApp(Config& _config) :
 
 	m_masterRenderSystem = std::make_unique<MasterRenderSystem>(*m_device, *m_renderer);
 
-	m_opaqueRenderSystem = std::make_unique<OpaqueRenderSystem>(*this , *m_device, *m_renderer,
-		m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
-		m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
-		m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
+        m_opaqueRenderSystem = std::make_unique<OpaqueRenderSystem>(*this , *m_device, *m_renderer,
+                m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
+                m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
+                m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
+
+        m_transparentRenderSystem = std::make_unique<TransparentRenderSystem>(*this , *m_device, *m_renderer,
+                m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
+                m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
+                m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
 		
 	m_cameraSystem = std::make_unique<CameraSystem>(*this);
 	m_objLoader = std::make_unique<ObjLoader>(*this , *m_device, *m_materialSystem);
@@ -113,16 +118,18 @@ ViewerApp::ViewerApp(Config& _config) :
 	m_gameManager->LoadCameraEntities();
 	m_gameManager->LoadGameEntities();
 
-	m_opaqueRenderSystem->MaterialBinding();
+        m_opaqueRenderSystem->MaterialBinding();
+        m_transparentRenderSystem->MaterialBinding();
 }
 
 ViewerApp::~ViewerApp()
 {
 	m_gameManager->UnloadGameEntities();
 	m_texturelSystem->Cleanup();
-	m_materialSystem->Cleanup();
-	m_opaqueRenderSystem->Cleanup();
-	m_masterRenderSystem->Cleanup();
+        m_materialSystem->Cleanup();
+        m_opaqueRenderSystem->Cleanup();
+        m_transparentRenderSystem->Cleanup();
+        m_masterRenderSystem->Cleanup();
 }
 
 void ViewerApp::Run()
@@ -158,7 +165,8 @@ void ViewerApp::Run()
 			
 			m_gameManager->Update(frameInfo);
 
-			m_opaqueRenderSystem->Update(frameInfo);
+                        m_opaqueRenderSystem->Update(frameInfo);
+                        m_transparentRenderSystem->Update(frameInfo);
 
 			const float aspectRatio = m_renderer->GetAspectRatio();
 			m_cameraSystem->Update(aspectRatio);
@@ -176,7 +184,8 @@ void ViewerApp::Run()
 
 			m_masterRenderSystem->BindGlobalDescriptor(frameInfo);
 
-			m_opaqueRenderSystem->Render(frameInfo);
+                        m_opaqueRenderSystem->Render(frameInfo);
+                        m_transparentRenderSystem->Render(frameInfo);
 
 			m_renderer->EndSwapChainRenderPass(commandBuffer);
 			m_renderer->EndFrame();

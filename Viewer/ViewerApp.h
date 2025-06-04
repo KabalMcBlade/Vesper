@@ -39,8 +39,9 @@ private:
 	std::unique_ptr<ModelSystem> m_modelSystem;
 	std::unique_ptr<TextureSystem> m_texturelSystem;
 	std::unique_ptr<MaterialSystem> m_materialSystem;
-	std::unique_ptr<MasterRenderSystem> m_masterRenderSystem;
-	std::unique_ptr<OpaqueRenderSystem> m_opaqueRenderSystem;
+        std::unique_ptr<MasterRenderSystem> m_masterRenderSystem;
+        std::unique_ptr<OpaqueRenderSystem> m_opaqueRenderSystem;
+        std::unique_ptr<TransparentRenderSystem> m_transparentRenderSystem;
 
 	std::unique_ptr<CameraSystem> m_cameraSystem;
 	std::unique_ptr<ObjLoader> m_objLoader;

@@ -168,6 +168,9 @@
     <ClInclude Include="Systems\opaque_render_system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Systems\transparent_render_system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Components\pipeline_components.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -267,6 +270,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Systems\opaque_render_system.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Systems\transparent_render_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Systems\entity_handler_system.cpp">

@@ -43,7 +43,7 @@ The different settings for linkage are, in Windows and Visual Studio 2022:<br />
 - ECS core
 - Latest Vulkan API
 - Automatically support bindless and standard binding resource (textures and buffers)
-- Opaque pipeline render system (for now just this)
+- Opaque and transparent pipeline render systems
 - Push constant and specialization constant support integrated
 - Extendable render pipeline
 
