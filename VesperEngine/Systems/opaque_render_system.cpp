@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
 #include "Systems/opaque_render_system.h"
+#include "Systems/color_tint_system.h"
 
 #include "Core/glm_config.h"
 
@@ -32,11 +33,6 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-// TEST PUSH CONSTAT!
-struct ColorTintPushConstantData
-{
-	glm::vec3 ColorTint{ 1.0f };
-};
 
 OpaqueRenderSystem::OpaqueRenderSystem(VesperApp& _app, Device& _device, Renderer& _renderer,
 	VkDescriptorSetLayout _globalDescriptorSetLayout,
@@ -48,9 +44,7 @@ OpaqueRenderSystem::OpaqueRenderSystem(VesperApp& _app, Device& _device, Rendere
 {
 	m_buffer = std::make_unique<Buffer>(m_device);
 
-	m_app.GetComponentManager().RegisterComponent<ColorTintPushConstantData>();
-
-	if (m_device.IsBindlessResourcesSupported())
+        if (m_device.IsBindlessResourcesSupported())
 	{
 		// in this case is just for the indices!
 		m_materialSetLayout = DescriptorSetLayout::Builder(_device)
@@ -105,10 +99,7 @@ OpaqueRenderSystem::OpaqueRenderSystem(VesperApp& _app, Device& _device, Rendere
 	CreatePipeline(m_renderer.GetSwapChainRenderPass());
 }
 
-OpaqueRenderSystem::~OpaqueRenderSystem()
-{
-	m_app.GetComponentManager().UnregisterComponent<ColorTintPushConstantData>();
-}
+OpaqueRenderSystem::~OpaqueRenderSystem() = default;
 
 void OpaqueRenderSystem::MaterialBinding()
 {
@@ -167,12 +158,6 @@ void OpaqueRenderSystem::MaterialBinding()
 		}
 	}
 
-	// TEST PUSH CONSTANT ONLY!
-	// I add this here, because I do not want actually this in the opaque pipeline, but is for test only! 
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<PipelineOpaqueComponent>(entityManager, componentManager))
-	{
-		componentManager.AddComponent<ColorTintPushConstantData>(gameEntity);
-	}
 }
 
 void OpaqueRenderSystem::Update(const FrameInfo& _frameInfo)
@@ -189,16 +174,6 @@ void OpaqueRenderSystem::Update(const FrameInfo& _frameInfo)
 		renderComponent.ModelMatrix = renderComponent.ModelMatrix * glm::toMat4(transformComponent.Rotation);
 		renderComponent.ModelMatrix = glm::scale(renderComponent.ModelMatrix, transformComponent.Scale);
 
-		ColorTintPushConstantData& pushComponent = componentManager.GetComponent<ColorTintPushConstantData>(gameEntity);
-
-		// Use a sine wave to create smooth transitions for R, G, and B
-		static const float speed = 1.0f;
-		static float frameTimeUpdated = 0.0f;
-		const float r = 0.5f * (std::sin(speed * frameTimeUpdated) + 1.0f); // Oscillates between 0 and 1
-		const float g = 0.5f * (std::sin(speed * frameTimeUpdated + glm::pi<float>() / 3.0f) + 1.0f); // Offset by 120 degrees
-		const float b = 0.5f * (std::sin(speed * frameTimeUpdated + 2.0f * glm::pi<float>() / 3.0f) + 1.0f); // Offset by 240 degrees
-		frameTimeUpdated += _frameInfo.FrameTime;
-		pushComponent.ColorTint = glm::vec3(r, g, b);
 	}
 }
 
