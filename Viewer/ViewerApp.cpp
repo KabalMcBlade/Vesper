@@ -48,15 +48,15 @@ ViewerApp::ViewerApp(Config& _config) :
 
     m_masterRenderSystem = std::make_unique<MasterRenderSystem>(*m_device, *m_renderer);
 
-	m_transparentRenderSystem = std::make_unique<TransparentRenderSystem>(*this, *m_device, *m_renderer,
-		m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
-		m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
-		m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
-
     m_opaqueRenderSystem = std::make_unique<OpaqueRenderSystem>(*this , *m_device, *m_renderer,
             m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
             m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
             m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
+
+	m_transparentRenderSystem = std::make_unique<TransparentRenderSystem>(*this, *m_device, *m_renderer,
+		m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
+		m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
+		m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
 
     m_colorTintSystem = std::make_unique<ColorTintSystem>(*this);
 		
@@ -120,8 +120,8 @@ ViewerApp::ViewerApp(Config& _config) :
     m_gameManager->LoadCameraEntities();
     m_gameManager->LoadGameEntities();
 
-	m_transparentRenderSystem->MaterialBinding();
     m_opaqueRenderSystem->MaterialBinding();
+	m_transparentRenderSystem->MaterialBinding();
     m_colorTintSystem->AddColorComponents();
 }
 
@@ -168,8 +168,8 @@ void ViewerApp::Run()
 			
 			m_gameManager->Update(frameInfo);
 
-			m_transparentRenderSystem->Update(frameInfo);
             m_opaqueRenderSystem->Update(frameInfo);
+			m_transparentRenderSystem->Update(frameInfo);
             m_colorTintSystem->Update(frameInfo);
 
 			const float aspectRatio = m_renderer->GetAspectRatio();
@@ -188,8 +188,8 @@ void ViewerApp::Run()
 
 			m_masterRenderSystem->BindGlobalDescriptor(frameInfo);
 
-			m_transparentRenderSystem->Render(frameInfo);
             m_opaqueRenderSystem->Render(frameInfo);
+			m_transparentRenderSystem->Render(frameInfo);
 
 			m_renderer->EndSwapChainRenderPass(commandBuffer);
 			m_renderer->EndFrame();

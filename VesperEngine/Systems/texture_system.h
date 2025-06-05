@@ -43,8 +43,8 @@ public:
 	// Phong default textures
 	static const DefaultTextureType DiffuseTexture;
 	static const DefaultTextureType SpecularTexture;
-        static const DefaultTextureType AmbientTexture;
-        static const DefaultTextureType AlphaTexture;
+    static const DefaultTextureType AmbientTexture;
+    static const DefaultTextureType AlphaTexture;
 
 	// PBR default textures
 	static const DefaultTextureType RoughnessTexture;
