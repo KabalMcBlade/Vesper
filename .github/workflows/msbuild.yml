@@ -83,7 +83,7 @@ jobs:
 
       - name: Build solution
         run: |
-          msbuild Vesper.sln /p:Configuration=Release /m /p:VULKAN_SDK="$env:VULKAN_SDK"
+          msbuild Vesper.sln /p:Configuration=Release /p:VULKAN_SDK="$env:VULKAN_SDK" /m
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
