@@ -53,7 +53,7 @@ public:
 		VkDescriptorSetLayout _globalDescriptorSetLayout,
 		VkDescriptorSetLayout _entityDescriptorSetLayout,
 		VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout = VK_NULL_HANDLE);
-        ~OpaqueRenderSystem() = default;
+    ~OpaqueRenderSystem() = default;
 
 	OpaqueRenderSystem(const OpaqueRenderSystem&) = delete;
 	OpaqueRenderSystem& operator=(const OpaqueRenderSystem&) = delete;

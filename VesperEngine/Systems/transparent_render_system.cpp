@@ -80,14 +80,12 @@ TransparentRenderSystem::TransparentRenderSystem(VesperApp& _app, Device& _devic
     CreatePipeline(m_renderer.GetSwapChainRenderPass());
 }
 
-TransparentRenderSystem::~TransparentRenderSystem() = default;
-
 void TransparentRenderSystem::MaterialBinding()
 {
     ecs::EntityManager& entityManager = m_app.GetEntityManager();
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-    for (auto gameEntity : ecs::IterateEntitiesWithAll<PhongMaterialComponent>(entityManager, componentManager))
+    for (auto gameEntity : ecs::IterateEntitiesWithAll<PipelineTransparentComponent, PhongMaterialComponent>(entityManager, componentManager))
     {
         PhongMaterialComponent& materialComponent = m_app.GetComponentManager().GetComponent<PhongMaterialComponent>(gameEntity);
         materialComponent.BoundDescriptorSet.resize(SwapChain::kMaxFramesInFlight);
@@ -145,7 +143,7 @@ void TransparentRenderSystem::Update(const FrameInfo& _frameInfo)
     ecs::EntityManager& entityManager = m_app.GetEntityManager();
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-    for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent, TransformComponent, PipelineTransparentComponent>(entityManager, componentManager))
+    for (auto gameEntity : ecs::IterateEntitiesWithAll<PipelineTransparentComponent, RenderComponent, TransformComponent>(entityManager, componentManager))
     {
         TransformComponent& transformComponent = componentManager.GetComponent<TransformComponent>(gameEntity);
         RenderComponent& renderComponent = componentManager.GetComponent<RenderComponent>(gameEntity);
@@ -206,7 +204,7 @@ void TransparentRenderSystem::Render(const FrameInfo& _frameInfo)
 
     entitiesGroupedAndCollected.clear();
 
-    entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent, ColorTintPushConstantData>(entityManager, componentManager, &PhongMaterialComponent::Index);
+    entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineTransparentComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent, ColorTintPushConstantData>(entityManager, componentManager, &PhongMaterialComponent::Index);
 
     for (const auto& [key, entities] : entitiesGroupedAndCollected)
     {

@@ -44,7 +44,7 @@ OpaqueRenderSystem::OpaqueRenderSystem(VesperApp& _app, Device& _device, Rendere
 {
 	m_buffer = std::make_unique<Buffer>(m_device);
 
-        if (m_device.IsBindlessResourcesSupported())
+    if (m_device.IsBindlessResourcesSupported())
 	{
 		// in this case is just for the indices!
 		m_materialSetLayout = DescriptorSetLayout::Builder(_device)
@@ -99,14 +99,12 @@ OpaqueRenderSystem::OpaqueRenderSystem(VesperApp& _app, Device& _device, Rendere
 	CreatePipeline(m_renderer.GetSwapChainRenderPass());
 }
 
-OpaqueRenderSystem::~OpaqueRenderSystem() = default;
-
 void OpaqueRenderSystem::MaterialBinding()
 {
 	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<PhongMaterialComponent>(entityManager, componentManager))
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<PipelineOpaqueComponent, PhongMaterialComponent>(entityManager, componentManager))
 	{
 		PhongMaterialComponent& materialComponent = m_app.GetComponentManager().GetComponent<PhongMaterialComponent>(gameEntity);
 		materialComponent.BoundDescriptorSet.resize(SwapChain::kMaxFramesInFlight);
@@ -233,7 +231,7 @@ void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 
 
 	// 2. Render only entities having Vertex buffers only
-	entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent, ColorTintPushConstantData>(entityManager, componentManager, &PhongMaterialComponent::Index);
+	entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineOpaqueComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent, ColorTintPushConstantData>(entityManager, componentManager, &PhongMaterialComponent::Index);
 
 	for (const auto& [key, entities] : entitiesGroupedAndCollected)
 	{
