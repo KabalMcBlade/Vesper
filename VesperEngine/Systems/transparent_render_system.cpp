@@ -22,8 +22,6 @@
 
 #include "ECS/ECS/ecs.h"
 
-#include <array>
-#include <stdexcept>
 
 VESPERENGINE_NAMESPACE_BEGIN
 
@@ -50,6 +48,7 @@ TransparentRenderSystem::TransparentRenderSystem(VesperApp& _app, Device& _devic
                 .AddBinding(kPhongDiffuseTextureBindingIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
                 .AddBinding(kPhongSpecularTextureBindingIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
                 .AddBinding(kPhongNormalTextureBindingIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+                .AddBinding(kPhongAlphaTextureBindingIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
                 .AddBinding(kPhongUniformBufferBindingIndex, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
                 .Build();
     }
@@ -131,6 +130,7 @@ void TransparentRenderSystem::MaterialBinding()
                         .WriteImage(kPhongDiffuseTextureBindingIndex, &materialComponent.DiffuseImageInfo)
                         .WriteImage(kPhongSpecularTextureBindingIndex, &materialComponent.SpecularImageInfo)
                         .WriteImage(kPhongNormalTextureBindingIndex, &materialComponent.NormalImageInfo)
+                        .WriteImage(kPhongAlphaTextureBindingIndex, &materialComponent.AlphaImageInfo)
                         .WriteBuffer(kPhongUniformBufferBindingIndex, &materialComponent.UniformBufferInfo)
                         .Build(materialComponent.BoundDescriptorSet[i]);
             }

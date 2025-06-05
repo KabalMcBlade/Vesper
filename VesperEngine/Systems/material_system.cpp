@@ -18,13 +18,14 @@ VESPERENGINE_NAMESPACE_BEGIN
 
 const MaterialSystem::DefaultMaterialType MaterialSystem::DefaultPhongMaterial =
 {
-	"_DefaultPhongMaterial_",
-	{
-		"",
-		"",
-		"",
-		"",
-	},
+        "_DefaultPhongMaterial_",
+        {
+                "",
+                "",
+                "",
+                "",
+                "",
+        },
 	{ 
 		glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f },
 		glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f },
@@ -124,19 +125,20 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
 
 		break;
 	}
-	case vesper::MaterialType::Phong:
-	default:
-	{
-		const int32 texCount = 4;
-		const int32 valCount = 5;
-		material->Textures.resize(texCount);
-		assert(_texturePaths.size() == texCount && "Texture array passed has not the amount of texture expected for material type!");
-		assert(_values.size() == valCount && "Values array passed has not the amount of values expected for material type!");
+        case vesper::MaterialType::Phong:
+        default:
+        {
+                const int32 texCount = 5;
+                const int32 valCount = 5;
+                material->Textures.resize(texCount);
+                assert(_texturePaths.size() == texCount && "Texture array passed has not the amount of texture expected for material type!");
+                assert(_values.size() == valCount && "Values array passed has not the amount of values expected for material type!");
 
-		material->Textures[0] = _texturePaths[0].empty() ? m_textureSystem.LoadTexture(TextureSystem::AmbientTexture) : m_textureSystem.LoadTexture(_texturePaths[0]);
-		material->Textures[1] = _texturePaths[1].empty() ? m_textureSystem.LoadTexture(TextureSystem::DiffuseTexture) : m_textureSystem.LoadTexture(_texturePaths[1]);
-		material->Textures[2] = _texturePaths[2].empty() ? m_textureSystem.LoadTexture(TextureSystem::SpecularTexture) : m_textureSystem.LoadTexture(_texturePaths[2]);
-		material->Textures[3] = _texturePaths[3].empty() ? m_textureSystem.LoadTexture(TextureSystem::NormalTexture) : m_textureSystem.LoadTexture(_texturePaths[3]);
+                material->Textures[0] = _texturePaths[0].empty() ? m_textureSystem.LoadTexture(TextureSystem::AmbientTexture) : m_textureSystem.LoadTexture(_texturePaths[0]);
+                material->Textures[1] = _texturePaths[1].empty() ? m_textureSystem.LoadTexture(TextureSystem::DiffuseTexture) : m_textureSystem.LoadTexture(_texturePaths[1]);
+                material->Textures[2] = _texturePaths[2].empty() ? m_textureSystem.LoadTexture(TextureSystem::SpecularTexture) : m_textureSystem.LoadTexture(_texturePaths[2]);
+                material->Textures[3] = _texturePaths[3].empty() ? m_textureSystem.LoadTexture(TextureSystem::NormalTexture) : m_textureSystem.LoadTexture(_texturePaths[3]);
+                material->Textures[4] = _texturePaths[4].empty() ? m_textureSystem.LoadTexture(TextureSystem::AlphaTexture) : m_textureSystem.LoadTexture(_texturePaths[4]);
 
 		//const uint32 minUboAlignment = static_cast<uint32>(m_device.GetLimits().minUniformBufferOffsetAlignment);
 		material->UniformBuffer = m_buffer->Create<BufferComponent>(

@@ -27,7 +27,8 @@ public:
     static constexpr uint32 kPhongDiffuseTextureBindingIndex = 1u;
     static constexpr uint32 kPhongSpecularTextureBindingIndex = 2u;
     static constexpr uint32 kPhongNormalTextureBindingIndex = 3u;
-    static constexpr uint32 kPhongUniformBufferBindingIndex = 4u;
+    static constexpr uint32 kPhongAlphaTextureBindingIndex = 4u;
+    static constexpr uint32 kPhongUniformBufferBindingIndex = 5u;
 
     static constexpr uint32 kPhongUniformBufferOnlyBindingIndex = 0u;
 

@@ -41,7 +41,7 @@ struct VESPERENGINE_ALIGN16 PhongMaterialUBO
 
 	alignFloat Shininess{ 0.5f };
 
-	alignInt32 TextureIndices[4] = { -1, -1, -1, -1 };	// Indices for [Ambient, Diffuse, Specular, Normal]
+	alignInt32 TextureIndices[5] = { -1, -1, -1, -1, -1 };	// Indices for [Ambient, Diffuse, Specular, Normal, Alpha]
 };
 
 struct VESPERENGINE_ALIGN16 PBRMaterialUBO

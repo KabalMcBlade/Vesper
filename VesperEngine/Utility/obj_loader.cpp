@@ -72,6 +72,7 @@ std::shared_ptr<MaterialData> CreateMaterial(MaterialSystem& _materialSystem, co
 				_tinyMaterial.diffuse_texname.empty() ? "" : _texturePath + _tinyMaterial.diffuse_texname,
 				_tinyMaterial.specular_texname.empty() ? "" : _texturePath + _tinyMaterial.specular_texname,
 				_tinyMaterial.normal_texname.empty() ? "" : _texturePath + _tinyMaterial.normal_texname
+                                _tinyMaterial.alpha_texname.empty() ? "" : _texturePath + _tinyMaterial.alpha_texname,
 			},
 			{
 				glm::vec4(_tinyMaterial.ambient[0], _tinyMaterial.ambient[1], _tinyMaterial.ambient[2], 1.0f),
@@ -230,7 +231,7 @@ std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& 
 					/**
 					 * OBJ File Format: Texture coordinates in OBJ files are typically in the range [0, 1], 
 					 * but their origin is in the bottom-left corner of the texture.
-					 * Vulkan: The origin of Vulkan’s texture coordinate system is in the top-left corner of the texture. 
+					 * Vulkan: The origin of Vulkanâ€™s texture coordinate system is in the top-left corner of the texture. 
 					 * This discrepancy causes textures to appear flipped vertically when mapped onto your geometry.
 					 */
 					vertex.UV =

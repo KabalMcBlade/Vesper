@@ -50,11 +50,15 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 			phongMaterialComponent.SpecularImageInfo.imageView = _data->Material->Textures[2]->ImageView;
 			phongMaterialComponent.SpecularImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-			phongMaterialComponent.NormalImageInfo.sampler = _data->Material->Textures[3]->Sampler;
-			phongMaterialComponent.NormalImageInfo.imageView = _data->Material->Textures[3]->ImageView;
-			phongMaterialComponent.NormalImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                        phongMaterialComponent.NormalImageInfo.sampler = _data->Material->Textures[3]->Sampler;
+                        phongMaterialComponent.NormalImageInfo.imageView = _data->Material->Textures[3]->ImageView;
+                        phongMaterialComponent.NormalImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-			phongMaterialComponent.UniformBufferInfo = m_buffer->GetDescriptorInfo(_data->Material->UniformBuffer);
+                        phongMaterialComponent.AlphaImageInfo.sampler = _data->Material->Textures[4]->Sampler;
+                        phongMaterialComponent.AlphaImageInfo.imageView = _data->Material->Textures[4]->ImageView;
+                        phongMaterialComponent.AlphaImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+                        phongMaterialComponent.UniformBufferInfo = m_buffer->GetDescriptorInfo(_data->Material->UniformBuffer);
 		}
 		break;
 	case MaterialType::PBR:

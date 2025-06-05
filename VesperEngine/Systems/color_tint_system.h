@@ -3,7 +3,6 @@
 #include "Core/core_defines.h"
 #include "Core/glm_config.h"
 
-#include <memory>
 
 VESPERENGINE_NAMESPACE_BEGIN
 

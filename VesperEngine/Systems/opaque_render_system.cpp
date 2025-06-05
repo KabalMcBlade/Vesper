@@ -28,7 +28,6 @@
 
 #include <array>
 #include <stdexcept>
-#include <iostream>
 
 
 VESPERENGINE_NAMESPACE_BEGIN
@@ -44,13 +43,14 @@ OpaqueRenderSystem::OpaqueRenderSystem(VesperApp& _app, Device& _device, Rendere
 {
 	m_buffer = std::make_unique<Buffer>(m_device);
 
-    if (m_device.IsBindlessResourcesSupported())
-	{
-		// in this case is just for the indices!
-		m_materialSetLayout = DescriptorSetLayout::Builder(_device)
-			.AddBinding(kPhongUniformBufferOnlyBindingIndex, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
-			.Build();
-	}
+                m_materialSetLayout = DescriptorSetLayout::Builder(_device)
+                        .AddBinding(kPhongAmbientTextureBindingIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+                        .AddBinding(kPhongDiffuseTextureBindingIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+                        .AddBinding(kPhongSpecularTextureBindingIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+                        .AddBinding(kPhongNormalTextureBindingIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+                        .AddBinding(kPhongAlphaTextureBindingIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+                        .AddBinding(kPhongUniformBufferBindingIndex, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+                        .Build();
 	else
 	{
 		m_materialSetLayout = DescriptorSetLayout::Builder(_device)
@@ -148,10 +148,11 @@ void OpaqueRenderSystem::MaterialBinding()
 				DescriptorWriter(*m_materialSetLayout, *m_renderer.GetDescriptorPool())
 					.WriteImage(kPhongAmbientTextureBindingIndex, &materialComponent.AmbientImageInfo)
 					.WriteImage(kPhongDiffuseTextureBindingIndex, &materialComponent.DiffuseImageInfo)
-					.WriteImage(kPhongSpecularTextureBindingIndex, &materialComponent.SpecularImageInfo)
-					.WriteImage(kPhongNormalTextureBindingIndex, &materialComponent.NormalImageInfo)
-					.WriteBuffer(kPhongUniformBufferBindingIndex, &materialComponent.UniformBufferInfo)
-					.Build(materialComponent.BoundDescriptorSet[i]);
+                                        .WriteImage(kPhongSpecularTextureBindingIndex, &materialComponent.SpecularImageInfo)
+                                        .WriteImage(kPhongNormalTextureBindingIndex, &materialComponent.NormalImageInfo)
+                                        .WriteImage(kPhongAlphaTextureBindingIndex, &materialComponent.AlphaImageInfo)
+                                        .WriteBuffer(kPhongUniformBufferBindingIndex, &materialComponent.UniformBufferInfo)
+                                        .Build(materialComponent.BoundDescriptorSet[i]);
 			}
 		}
 	}

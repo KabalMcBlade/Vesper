@@ -9,6 +9,8 @@
 
 #include "ECS/ECS/ecs.h"
 
+#include <cmath>
+
 VESPERENGINE_NAMESPACE_BEGIN
 
 ColorTintSystem::ColorTintSystem(VesperApp& _app)
