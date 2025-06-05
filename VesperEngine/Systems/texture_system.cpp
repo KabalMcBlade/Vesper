@@ -45,10 +45,18 @@ const TextureSystem::DefaultTextureType TextureSystem::SpecularTexture =
 
 const TextureSystem::DefaultTextureType TextureSystem::AmbientTexture =
 {
-	"_AmbientTexture_",
-	{ 128, 128, 128, 255 },
-	VK_FORMAT_R8G8B8A8_SRGB,
-	1, 1
+        "_AmbientTexture_",
+        { 128, 128, 128, 255 },
+        VK_FORMAT_R8G8B8A8_SRGB,
+        1, 1
+};
+
+const TextureSystem::DefaultTextureType TextureSystem::AlphaTexture =
+{
+        "_AlphaTexture_",
+        { 255, 255, 255, 255 },
+        VK_FORMAT_R8G8B8A8_UNORM,
+        1, 1
 };
 
 const TextureSystem::DefaultTextureType TextureSystem::RoughnessTexture =

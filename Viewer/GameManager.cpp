@@ -182,7 +182,7 @@ void GameManager::LoadGameEntities()
 	//////////////////////////////////////////////////////////////////////////
 	// A_blonde_twintailed_g_1228205950_texture
 	{
-		std::vector<std::unique_ptr<ModelData>> characterDataList = m_objLoader.LoadModel("A_blonde_twintailed_g_1228205950_texture.obj");
+		std::vector<std::unique_ptr<ModelData>> characterDataList = m_objLoader.LoadModel("Laboratory_cabinet_NakedSingularity.obj");
 		for (auto& characterData : characterDataList)
 		{
 			ecs::Entity character = m_gameEntitySystem.CreateGameEntity(EntityType::Renderable);

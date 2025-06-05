@@ -30,14 +30,14 @@ layout(std140, set = 0, binding = 1) uniform LightUBO
 
 layout(set = 1, binding = 0) uniform sampler2D textures[];
 
-layout(std140, set = 1, binding = 1) uniform MaterialData 
+layout(std140, set = 1, binding = 1) uniform MaterialData
 {
     vec4 AmbientColor;
     vec4 DiffuseColor;
     vec4 SpecularColor;
     vec4 EmissionColor;
     float Shininess;
-    int TextureIndices[4]; // Indices for the textures: [Ambient, Diffuse, Specular, Normal] (Value of -1 indicates it's missing)
+    int TextureIndices[5]; // Indices for the textures: [Ambient, Diffuse, Specular, Normal, Alpha] (Value of -1 indicates it's missing)
 } materials[];
 
 layout(std140, set = 3, binding = 0) uniform MaterialIndexUBO
@@ -52,14 +52,16 @@ layout(set = 2, binding = 1) uniform sampler2D diffuseTexture;
 layout(set = 2, binding = 2) uniform sampler2D specularTexture;
 layout(set = 2, binding = 3) uniform sampler2D normalTexture;
 
-layout(std140, set = 2, binding = 4) uniform MaterialData 
+layout(set = 2, binding = 4) uniform sampler2D alphaTexture;
+
+layout(std140, set = 2, binding = 5) uniform MaterialData
 {
     vec4 AmbientColor;
     vec4 DiffuseColor;
     vec4 SpecularColor;
     vec4 EmissionColor;
     float Shininess;
-    int TextureIndices[4]; // Indices for the textures: [Ambient, Diffuse, Specular, Normal] (Value of -1 means does not exist, >= 0 exist)
+    int TextureIndices[5]; // Indices for the textures: [Ambient, Diffuse, Specular, Normal, Alpha] (Value of -1 means does not exist, >= 0 exist)
 } material;
 
 #endif
@@ -89,6 +91,7 @@ void main()
     bool bHasDiffuseTexture = materials[matIdx].TextureIndices[1] != -1;
     bool bHasSpecularTexture = materials[matIdx].TextureIndices[2] != -1;
     bool bHasNormalTexture = materials[matIdx].TextureIndices[3] != -1;
+    bool bHasAlphaTexture = materials[matIdx].TextureIndices[4] != -1;
 #else
     vec4 ambientColor = material.AmbientColor;
     vec4 diffuseColor = material.DiffuseColor;
@@ -99,6 +102,20 @@ void main()
     bool bHasDiffuseTexture = material.TextureIndices[1] != -1;
     bool bHasSpecularTexture = material.TextureIndices[2] != -1;
     bool bHasNormalTexture = material.TextureIndices[3] != -1;
+    bool bHasAlphaTexture = material.TextureIndices[4] != -1;
+#endif
+
+    float alpha = diffuseColor.a;
+#if BINDLESS == 1
+    if (bHasAlphaTexture)
+    {
+        alpha *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[4])], fragUV).r;
+    }
+#else
+    if (bHasAlphaTexture)
+    {
+        alpha *= texture(alphaTexture, fragUV).r;
+    }
 #endif
 
     vec3 normal = normalize(fragNormalWorld);
@@ -180,5 +197,5 @@ void main()
     combinedLighting.rgb *= pushConstants.colorTint;
 
     // Clamp Final Result
-    outColor = clamp(combinedLighting * kBrightnessFactor, 0.0, 1.0);
+    outColor = clamp(vec4(combinedLighting.rgb, alpha) * kBrightnessFactor, 0.0, 1.0);
 }

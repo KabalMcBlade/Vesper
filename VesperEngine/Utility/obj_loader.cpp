@@ -71,7 +71,8 @@ std::shared_ptr<MaterialData> CreateMaterial(MaterialSystem& _materialSystem, co
 				_tinyMaterial.ambient_texname.empty() ? "" : _texturePath + _tinyMaterial.ambient_texname,
 				_tinyMaterial.diffuse_texname.empty() ? "" : _texturePath + _tinyMaterial.diffuse_texname,
 				_tinyMaterial.specular_texname.empty() ? "" : _texturePath + _tinyMaterial.specular_texname,
-				_tinyMaterial.normal_texname.empty() ? "" : _texturePath + _tinyMaterial.normal_texname
+				_tinyMaterial.normal_texname.empty() ? "" : _texturePath + _tinyMaterial.normal_texname,
+                _tinyMaterial.alpha_texname.empty() ? "" : _texturePath + _tinyMaterial.alpha_texname,
 			},
 			{
 				glm::vec4(_tinyMaterial.ambient[0], _tinyMaterial.ambient[1], _tinyMaterial.ambient[2], 1.0f),
@@ -80,7 +81,7 @@ std::shared_ptr<MaterialData> CreateMaterial(MaterialSystem& _materialSystem, co
 				glm::vec4(_tinyMaterial.emission[0], _tinyMaterial.emission[1], _tinyMaterial.emission[2], 1.0f),
 				_tinyMaterial.shininess
 			},
-			_tinyMaterial.dissolve < 1.0f,
+			_tinyMaterial.dissolve < 1.0f || !_tinyMaterial.alpha_texname.empty(),
 			MaterialType::Phong
 		);
 	}
@@ -164,28 +165,28 @@ std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& 
 
 		const auto& material_ids = shape.mesh.material_ids;
 
-		for (size_t faceIndex = 0; faceIndex < shape.mesh.indices.size() / 3; ++faceIndex)
+		// Assign material once per shape using the first face
+		if (hasMaterials && !material_ids.empty())
 		{
-			if (hasMaterials)
+			const int32 materialID = material_ids.front();
+			if (materialID >= 0 && materialID < static_cast<int32>(materials.size()))
 			{
-				const int32 materialID = material_ids[faceIndex];
-
-				if (materialID >= 0 && materialID < static_cast<int32>(materials.size()))
-				{
-					const auto& tinyMaterial = materials[materialID];
-					model->Material = CreateMaterial(m_materialSystem, tinyMaterial, texturePath);
-				}
-				else
-				{
-					LOG(Logger::ERROR, "Material ID out of range for face: ", faceIndex);
-				}
+				const auto& tinyMaterial = materials[materialID];
+				model->Material = CreateMaterial(m_materialSystem, tinyMaterial, texturePath);
 			}
 			else
 			{
-				// No materials available; assign a default
+				LOG(Logger::ERROR, "Material ID out of range for shape: ", shape.name);
 				model->Material = m_materialSystem.CreateMaterial(MaterialSystem::DefaultPhongMaterial);
 			}
-			
+		}
+		else
+		{
+			model->Material = m_materialSystem.CreateMaterial(MaterialSystem::DefaultPhongMaterial);
+		}
+
+		for (size_t faceIndex = 0; faceIndex < shape.mesh.indices.size() / 3; ++faceIndex)
+		{			
 			for (int32 vertexIndex = 0; vertexIndex < 3; ++vertexIndex)
 			{
 				const auto& index = shape.mesh.indices[faceIndex * 3 + vertexIndex];
@@ -230,7 +231,7 @@ std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& 
 					/**
 					 * OBJ File Format: Texture coordinates in OBJ files are typically in the range [0, 1], 
 					 * but their origin is in the bottom-left corner of the texture.
-					 * Vulkan: The origin of Vulkan’s texture coordinate system is in the top-left corner of the texture. 
+					 * Vulkan: The origin of Vulkanâ€™s texture coordinate system is in the top-left corner of the texture. 
 					 * This discrepancy causes textures to appear flipped vertically when mapped onto your geometry.
 					 */
 					vertex.UV =

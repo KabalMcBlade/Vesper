@@ -77,6 +77,7 @@ struct PhongMaterialComponent : public MaterialComponent
 	VkDescriptorImageInfo SpecularImageInfo{};
 	VkDescriptorImageInfo AmbientImageInfo{};
 	VkDescriptorImageInfo NormalImageInfo{};
+	VkDescriptorImageInfo AlphaImageInfo{};
 	VkDescriptorBufferInfo UniformBufferInfo{};	// colors/values
 };
 

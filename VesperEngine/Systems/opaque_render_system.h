@@ -41,9 +41,10 @@ class VESPERENGINE_API OpaqueRenderSystem final : public BaseRenderSystem
 public:
 	static constexpr uint32 kPhongAmbientTextureBindingIndex = 0u;
 	static constexpr uint32 kPhongDiffuseTextureBindingIndex = 1u;
-	static constexpr uint32 kPhongSpecularTextureBindingIndex = 2u;
-	static constexpr uint32 kPhongNormalTextureBindingIndex = 3u;
-	static constexpr uint32 kPhongUniformBufferBindingIndex = 4u;
+        static constexpr uint32 kPhongSpecularTextureBindingIndex = 2u;
+        static constexpr uint32 kPhongNormalTextureBindingIndex = 3u;
+        static constexpr uint32 kPhongAlphaTextureBindingIndex = 4u;
+        static constexpr uint32 kPhongUniformBufferBindingIndex = 5u;
 
 	// used during bindless, but is not the bindless index, is the standard binding buffer, which contains the index for the bindless material
 	static constexpr uint32 kPhongUniformBufferOnlyBindingIndex = 0u;
@@ -53,7 +54,7 @@ public:
 		VkDescriptorSetLayout _globalDescriptorSetLayout,
 		VkDescriptorSetLayout _entityDescriptorSetLayout,
 		VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout = VK_NULL_HANDLE);
-	~OpaqueRenderSystem();
+    ~OpaqueRenderSystem() = default;
 
 	OpaqueRenderSystem(const OpaqueRenderSystem&) = delete;
 	OpaqueRenderSystem& operator=(const OpaqueRenderSystem&) = delete;
