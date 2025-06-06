@@ -167,6 +167,7 @@ void ViewerApp::Run()
 		{
 			const int32 frameIndex = m_renderer->GetFrameIndex();
 
+                        m_masterRenderSystem->BindGlobalDescriptor(frameInfo);
             FrameInfo frameInfo { frameIndex, frameTime, commandBuffer,
                     m_masterRenderSystem->GetGlobalDescriptorSet(frameIndex),
                     m_entityHandlerSystem->GetEntityDescriptorSet(frameIndex),

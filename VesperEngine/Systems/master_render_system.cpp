@@ -16,6 +16,7 @@
 
 #include "Systems/texture_system.h"
 #include "Systems/material_system.h"
+#include "Systems/color_tint_system.h"
 
 
 VESPERENGINE_NAMESPACE_BEGIN
@@ -25,7 +26,9 @@ MasterRenderSystem::MasterRenderSystem(Device& _device, Renderer& _renderer)
 	, m_renderer(_renderer)
 {
 	// Start from here:
-	m_buffer = std::make_unique<Buffer>(m_device);
+    m_buffer = std::make_unique<Buffer>(m_device);
+    m_defaultColorTintSubsystem = std::make_unique<DefaultColorTintSubsystem>();
+    AddRenderSubsystem(m_defaultColorTintSubsystem.get());
 
 	// will be valid only if device support it
 	if (m_device.IsBindlessResourcesSupported())
