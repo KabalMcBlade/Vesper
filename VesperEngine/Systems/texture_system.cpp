@@ -442,9 +442,18 @@ std::shared_ptr<TextureData> TextureSystem::LoadCubemap(const std::string& _hdrP
 
 		offscreenRenderer->EndOffscreenSwapChainRenderPass(commandBuffer);
 	}
-	offscreenRenderer->EndFrame();
+        offscreenRenderer->EndFrame();
 
-	texture->Sampler = CreateTextureSampler();
+        m_device.TransitionImageLayout(
+                texture->Image,
+                format,
+                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                0,
+                6,
+                1);
+
+        texture->Sampler = CreateTextureSampler();
 
 	// Cleanup HDR image and view
 	vkDestroyImageView(m_device.GetDevice(), hdrImageView, nullptr);

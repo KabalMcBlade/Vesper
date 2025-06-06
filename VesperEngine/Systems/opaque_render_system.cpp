@@ -179,8 +179,31 @@ void OpaqueRenderSystem::Update(const FrameInfo& _frameInfo)
 
 void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 {
-	// this bind only the opaque pipeline
-	m_opaquePipeline->Bind(_frameInfo.CommandBuffer);
+    // this bind only the opaque pipeline
+    m_opaquePipeline->Bind(_frameInfo.CommandBuffer);
+
+    vkCmdBindDescriptorSets(
+            _frameInfo.CommandBuffer,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            m_pipelineLayout,
+            0,
+            1,
+            &_frameInfo.GlobalDescriptorSet,
+            0,
+            nullptr);
+
+    if (m_device.IsBindlessResourcesSupported())
+    {
+        vkCmdBindDescriptorSets(
+                _frameInfo.CommandBuffer,
+                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                m_pipelineLayout,
+                1,
+                1,
+                &_frameInfo.BindlessDescriptorSet,
+                0,
+                nullptr);
+    }
 
 	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();

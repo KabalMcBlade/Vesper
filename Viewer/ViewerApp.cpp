@@ -199,8 +199,6 @@ void ViewerApp::Run()
 			//	render shadow casting objects
 			// end off screen shadow pass
 
-			m_masterRenderSystem->BindGlobalDescriptor(frameInfo);
-
             m_renderer->BeginSwapChainRenderPass(commandBuffer);
 
             m_skyboxRenderSystem->Render(frameInfo, activeCameraComponent);
