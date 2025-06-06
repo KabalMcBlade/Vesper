@@ -17,6 +17,7 @@ class Pipeline;
 class DescriptorSetLayout;
 class Buffer;
 class RenderSubsystem;
+class DefaultColorTintSubsystem;
 
 struct FrameInfo;
 struct BufferComponent;
@@ -65,6 +66,8 @@ private:
 
     uint32 m_entitySetIndex = 1;
     uint32 m_materialSetIndex = 2;
+
+    std::unique_ptr<DefaultColorTintSubsystem> m_defaultColorTintSubsystem;
 
 };
 

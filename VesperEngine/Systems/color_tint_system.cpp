@@ -76,4 +76,16 @@ void ColorTintSystem::Execute(VkCommandBuffer _commandBuffer, VkPipelineLayout _
             &pushComponent);
 }
 
+void DefaultColorTintSubsystem::Execute(VkCommandBuffer _commandBuffer, VkPipelineLayout _pipelineLayout, ecs::Entity) const
+{
+    ColorTintPushConstantData defaultData{};
+    vkCmdPushConstants(
+            _commandBuffer,
+            _pipelineLayout,
+            VK_SHADER_STAGE_FRAGMENT_BIT,
+            0,
+            sizeof(ColorTintPushConstantData),
+            &defaultData);
+}
+
 VESPERENGINE_NAMESPACE_END

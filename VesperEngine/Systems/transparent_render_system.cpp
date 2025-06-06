@@ -1,5 +1,6 @@
 #include "Systems/transparent_render_system.h"
 #include "Systems/render_subsystem.h"
+#include "Systems/color_tint_system.h"
 
 #include "Core/glm_config.h"
 
@@ -37,6 +38,11 @@ TransparentRenderSystem::TransparentRenderSystem(VesperApp& _app, Device& _devic
     for (RenderSubsystem* subsystem : _subsystems)
     {
         AddRenderSubsystem(subsystem);
+    }
+    if (m_renderSubsystems.empty())
+    {
+        m_defaultColorTintSubsystem = std::make_unique<DefaultColorTintSubsystem>();
+        AddRenderSubsystem(m_defaultColorTintSubsystem.get());
     }
     m_buffer = std::make_unique<Buffer>(m_device);
 
