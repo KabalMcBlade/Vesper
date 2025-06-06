@@ -9,6 +9,7 @@
 #include "GameManager.h"
 #include "KeyboardMovementCameraController.h"
 #include "MouseLookCameraController.h"
+#include "Systems/skybox_render_system.h"
 
 #include <memory>
 #include <vector>
@@ -43,6 +44,7 @@ private:
     std::unique_ptr<OpaqueRenderSystem> m_opaqueRenderSystem;
     std::unique_ptr<TransparentRenderSystem> m_transparentRenderSystem;
     std::unique_ptr<ColorTintSystem> m_colorTintSystem;
+    std::unique_ptr<SkyboxRenderSystem> m_skyboxRenderSystem;
 
 	std::unique_ptr<CameraSystem> m_cameraSystem;
 	std::unique_ptr<ObjLoader> m_objLoader;

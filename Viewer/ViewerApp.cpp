@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
 #include "ViewerApp.h"
+#include "Systems/skybox_render_system.h"
 
 #include <array>
 #include <stdexcept>
@@ -99,10 +100,17 @@ ViewerApp::ViewerApp(Config& _config) :
 	const std::string cubemapHdrTexturesPath = GetConfig().TexturesPath + "misty_pines_4k.hdr";
 	LOG(Logger::INFO, "Loading Cubemap texture: ", cubemapHdrTexturesPath);
 
-	std::shared_ptr<TextureData> cubeMapHdr = m_texturelSystem->LoadCubemap(cubemapHdrTexturesPath);
-	LOG(Logger::INFO, "Cubemap HDR loaded!");
+        std::shared_ptr<TextureData> cubeMapHdr = m_texturelSystem->LoadCubemap(cubemapHdrTexturesPath);
+        LOG(Logger::INFO, "Cubemap HDR loaded!");
 
-	LOG_NL();
+        m_skyboxRenderSystem = std::make_unique<SkyboxRenderSystem>(
+                *this,
+                *m_device,
+                *m_renderer,
+                m_masterRenderSystem->GetGlobalDescriptorSetLayout());
+        m_skyboxRenderSystem->SetCubemapTexture(cubeMapHdr);
+
+        LOG_NL();
 
 	//////////////////////////////////////////////////////////////////////////
 	// Game side initialization
@@ -137,6 +145,10 @@ ViewerApp::~ViewerApp()
     m_opaqueRenderSystem->Cleanup();
     m_transparentRenderSystem->Cleanup();
     m_masterRenderSystem->Cleanup();
+    if (m_skyboxRenderSystem)
+    {
+        m_skyboxRenderSystem->Cleanup();
+    }
 }
 
 void ViewerApp::Run()
@@ -193,6 +205,11 @@ void ViewerApp::Run()
 			m_masterRenderSystem->BindGlobalDescriptor(frameInfo);
 
             m_renderer->BeginSwapChainRenderPass(commandBuffer);
+
+            if (m_skyboxRenderSystem)
+            {
+                m_skyboxRenderSystem->Render(frameInfo, activeCameraComponent);
+            }
 
             m_opaqueRenderSystem->Render(frameInfo);
             m_transparentRenderSystem->Render(frameInfo);
