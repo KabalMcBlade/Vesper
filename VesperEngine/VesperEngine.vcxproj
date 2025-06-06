@@ -144,6 +144,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ $(IntDir
     <ClInclude Include="Systems\hdr_cubemap_generation_system.h" />
     <ClInclude Include="Systems\material_system.h" />
     <ClInclude Include="Systems\opaque_render_system.h" />
+    <ClInclude Include="Systems\render_subsystem.h" />
     <ClInclude Include="Systems\transparent_render_system.h" />
     <ClInclude Include="Systems\color_tint_system.h" />
     <ClInclude Include="Systems\texture_system.h" />
