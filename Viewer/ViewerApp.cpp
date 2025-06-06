@@ -100,7 +100,8 @@ ViewerApp::ViewerApp(Config& _config) :
 	const std::string cubemapHdrTexturesPath = GetConfig().TexturesPath + "misty_pines_4k.hdr";
 	LOG(Logger::INFO, "Loading Cubemap texture: ", cubemapHdrTexturesPath);
 
-    std::shared_ptr<TextureData> cubeMapHdr = m_texturelSystem->LoadCubemap(cubemapHdrTexturesPath);
+                m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
+                m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
     LOG(Logger::INFO, "Cubemap HDR loaded!");
 
     m_skyboxRenderSystem = std::make_unique<SkyboxRenderSystem>(
@@ -200,6 +201,8 @@ void ViewerApp::Run()
 			// end off screen shadow pass
 
             m_renderer->BeginSwapChainRenderPass(commandBuffer);
+
+            m_masterRenderSystem->BindGlobalDescriptor(frameInfo);
 
             m_skyboxRenderSystem->Render(frameInfo, activeCameraComponent);
 

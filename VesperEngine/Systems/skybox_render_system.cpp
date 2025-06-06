@@ -12,20 +12,22 @@
 #include "App/vesper_app.h"
 #include "App/config.h"
 
-#include <array>
+SkyboxRenderSystem::SkyboxRenderSystem(VesperApp& _app,
+                                       Device& _device,
+                                       Renderer& _renderer,
+                                       VkDescriptorSetLayout _globalDescriptorSetLayout,
+                                       VkDescriptorSetLayout _bindlessDescriptorSetLayout)
 
-VESPERENGINE_NAMESPACE_BEGIN
+    std::vector<VkDescriptorSetLayout> setLayouts{ _globalDescriptorSetLayout };
+    if (m_device.IsBindlessResourcesSupported())
+    {
+        setLayouts.push_back(_bindlessDescriptorSetLayout);
+    }
+    setLayouts.push_back(m_textureSetLayout->GetDescriptorSetLayout());
+    CreatePipelineLayout(setLayouts);
 
-namespace
-{
-    const std::array<Vertex, 36> kVertices = {
-        // left
-        Vertex{{-10.f,-10.f,-10.f}}, Vertex{{-10.f,10.f,10.f}}, Vertex{{-10.f,-10.f,10.f}},
-        Vertex{{-10.f,-10.f,-10.f}}, Vertex{{-10.f,10.f,-10.f}}, Vertex{{-10.f,10.f,10.f}},
-        // right
-        Vertex{{10.f,-10.f,-10.f}}, Vertex{{10.f,10.f,10.f}}, Vertex{{10.f,-10.f,10.f}},
-        Vertex{{10.f,-10.f,-10.f}}, Vertex{{10.f,10.f,-10.f}}, Vertex{{10.f,10.f,10.f}},
-        // top
+    uint32_t textureSetIndex = m_device.IsBindlessResourcesSupported() ? 2 : 1;
+        textureSetIndex,
         Vertex{{-10.f,-10.f,-10.f}}, Vertex{{10.f,-10.f,10.f}}, Vertex{{-10.f,-10.f,10.f}},
         Vertex{{-10.f,-10.f,-10.f}}, Vertex{{10.f,-10.f,-10.f}}, Vertex{{10.f,-10.f,10.f}},
         // bottom

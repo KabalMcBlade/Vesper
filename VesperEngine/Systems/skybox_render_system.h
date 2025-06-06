@@ -1,7 +1,11 @@
 #pragma once
 
 #include "Core/core_defines.h"
-#include "Components/graphics_components.h"
+    SkyboxRenderSystem(VesperApp& _app,
+                       Device& _device,
+                       Renderer& _renderer,
+                       VkDescriptorSetLayout _globalDescriptorSetLayout,
+                       VkDescriptorSetLayout _bindlessDescriptorSetLayout);
 #include "Systems/base_render_system.h"
 
 VESPERENGINE_NAMESPACE_BEGIN
