@@ -186,6 +186,15 @@
     <ClInclude Include="Core\glm_config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Systems\transparent_render_system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\color_tint_system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\render_subsystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Backend\pipeline.cpp">
@@ -279,6 +288,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Core\vma.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Systems\transparent_render_system.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Systems\color_tint_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

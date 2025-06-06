@@ -7,7 +7,7 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-class RenderSubsystem
+class VESPERENGINE_API RenderSubsystem
 {
 public:
     virtual ~RenderSubsystem() = default;
