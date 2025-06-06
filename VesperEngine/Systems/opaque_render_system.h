@@ -32,6 +32,7 @@ class Renderer;
 class Pipeline;
 class DescriptorSetLayout;
 class Buffer;
+class RenderSubsystem;
 
 struct FrameInfo;
 struct BufferComponent;
@@ -50,10 +51,11 @@ public:
 	static constexpr uint32 kPhongUniformBufferOnlyBindingIndex = 0u;
 
 public:
-	OpaqueRenderSystem(VesperApp& _app, Device& _device, Renderer& _renderer,
-		VkDescriptorSetLayout _globalDescriptorSetLayout,
-		VkDescriptorSetLayout _entityDescriptorSetLayout,
-		VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout = VK_NULL_HANDLE);
+        OpaqueRenderSystem(VesperApp& _app, Device& _device, Renderer& _renderer,
+                VkDescriptorSetLayout _globalDescriptorSetLayout,
+                VkDescriptorSetLayout _entityDescriptorSetLayout,
+                VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout = VK_NULL_HANDLE,
+                const std::vector<RenderSubsystem*>& _subsystems = {});
     ~OpaqueRenderSystem() = default;
 
 	OpaqueRenderSystem(const OpaqueRenderSystem&) = delete;
@@ -78,12 +80,13 @@ private:
 	std::unique_ptr<Pipeline> m_opaquePipeline;
 	std::unique_ptr<DescriptorSetLayout> m_materialSetLayout;
 
-	std::unique_ptr<Buffer> m_buffer;
+        std::unique_ptr<Buffer> m_buffer;
 
-	std::vector<BufferComponent> m_bindlessBindingMaterialIndexUbos;
+        std::vector<BufferComponent> m_bindlessBindingMaterialIndexUbos;
 
-	uint32 m_entitySetIndex = 1;
-	uint32 m_materialSetIndex = 2;
+        uint32 m_entitySetIndex = 1;
+        uint32 m_materialSetIndex = 2;
+
 };
 
 VESPERENGINE_NAMESPACE_END

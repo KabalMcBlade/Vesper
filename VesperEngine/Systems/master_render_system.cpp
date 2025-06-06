@@ -24,14 +24,7 @@ MasterRenderSystem::MasterRenderSystem(Device& _device, Renderer& _renderer)
 	: BaseRenderSystem(_device)
 	, m_renderer(_renderer)
 {
-	// IS ONLY FOR TESTING!!!
-	// THIS IS HERE BECAUSE THERE IS ONE IN THE OPAQUE RENDERER AND IT IS IN NEED FOR COMMON PIPELINE LAYOUT!
-	VkPushConstantRange pushConstantRange{};
-	pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	pushConstantRange.offset = 0;
-	pushConstantRange.size = sizeof(glm::vec3);
-	m_pushConstants.push_back(pushConstantRange);
-	//////////////////////////////////////////////////////////////////////////
+
 
 	// Start from here:
 	m_buffer = std::make_unique<Buffer>(m_device);

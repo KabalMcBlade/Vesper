@@ -1,5 +1,5 @@
 #include "Systems/transparent_render_system.h"
-#include "Systems/color_tint_system.h"
+#include "Systems/render_subsystem.h"
 
 #include "Core/glm_config.h"
 
@@ -28,11 +28,16 @@ VESPERENGINE_NAMESPACE_BEGIN
 TransparentRenderSystem::TransparentRenderSystem(VesperApp& _app, Device& _device, Renderer& _renderer,
         VkDescriptorSetLayout _globalDescriptorSetLayout,
         VkDescriptorSetLayout _entityDescriptorSetLayout,
-        VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout)
+        VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout,
+        const std::vector<RenderSubsystem*>& _subsystems)
         : BaseRenderSystem{ _device }
         , m_app(_app)
         , m_renderer(_renderer)
 {
+    for (RenderSubsystem* subsystem : _subsystems)
+    {
+        AddRenderSubsystem(subsystem);
+    }
     m_buffer = std::make_unique<Buffer>(m_device);
 
     if (m_device.IsBindlessResourcesSupported())
@@ -53,12 +58,6 @@ TransparentRenderSystem::TransparentRenderSystem(VesperApp& _app, Device& _devic
                 .Build();
     }
 
-    VkPushConstantRange pushConstantRange{};
-    pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-    pushConstantRange.offset = 0;
-    pushConstantRange.size = sizeof(ColorTintPushConstantData);
-
-    m_pushConstants.push_back(pushConstantRange);
 
     if (m_device.IsBindlessResourcesSupported())
     {
@@ -161,7 +160,7 @@ void TransparentRenderSystem::Render(const FrameInfo& _frameInfo)
     ecs::EntityManager& entityManager = m_app.GetEntityManager();
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-    auto entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineTransparentComponent, DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent, ColorTintPushConstantData>(entityManager, componentManager, &PhongMaterialComponent::Index);
+    auto entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineTransparentComponent, DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent>(entityManager, componentManager, &PhongMaterialComponent::Index);
 
     for (const auto& [key, entities] : entitiesGroupedAndCollected)
     {
@@ -183,7 +182,6 @@ void TransparentRenderSystem::Render(const FrameInfo& _frameInfo)
             const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(entityCollected);
             const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(entityCollected);
             const IndexBufferComponent& indexBufferComponent = componentManager.GetComponent<IndexBufferComponent>(entityCollected);
-            const ColorTintPushConstantData& pushComponent = componentManager.GetComponent<ColorTintPushConstantData>(entityCollected);
 
             vkCmdBindDescriptorSets(
                     _frameInfo.CommandBuffer,
@@ -196,7 +194,10 @@ void TransparentRenderSystem::Render(const FrameInfo& _frameInfo)
                     &dynamicOffsetComponent.DynamicOffset
             );
 
-            PushConstants(_frameInfo.CommandBuffer, 0, &pushComponent);
+            for (RenderSubsystem* subsystem : m_renderSubsystems)
+            {
+                subsystem->Execute(_frameInfo.CommandBuffer, m_pipelineLayout, entityCollected);
+            }
             Bind(vertexBufferComponent, indexBufferComponent, _frameInfo.CommandBuffer);
             Draw(indexBufferComponent, _frameInfo.CommandBuffer);
         }
@@ -204,7 +205,7 @@ void TransparentRenderSystem::Render(const FrameInfo& _frameInfo)
 
     entitiesGroupedAndCollected.clear();
 
-    entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineTransparentComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent, ColorTintPushConstantData>(entityManager, componentManager, &PhongMaterialComponent::Index);
+    entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineTransparentComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent>(entityManager, componentManager, &PhongMaterialComponent::Index);
 
     for (const auto& [key, entities] : entitiesGroupedAndCollected)
     {
@@ -225,7 +226,6 @@ void TransparentRenderSystem::Render(const FrameInfo& _frameInfo)
         {
             const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(entityCollected);
             const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(entityCollected);
-            const ColorTintPushConstantData& pushComponent = componentManager.GetComponent<ColorTintPushConstantData>(entityCollected);
 
             vkCmdBindDescriptorSets(
                     _frameInfo.CommandBuffer,
@@ -238,7 +238,10 @@ void TransparentRenderSystem::Render(const FrameInfo& _frameInfo)
                     &dynamicOffsetComponent.DynamicOffset
             );
 
-            PushConstants(_frameInfo.CommandBuffer, 0, &pushComponent);
+            for (RenderSubsystem* subsystem : m_renderSubsystems)
+            {
+                subsystem->Execute(_frameInfo.CommandBuffer, m_pipelineLayout, entityCollected);
+            }
             Bind(vertexBufferComponent, _frameInfo.CommandBuffer);
             Draw(vertexBufferComponent, _frameInfo.CommandBuffer);
         }

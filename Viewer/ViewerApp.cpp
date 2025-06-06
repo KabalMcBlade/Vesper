@@ -48,17 +48,21 @@ ViewerApp::ViewerApp(Config& _config) :
 
     m_masterRenderSystem = std::make_unique<MasterRenderSystem>(*m_device, *m_renderer);
 
+    m_colorTintSystem = std::make_unique<ColorTintSystem>(*this);
+
+    std::vector<RenderSubsystem*> renderSubsystems{ m_colorTintSystem.get() };
+
     m_opaqueRenderSystem = std::make_unique<OpaqueRenderSystem>(*this , *m_device, *m_renderer,
             m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
             m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
-            m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
+            m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout(),
+            renderSubsystems);
 
-	m_transparentRenderSystem = std::make_unique<TransparentRenderSystem>(*this, *m_device, *m_renderer,
-		m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
-		m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
-		m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
-
-    m_colorTintSystem = std::make_unique<ColorTintSystem>(*this);
+    m_transparentRenderSystem = std::make_unique<TransparentRenderSystem>(*this, *m_device, *m_renderer,
+            m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
+            m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
+            m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout(),
+            renderSubsystems);
 		
 	m_cameraSystem = std::make_unique<CameraSystem>(*this);
 	m_objLoader = std::make_unique<ObjLoader>(*this , *m_device, *m_materialSystem);

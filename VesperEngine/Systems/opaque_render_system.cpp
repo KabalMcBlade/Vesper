@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
 #include "Systems/opaque_render_system.h"
-#include "Systems/color_tint_system.h"
+#include "Systems/render_subsystem.h"
 
 #include "Core/glm_config.h"
 
@@ -34,14 +34,19 @@ VESPERENGINE_NAMESPACE_BEGIN
 
 
 OpaqueRenderSystem::OpaqueRenderSystem(VesperApp& _app, Device& _device, Renderer& _renderer,
-	VkDescriptorSetLayout _globalDescriptorSetLayout,
-	VkDescriptorSetLayout _entityDescriptorSetLayout,
-	VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout)
-	: BaseRenderSystem{ _device }
-	, m_app(_app)
-	, m_renderer(_renderer)
+        VkDescriptorSetLayout _globalDescriptorSetLayout,
+        VkDescriptorSetLayout _entityDescriptorSetLayout,
+        VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout,
+        const std::vector<RenderSubsystem*>& _subsystems)
+        : BaseRenderSystem{ _device }
+        , m_app(_app)
+        , m_renderer(_renderer)
 {
-	m_buffer = std::make_unique<Buffer>(m_device);
+        for (RenderSubsystem* subsystem : _subsystems)
+        {
+                AddRenderSubsystem(subsystem);
+        }
+        m_buffer = std::make_unique<Buffer>(m_device);
 
 	if (m_device.IsBindlessResourcesSupported())
 	{
@@ -62,15 +67,6 @@ OpaqueRenderSystem::OpaqueRenderSystem(VesperApp& _app, Device& _device, Rendere
 			.Build();
 	}
 
-	// TEST PUSH CONSTANT!
-	// REMEMBER THAT TO TEST THIS WITH THIS PIPELINE AND LAYOUT ALSO THE MASTER RENDERER NEED TO HAVE!
-	// SINCE IS A TEST, REMEMBER TO REMOVE BOTH HERE AND IN MASTER RENDERER EVENTUALLY!
-	VkPushConstantRange pushConstantRange{};
-	pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	pushConstantRange.offset = 0;
-	pushConstantRange.size = sizeof(ColorTintPushConstantData);
-
-	m_pushConstants.push_back(pushConstantRange);
 
 	// set 0: global descriptor set layout
 	// set 1: bindless textures and buffer descriptor set layout
@@ -184,7 +180,7 @@ void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
 	// 1. Render whatever has vertex buffers and index buffer
-	auto entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineOpaqueComponent, DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent, ColorTintPushConstantData>(entityManager, componentManager, &PhongMaterialComponent::Index);
+    auto entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineOpaqueComponent, DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent>(entityManager, componentManager, &PhongMaterialComponent::Index);
 
 	for (const auto& [key, entities] : entitiesGroupedAndCollected)
 	{
@@ -204,10 +200,9 @@ void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 
 		for (const auto& entityCollected : entities)
 		{
-			const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(entityCollected);
-			const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(entityCollected);
-			const IndexBufferComponent& indexBufferComponent = componentManager.GetComponent<IndexBufferComponent>(entityCollected);
-			const ColorTintPushConstantData& pushComponent = componentManager.GetComponent<ColorTintPushConstantData>(entityCollected);
+            const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(entityCollected);
+            const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(entityCollected);
+            const IndexBufferComponent& indexBufferComponent = componentManager.GetComponent<IndexBufferComponent>(entityCollected);
 
 			vkCmdBindDescriptorSets(
 				_frameInfo.CommandBuffer,
@@ -220,9 +215,12 @@ void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 				&dynamicOffsetComponent.DynamicOffset
 			);
 
-			PushConstants(_frameInfo.CommandBuffer, 0, &pushComponent);
-			Bind(vertexBufferComponent, indexBufferComponent, _frameInfo.CommandBuffer);
-			Draw(indexBufferComponent, _frameInfo.CommandBuffer);
+            for (RenderSubsystem* subsystem : m_renderSubsystems)
+            {
+                subsystem->Execute(_frameInfo.CommandBuffer, m_pipelineLayout, entityCollected);
+            }
+            Bind(vertexBufferComponent, indexBufferComponent, _frameInfo.CommandBuffer);
+            Draw(indexBufferComponent, _frameInfo.CommandBuffer);
 		}
 	}
 
@@ -231,7 +229,7 @@ void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 
 
 	// 2. Render only entities having Vertex buffers only
-	entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineOpaqueComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent, ColorTintPushConstantData>(entityManager, componentManager, &PhongMaterialComponent::Index);
+    entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineOpaqueComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent>(entityManager, componentManager, &PhongMaterialComponent::Index);
 
 	for (const auto& [key, entities] : entitiesGroupedAndCollected)
 	{
@@ -251,9 +249,8 @@ void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 
 		for (const auto& entityCollected : entities)
 		{
-			const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(entityCollected);
-			const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(entityCollected);
-			const ColorTintPushConstantData& pushComponent = componentManager.GetComponent<ColorTintPushConstantData>(entityCollected);
+            const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(entityCollected);
+            const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(entityCollected);
 
 			vkCmdBindDescriptorSets(
 				_frameInfo.CommandBuffer,
@@ -266,9 +263,12 @@ void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 				&dynamicOffsetComponent.DynamicOffset
 			);
 
-			PushConstants(_frameInfo.CommandBuffer, 0, &pushComponent);
-			Bind(vertexBufferComponent, _frameInfo.CommandBuffer);
-			Draw(vertexBufferComponent, _frameInfo.CommandBuffer);
+            for (RenderSubsystem* subsystem : m_renderSubsystems)
+            {
+                subsystem->Execute(_frameInfo.CommandBuffer, m_pipelineLayout, entityCollected);
+            }
+            Bind(vertexBufferComponent, _frameInfo.CommandBuffer);
+            Draw(vertexBufferComponent, _frameInfo.CommandBuffer);
 		}
 	}
 

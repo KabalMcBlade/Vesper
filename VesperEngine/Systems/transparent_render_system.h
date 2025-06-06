@@ -16,6 +16,7 @@ class Renderer;
 class Pipeline;
 class DescriptorSetLayout;
 class Buffer;
+class RenderSubsystem;
 
 struct FrameInfo;
 struct BufferComponent;
@@ -36,7 +37,8 @@ public:
     TransparentRenderSystem(VesperApp& _app, Device& _device, Renderer& _renderer,
             VkDescriptorSetLayout _globalDescriptorSetLayout,
             VkDescriptorSetLayout _entityDescriptorSetLayout,
-            VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout = VK_NULL_HANDLE);
+            VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout = VK_NULL_HANDLE,
+            const std::vector<RenderSubsystem*>& _subsystems = {});
     ~TransparentRenderSystem() = default;
 
     TransparentRenderSystem(const TransparentRenderSystem&) = delete;
@@ -63,6 +65,7 @@ private:
 
     uint32 m_entitySetIndex = 1;
     uint32 m_materialSetIndex = 2;
+
 };
 
 VESPERENGINE_NAMESPACE_END

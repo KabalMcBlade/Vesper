@@ -57,4 +57,23 @@ void ColorTintSystem::Update(const FrameInfo& _frameInfo)
     }
 }
 
+void ColorTintSystem::Execute(VkCommandBuffer _commandBuffer, VkPipelineLayout _pipelineLayout, ecs::Entity _entity) const
+{
+    ecs::ComponentManager& componentManager = m_app.GetComponentManager();
+
+    ColorTintPushConstantData pushComponent{};
+    if (componentManager.HasComponents<ColorTintPushConstantData>(_entity))
+    {
+        pushComponent = componentManager.GetComponent<ColorTintPushConstantData>(_entity);
+    }
+
+    vkCmdPushConstants(
+            _commandBuffer,
+            _pipelineLayout,
+            VK_SHADER_STAGE_FRAGMENT_BIT,
+            0,
+            sizeof(ColorTintPushConstantData),
+            &pushComponent);
+}
+
 VESPERENGINE_NAMESPACE_END
