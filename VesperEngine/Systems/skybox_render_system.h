@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/core_defines.h"
+#include "Components/graphics_components.h"
 #include "Systems/base_render_system.h"
 
 VESPERENGINE_NAMESPACE_BEGIN

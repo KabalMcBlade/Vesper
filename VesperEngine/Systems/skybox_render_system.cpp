@@ -1,4 +1,5 @@
 #include "Systems/skybox_render_system.h"
+#include "Systems/camera_system.h"
 #include "Backend/pipeline.h"
 #include "Backend/renderer.h"
 #include "Backend/buffer.h"
@@ -7,7 +8,9 @@
 #include "Systems/texture_system.h"
 #include "Backend/device.h"
 #include "Backend/frame_info.h"
-#include "Systems/camera_system.h"
+#include "Components/camera_components.h"
+#include "App/vesper_app.h"
+#include "App/config.h"
 
 #include <array>
 

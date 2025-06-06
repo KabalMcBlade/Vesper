@@ -195,6 +195,9 @@
     <ClInclude Include="Systems\render_subsystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Systems\skybox_render_system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Backend\pipeline.cpp">
@@ -296,6 +299,9 @@
     <ClCompile Include="Systems\color_tint_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Systems\skybox_render_system.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\phong_shader.vert" />
@@ -314,6 +320,7 @@
     <None Include="Assets\Shaders\opaque_shader.vert" />
     <None Include="Assets\Shaders\opaque_shader.frag" />
     <None Include="Assets\Shaders\hdr_cubemap_shader.frag" />
+    <None Include="Assets\Shaders\skybox_shader.frag" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compile_shaders_config.txt" />
