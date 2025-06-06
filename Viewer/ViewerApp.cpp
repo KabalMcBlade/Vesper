@@ -167,7 +167,6 @@ void ViewerApp::Run()
 		{
 			const int32 frameIndex = m_renderer->GetFrameIndex();
 
-                        m_masterRenderSystem->BindGlobalDescriptor(frameInfo);
             FrameInfo frameInfo { frameIndex, frameTime, commandBuffer,
                     m_masterRenderSystem->GetGlobalDescriptorSet(frameIndex),
                     m_entityHandlerSystem->GetEntityDescriptorSet(frameIndex),
@@ -190,6 +189,8 @@ void ViewerApp::Run()
 			// begin off screen shadow pass
 			//	render shadow casting objects
 			// end off screen shadow pass
+
+			m_masterRenderSystem->BindGlobalDescriptor(frameInfo);
 
             m_renderer->BeginSwapChainRenderPass(commandBuffer);
 

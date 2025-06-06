@@ -179,9 +179,8 @@ void OpaqueRenderSystem::Update(const FrameInfo& _frameInfo)
 
 void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 {
-                    nullptr
-            );
-    }
+	// this bind only the opaque pipeline
+	m_opaquePipeline->Bind(_frameInfo.CommandBuffer);
 
 	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();

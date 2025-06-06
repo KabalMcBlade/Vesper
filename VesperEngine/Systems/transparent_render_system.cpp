@@ -163,7 +163,6 @@ void TransparentRenderSystem::Render(const FrameInfo& _frameInfo)
 {
     m_transparentPipeline->Bind(_frameInfo.CommandBuffer);
 
-
     ecs::EntityManager& entityManager = m_app.GetEntityManager();
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
