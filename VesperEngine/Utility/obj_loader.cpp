@@ -160,33 +160,42 @@ std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& 
 
 	for (const auto& shape : shapes)
 	{
-		auto model = std::make_unique<ModelData>();
-		std::unordered_map<Vertex, uint32> uniqueVertices{};
+		// Map material id -> model data and vertex dedup map
+		std::unordered_map<int32, std::unique_ptr<ModelData>> modelsPerMaterial;
+		std::unordered_map<int32, std::unordered_map<Vertex, uint32>> uniqueVerticesPerMaterial;
 
 		const auto& material_ids = shape.mesh.material_ids;
 
-		// Assign material once per shape using the first face
-		if (hasMaterials && !material_ids.empty())
-		{
-			const int32 materialID = material_ids.front();
-			if (materialID >= 0 && materialID < static_cast<int32>(materials.size()))
-			{
-				const auto& tinyMaterial = materials[materialID];
-				model->Material = CreateMaterial(m_materialSystem, tinyMaterial, texturePath);
-			}
-			else
-			{
-				LOG(Logger::ERROR, "Material ID out of range for shape: ", shape.name);
-				model->Material = m_materialSystem.CreateMaterial(MaterialSystem::DefaultPhongMaterial);
-			}
-		}
-		else
-		{
-			model->Material = m_materialSystem.CreateMaterial(MaterialSystem::DefaultPhongMaterial);
-		}
-
 		for (size_t faceIndex = 0; faceIndex < shape.mesh.indices.size() / 3; ++faceIndex)
-		{			
+		{
+			int32 materialID = -1;
+			if (hasMaterials && !material_ids.empty())
+			{
+				materialID = material_ids[faceIndex];
+			}
+
+			auto& model = modelsPerMaterial[materialID];
+			auto& uniqueVertices = uniqueVerticesPerMaterial[materialID];
+
+			if (!model)
+			{
+				model = std::make_unique<ModelData>();
+
+				if (hasMaterials && materialID >= 0 && materialID < static_cast<int32>(materials.size()))
+				{
+					const auto& tinyMaterial = materials[materialID];
+					model->Material = CreateMaterial(m_materialSystem, tinyMaterial, texturePath);
+				}
+				else
+				{
+					if (materialID >= static_cast<int32>(materials.size()))
+					{
+						LOG(Logger::ERROR, "Material ID out of range for shape: ", shape.name);
+					}
+					model->Material = m_materialSystem.CreateMaterial(MaterialSystem::DefaultPhongMaterial);
+				}
+			}
+
 			for (int32 vertexIndex = 0; vertexIndex < 3; ++vertexIndex)
 			{
 				const auto& index = shape.mesh.indices[faceIndex * 3 + vertexIndex];
@@ -261,8 +270,9 @@ std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& 
 					vertex.UV = { 0.0f, 0.0f }; 
 				}
 
+
 				auto it = uniqueVertices.find(vertex);
-				if (it == uniqueVertices.end()) 
+				if (it == uniqueVertices.end())
 				{
 					uniqueVertices[vertex] = static_cast<uint32>(model->Vertices.size());
 					model->Vertices.push_back(vertex);
@@ -272,16 +282,18 @@ std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& 
 			}
 		}
 
-		model->IsStatic = _isStatic;
+		for (auto& [matID, model] : modelsPerMaterial)
+		{
+			model->IsStatic = _isStatic;
 
-		LOG(Logger::INFO, "Shape: ", shape.name);
-		LOG(Logger::INFO, "Material: ", model->Material->Name);
-		LOG(Logger::INFO, "Vertices count: ", model->Vertices.size());
-		LOG(Logger::INFO, "Indices count: ", model->Indices.size());
-		LOG_NL();
+			LOG(Logger::INFO, "Shape: ", shape.name);
+			LOG(Logger::INFO, "Material: ", model->Material->Name);
+			LOG(Logger::INFO, "Vertices count: ", model->Vertices.size());
+			LOG(Logger::INFO, "Indices count: ", model->Indices.size());
+			LOG_NL();
 
-		// Add the model for this shape to the list
-		models.push_back(std::move(model));
+			models.push_back(std::move(model));
+		}
 	}
 
 	LOG(Logger::INFO, "Total shapes processed: ", models.size());
