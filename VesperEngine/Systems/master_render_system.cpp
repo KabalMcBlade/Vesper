@@ -24,8 +24,6 @@ MasterRenderSystem::MasterRenderSystem(Device& _device, Renderer& _renderer)
 	: BaseRenderSystem(_device)
 	, m_renderer(_renderer)
 {
-
-
 	// Start from here:
 	m_buffer = std::make_unique<Buffer>(m_device);
 

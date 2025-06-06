@@ -43,16 +43,16 @@ OpaqueRenderSystem::OpaqueRenderSystem(VesperApp& _app, Device& _device, Rendere
         , m_app(_app)
         , m_renderer(_renderer)
 {
-        for (RenderSubsystem* subsystem : _subsystems)
-        {
-                AddRenderSubsystem(subsystem);
-        }
-        if (m_renderSubsystems.empty())
-        {
-                m_defaultColorTintSubsystem = std::make_unique<DefaultColorTintSubsystem>();
-                AddRenderSubsystem(m_defaultColorTintSubsystem.get());
-        }
-        m_buffer = std::make_unique<Buffer>(m_device);
+    for (RenderSubsystem* subsystem : _subsystems)
+    {
+        AddRenderSubsystem(subsystem);
+    }
+    if (m_renderSubsystems.empty())
+    {
+        m_defaultColorTintSubsystem = std::make_unique<DefaultColorTintSubsystem>();
+        AddRenderSubsystem(m_defaultColorTintSubsystem.get());
+    }
+    m_buffer = std::make_unique<Buffer>(m_device);
 
 	if (m_device.IsBindlessResourcesSupported())
 	{
@@ -179,33 +179,33 @@ void OpaqueRenderSystem::Update(const FrameInfo& _frameInfo)
 
 void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 {
-        // this bind only the opaque pipeline
-        m_opaquePipeline->Bind(_frameInfo.CommandBuffer);
+    // this bind only the opaque pipeline
+    m_opaquePipeline->Bind(_frameInfo.CommandBuffer);
 
-        vkCmdBindDescriptorSets(
-                _frameInfo.CommandBuffer,
-                VK_PIPELINE_BIND_POINT_GRAPHICS,
-                m_pipelineLayout,
-                0,
-                1,
-                &_frameInfo.GlobalDescriptorSet,
-                0,
-                nullptr
-        );
+    vkCmdBindDescriptorSets(
+            _frameInfo.CommandBuffer,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            m_pipelineLayout,
+            0,
+            1,
+            &_frameInfo.GlobalDescriptorSet,
+            0,
+            nullptr
+    );
 
-        if (m_device.IsBindlessResourcesSupported())
-        {
-                vkCmdBindDescriptorSets(
-                        _frameInfo.CommandBuffer,
-                        VK_PIPELINE_BIND_POINT_GRAPHICS,
-                        m_pipelineLayout,
-                        1,
-                        1,
-                        &_frameInfo.BindlessDescriptorSet,
-                        0,
-                        nullptr
-                );
-        }
+    if (m_device.IsBindlessResourcesSupported())
+    {
+            vkCmdBindDescriptorSets(
+                    _frameInfo.CommandBuffer,
+                    VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    m_pipelineLayout,
+                    1,
+                    1,
+                    &_frameInfo.BindlessDescriptorSet,
+                    0,
+                    nullptr
+            );
+    }
 
 	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();

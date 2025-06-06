@@ -13,30 +13,30 @@
 VESPERENGINE_NAMESPACE_BEGIN
 
 BaseRenderSystem::BaseRenderSystem(Device& _device)
-        : m_device{ _device }
+    : m_device{ _device }
 {
 }
 
 void BaseRenderSystem::AddRenderSubsystem(RenderSubsystem* _subsystem)
 {
-        if (_subsystem)
+    if (_subsystem)
+    {
+        m_renderSubsystems.push_back(_subsystem);
+        VkPushConstantRange range = _subsystem->GetPushConstantRange();
+        if (range.size > 0)
         {
-                m_renderSubsystems.push_back(_subsystem);
-                VkPushConstantRange range = _subsystem->GetPushConstantRange();
-                if (range.size > 0)
-                {
-                        m_pushConstants.push_back(range);
-                }
+            m_pushConstants.push_back(range);
         }
+    }
 }
 
 BaseRenderSystem::~BaseRenderSystem()
 {
-        if (m_pipelineLayout != VK_NULL_HANDLE)
-        {
-                vkDestroyPipelineLayout(m_device.GetDevice(), m_pipelineLayout, nullptr);
-        }
-        m_renderSubsystems.clear();
+    if (m_pipelineLayout != VK_NULL_HANDLE)
+    {
+        vkDestroyPipelineLayout(m_device.GetDevice(), m_pipelineLayout, nullptr);
+    }
+    m_renderSubsystems.clear();
 }
 
 void BaseRenderSystem::CreatePipelineLayout(const std::vector<VkDescriptorSetLayout>& _descriptorSetLayouts)
