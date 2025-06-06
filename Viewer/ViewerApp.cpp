@@ -167,8 +167,10 @@ void ViewerApp::Run()
 		{
 			const int32 frameIndex = m_renderer->GetFrameIndex();
 
-			FrameInfo frameInfo { frameIndex, frameTime, commandBuffer, 
-				m_masterRenderSystem->GetGlobalDescriptorSet(frameIndex), m_entityHandlerSystem->GetEntityDescriptorSet(frameIndex) };
+                        FrameInfo frameInfo { frameIndex, frameTime, commandBuffer,
+                                m_masterRenderSystem->GetGlobalDescriptorSet(frameIndex),
+                                m_entityHandlerSystem->GetEntityDescriptorSet(frameIndex),
+                                m_masterRenderSystem->GetBindlessBindingDescriptorSet(frameIndex) };
 			
 			m_gameManager->Update(frameInfo);
 
@@ -188,12 +190,10 @@ void ViewerApp::Run()
 			//	render shadow casting objects
 			// end off screen shadow pass
 
-			m_renderer->BeginSwapChainRenderPass(commandBuffer);
-
-			m_masterRenderSystem->BindGlobalDescriptor(frameInfo);
+                        m_renderer->BeginSwapChainRenderPass(commandBuffer);
 
             m_opaqueRenderSystem->Render(frameInfo);
-			m_transparentRenderSystem->Render(frameInfo);
+                        m_transparentRenderSystem->Render(frameInfo);
 
 			m_renderer->EndSwapChainRenderPass(commandBuffer);
 			m_renderer->EndFrame();
