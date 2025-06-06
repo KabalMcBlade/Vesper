@@ -1,2 +1,4 @@
 opaque_shader.vert BINDLESS 0 1
 opaque_shader.frag BINDLESS 0 1
+cubemap_shader.vert BINDLESS 0 1
+cubemap_shader.frag BINDLESS 0 1
