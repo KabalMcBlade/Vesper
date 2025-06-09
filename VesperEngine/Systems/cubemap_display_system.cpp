@@ -11,45 +11,19 @@
 #include "App/vesper_app.h"
 #include "App/config.h"
 
+#include "Utility/primitive_factory.h"
+
 #include "Components/graphics_components.h"
 #include "Components/camera_components.h"
 
-#include <array>
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-namespace {
-
-std::array<Vertex, 36> MakeCubeVertices(glm::vec3 offset, float scale)
-{
-    std::array<glm::vec3, 8> positions = {
-        glm::vec3{-0.5f, -0.5f, -0.5f},
-        glm::vec3{ 0.5f, -0.5f, -0.5f},
-        glm::vec3{ 0.5f,  0.5f, -0.5f},
-        glm::vec3{-0.5f,  0.5f, -0.5f},
-        glm::vec3{-0.5f, -0.5f,  0.5f},
-        glm::vec3{ 0.5f, -0.5f,  0.5f},
-        glm::vec3{ 0.5f,  0.5f,  0.5f},
-        glm::vec3{-0.5f,  0.5f,  0.5f}
-    };
-    for(auto& p:positions){ p = p * scale + offset; }
-    std::array<uint32, 36> indices = {
-        0,1,2, 0,2,3, 1,5,6, 1,6,2,
-        5,4,7, 5,7,6, 4,0,3, 4,3,7,
-        3,2,6, 3,6,7, 4,5,1, 4,1,0
-    };
-    std::array<Vertex,36> verts{};
-    for(size_t i=0;i<indices.size();++i){
-        verts[i].Position = positions[indices[i]];
-    }
-    return verts;
-}
-}
-
 CubemapDisplaySystem::CubemapDisplaySystem(VesperApp& app, Device& device, Renderer& renderer,
+                                           MaterialSystem& materialSystem,
                                            VkDescriptorSetLayout globalDescriptorSetLayout,
                                            VkDescriptorSetLayout bindlessDescriptorSetLayout)
-    : BaseRenderSystem(device), m_app(app), m_renderer(renderer)
+    : BaseRenderSystem(device), m_app(app), m_renderer(renderer), m_materialSystem(materialSystem)
 {
     m_buffer = std::make_unique<Buffer>(m_device);
 
@@ -129,7 +103,13 @@ void CubemapDisplaySystem::Cleanup()
 
 VertexBufferComponent CubemapDisplaySystem::CreateCubeBuffer(glm::vec3 offset, float scale) const
 {
-    auto verts = MakeCubeVertices(offset, scale);
+    std::unique_ptr<ModelData> model = PrimitiveFactory::GenerateCubeNoIndices(
+            m_materialSystem, glm::vec3{0.0f}, glm::vec3{1.0f});
+    auto verts = std::move(model->Vertices);
+    for (auto& v : verts)
+    {
+        v.Position = v.Position * scale + offset;
+    }
     const uint32 vertexCount = static_cast<uint32>(verts.size());
     const VkDeviceSize bufferSize = sizeof(Vertex) * vertexCount;
     const uint32 vertexSize = sizeof(Vertex);

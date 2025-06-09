@@ -14,6 +14,7 @@ class Renderer;
 class Pipeline;
 class DescriptorSetLayout;
 class Buffer;
+class MaterialSystem;
 struct FrameInfo;
 struct CameraComponent;
 struct TextureData;
@@ -25,6 +26,7 @@ public:
     static constexpr uint32 kCubemapBindingIndex = 0u;
 
     CubemapDisplaySystem(VesperApp& app, Device& device, Renderer& renderer,
+                         MaterialSystem& materialSystem,
                          VkDescriptorSetLayout globalDescriptorSetLayout,
                          VkDescriptorSetLayout bindlessDescriptorSetLayout = VK_NULL_HANDLE);
     ~CubemapDisplaySystem();
@@ -52,6 +54,7 @@ private:
 private:
     VesperApp& m_app;
     Renderer& m_renderer;
+    MaterialSystem& m_materialSystem;
     std::unique_ptr<Pipeline> m_pipeline;
     std::unique_ptr<DescriptorSetLayout> m_cubemapSetLayout;
     std::unique_ptr<Buffer> m_buffer;

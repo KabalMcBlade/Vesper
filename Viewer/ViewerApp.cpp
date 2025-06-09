@@ -103,6 +103,7 @@ ViewerApp::ViewerApp(Config& _config) :
         LOG(Logger::INFO, "Cubemap HDR loaded!");
 
         m_cubemapDisplaySystem = std::make_unique<CubemapDisplaySystem>(*this, *m_device, *m_renderer,
+                *m_materialSystem,
                 m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
                 m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
         m_cubemapDisplaySystem->AddCubemap(cubeMap, glm::vec3(-1.5f, 0.0f, -2.0f), 1.0f);
