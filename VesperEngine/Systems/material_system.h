@@ -32,6 +32,7 @@ struct MaterialData;
  * binding = 1: uniform sampler2D diffuseTexture;
  * binding = 2: uniform sampler2D specularTexture;
  * binding = 3: uniform sampler2D normalTexture;
+ * binding = 4: uniform sampler2D alphaTexture;
  * 
  * PBR Textures order:
  * binding = 0: uniform sampler2D roughnessTexture;

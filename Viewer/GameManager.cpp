@@ -180,7 +180,7 @@ void GameManager::LoadGameEntities()
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// A_blonde_twintailed_g_1228205950_texture
+	// A_blonde_twintailed_g_1228205950_texture or Laboratory_cabinet_NakedSingularity
 	{
 		std::vector<std::unique_ptr<ModelData>> characterDataList = m_objLoader.LoadModel("Laboratory_cabinet_NakedSingularity.obj");
 		for (auto& characterData : characterDataList)
