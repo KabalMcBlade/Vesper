@@ -1,8 +1,11 @@
 #pragma once
 
 #include "Core/core_defines.h"
+#include "Core/glm_config.h"
+#include "Components/graphics_components.h"
 #include "Systems/base_render_system.h"
 #include "vulkan/vulkan.h"
+
 #include <memory>
 #include <vector>
 

@@ -142,11 +142,29 @@ void CubemapDisplaySystem::CreatePipeline(VkRenderPass renderPass)
     config.RenderPass = renderPass;
     config.PipelineLayout = m_pipelineLayout;
 
+    const std::string vertexShaderFilepath = m_device.IsBindlessResourcesSupported()
+        ? m_app.GetConfig().ShadersPath + "cubemap_shader_bindless1.vert.spv"
+        : m_app.GetConfig().ShadersPath + "cubemap_shader_bindless0.vert.spv";
+
+    ShaderInfo vertexShader(
+        vertexShaderFilepath,
+        ShaderType::Vertex
+    );
+
+    const std::string fragmentShaderFilepath = m_device.IsBindlessResourcesSupported()
+        ? m_app.GetConfig().ShadersPath + "cubemap_shader_bindless1.frag.spv"
+        : m_app.GetConfig().ShadersPath + "cubemap_shader_bindless0.frag.spv";
+
+    ShaderInfo fragmentShader(
+        fragmentShaderFilepath,
+        ShaderType::Fragment
+    );
+
     m_pipeline = std::make_unique<Pipeline>(
             m_device,
             std::vector{
-                ShaderInfo{m_app.GetConfig().ShadersPath + "cubemap_shader.vert.spv", ShaderType::Vertex},
-                ShaderInfo{m_app.GetConfig().ShadersPath + "cubemap_shader.frag.spv", ShaderType::Fragment}
+                vertexShader,
+                fragmentShader
             },
             config);
 }
