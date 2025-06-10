@@ -25,6 +25,10 @@ CubemapDisplaySystem::CubemapDisplaySystem(VesperApp& app, Device& device, Rende
                                            VkDescriptorSetLayout bindlessDescriptorSetLayout)
     : BaseRenderSystem(device), m_app(app), m_renderer(renderer), m_materialSystem(materialSystem)
 {
+    // TEMPORARY, WILL BE REMOVED!
+    m_defaultColorTintSubsystem = std::make_unique<DefaultColorTintSubsystem>();
+    AddRenderSubsystem(m_defaultColorTintSubsystem.get());
+
     m_buffer = std::make_unique<Buffer>(m_device);
 
     m_cubemapSetLayout = DescriptorSetLayout::Builder(m_device)

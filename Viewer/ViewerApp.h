@@ -9,7 +9,6 @@
 #include "GameManager.h"
 #include "KeyboardMovementCameraController.h"
 #include "MouseLookCameraController.h"
-#include "../VesperEngine/Systems/cubemap_display_system.h"
 
 #include <memory>
 #include <vector>

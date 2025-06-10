@@ -221,6 +221,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ $(IntDir
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\brdf_lut_shader.frag" />
+    <None Include="Assets\Shaders\cubemap_shader.frag" />
     <None Include="Assets\Shaders\cubemap_shader.vert" />
     <None Include="Assets\Shaders\hdr_cubemap_shader.frag" />
     <None Include="Assets\Shaders\opaque_shader.vert" />

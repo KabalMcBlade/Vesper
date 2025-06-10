@@ -92,22 +92,22 @@ ViewerApp::ViewerApp(Config& _config) :
 	cubemapTexturesDirectoryFilepaths[4] = cubemapTexturesDirectoryPath + "posy.jpg";
 	cubemapTexturesDirectoryFilepaths[5] = cubemapTexturesDirectoryPath + "posz.jpg";
 
-        std::shared_ptr<TextureData> cubeMap = m_texturelSystem->LoadCubemap(cubemapTexturesDirectoryFilepaths);
-        LOG(Logger::INFO, "Cubemap loaded!");
+    std::shared_ptr<TextureData> cubeMap = m_texturelSystem->LoadCubemap(cubemapTexturesDirectoryFilepaths);
+    LOG(Logger::INFO, "Cubemap loaded!");
 
 	// CUBEMAP HDR TEXTURE TEST
 	const std::string cubemapHdrTexturesPath = GetConfig().TexturesPath + "misty_pines_4k.hdr";
 	LOG(Logger::INFO, "Loading Cubemap texture: ", cubemapHdrTexturesPath);
 
-        std::shared_ptr<TextureData> cubeMapHdr = m_texturelSystem->LoadCubemap(cubemapHdrTexturesPath);
-        LOG(Logger::INFO, "Cubemap HDR loaded!");
+    std::shared_ptr<TextureData> cubeMapHdr = m_texturelSystem->LoadCubemap(cubemapHdrTexturesPath);
+    LOG(Logger::INFO, "Cubemap HDR loaded!");
 
-        m_cubemapDisplaySystem = std::make_unique<CubemapDisplaySystem>(*this, *m_device, *m_renderer,
-                *m_materialSystem,
-                m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
-                m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
-        m_cubemapDisplaySystem->AddCubemap(cubeMap, glm::vec3(-1.5f, 0.0f, -2.0f), 1.0f);
-        m_cubemapDisplaySystem->AddCubemap(cubeMapHdr, glm::vec3(1.5f, 0.0f, -2.0f), 1.0f);
+    m_cubemapDisplaySystem = std::make_unique<CubemapDisplaySystem>(*this, *m_device, *m_renderer,
+            *m_materialSystem,
+            m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
+            m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
+    m_cubemapDisplaySystem->AddCubemap(cubeMap, glm::vec3(-1.5f, 0.0f, -2.0f), 1.0f);
+    m_cubemapDisplaySystem->AddCubemap(cubeMapHdr, glm::vec3(1.5f, 0.0f, -2.0f), 1.0f);
 
 	LOG_NL();
 
@@ -143,7 +143,7 @@ ViewerApp::~ViewerApp()
     m_materialSystem->Cleanup();
     m_opaqueRenderSystem->Cleanup();
     m_transparentRenderSystem->Cleanup();
-    if (m_cubemapDisplaySystem) m_cubemapDisplaySystem->Cleanup();
+    m_cubemapDisplaySystem->Cleanup();
     m_masterRenderSystem->Cleanup();
 }
 
@@ -186,8 +186,7 @@ void ViewerApp::Run()
 			m_transparentRenderSystem->Update(frameInfo);
             m_colorTintSystem->Update(frameInfo);
 
-            if (m_cubemapDisplaySystem)
-                m_cubemapDisplaySystem->Update(activeCameraComponent);
+            m_cubemapDisplaySystem->Update(activeCameraComponent);
 
 			const float aspectRatio = m_renderer->GetAspectRatio();
 			m_cameraSystem->Update(aspectRatio);
@@ -205,8 +204,7 @@ void ViewerApp::Run()
 
             m_renderer->BeginSwapChainRenderPass(commandBuffer);
 
-            if (m_cubemapDisplaySystem)
-                m_cubemapDisplaySystem->Render(frameInfo);
+            m_cubemapDisplaySystem->Render(frameInfo);
 
             m_opaqueRenderSystem->Render(frameInfo);
             m_transparentRenderSystem->Render(frameInfo);

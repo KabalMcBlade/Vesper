@@ -320,6 +320,7 @@
     <None Include="Assets\Shaders\opaque_shader.vert" />
     <None Include="Assets\Shaders\opaque_shader.frag" />
     <None Include="Assets\Shaders\hdr_cubemap_shader.frag" />
+    <None Include="Assets\Shaders\cubemap_shader.frag" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compile_shaders_config.txt" />

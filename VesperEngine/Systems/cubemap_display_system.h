@@ -4,6 +4,7 @@
 #include "Core/glm_config.h"
 #include "Components/graphics_components.h"
 #include "Systems/base_render_system.h"
+#include "Systems/color_tint_system.h"  // TEMPORARY!
 #include "vulkan/vulkan.h"
 
 #include <memory>
@@ -61,6 +62,9 @@ private:
     std::unique_ptr<Pipeline> m_pipeline;
     std::unique_ptr<DescriptorSetLayout> m_cubemapSetLayout;
     std::unique_ptr<Buffer> m_buffer;
+
+    // TEMPORARY!
+    std::unique_ptr<DefaultColorTintSubsystem> m_defaultColorTintSubsystem;
 
     uint32 m_cubemapSetIndex = 1;
     std::vector<CubemapObject> m_cubemapObjects;

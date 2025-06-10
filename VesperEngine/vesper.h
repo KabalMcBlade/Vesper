@@ -35,6 +35,7 @@
 #include "Systems/color_tint_system.h"
 #include "Systems/camera_system.h"
 #include "Systems/brdf_lut_generation_system.h"
+#include "Systems/cubemap_display_system.h"
 
 #include "Utility/hash.h"
 #include "Utility/logger.h"
