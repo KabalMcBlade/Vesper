@@ -444,6 +444,15 @@ std::shared_ptr<TextureData> TextureSystem::LoadCubemap(const std::string& _hdrP
 	}
 	offscreenRenderer->EndFrame();
 
+	// Make the cubemap texture readable by shaders
+	m_device.TransitionImageLayout(
+		texture->Image,
+		format,
+		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		0,
+		6);
+
 	texture->Sampler = CreateTextureSampler();
 
 	// Cleanup HDR image and view
