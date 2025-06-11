@@ -31,6 +31,8 @@ public:
 	VESPERENGINE_INLINE VkRenderPass GetOffscreenSwapChainRenderPass() const { return m_offscreenSwapChain->GetRenderPass(); }
 	VESPERENGINE_INLINE float GetAspectRatio() const { return m_offscreenSwapChain->GetExtentAspectRatio(); };
 	VESPERENGINE_INLINE bool IsFrameStarted() const { return m_isFrameStarted; }
+	VESPERENGINE_INLINE VkImage GetOffscreenImage() const { return m_offscreenSwapChain->GetOffscreenImage(); }
+	VESPERENGINE_INLINE VkFormat GetOffscreenImageFormat() const { return m_offscreenSwapChain->GetSwapChainImageFormat(); }
 
 	VESPERENGINE_INLINE VkCommandBuffer GetCurrentCommandBuffer() const 
 	{

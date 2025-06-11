@@ -99,6 +99,8 @@ public:
 	void CopyBuffer(VkBuffer _srcBuffer, VkBuffer _dstBuffer, VkDeviceSize _size);
 	void CopyBufferToImage(VkBuffer _buffer, VkImage _image, uint32 _width, uint32 _height, uint32 _layerCount = 1, uint32 _mipLevel = 1);
 	void CopyImageToBuffer(VkImage _image, VkBuffer _buffer, uint32 _width, uint32 _height, uint32 _layerCount = 1, uint32 _mipLevel = 1);
+	void CopyImage(VkCommandBuffer _commandBuffer, VkImage _srcImage, VkImage _dstImage, uint32 _width, uint32 _height, uint32 _srcBaseLayerIndex = 0, uint32 _dstBaseLayerIndex = 0, uint32 _layerCount = 1);
+	void CopyImage(VkImage _srcImage, VkImage _dstImage, uint32 _width, uint32 _height, uint32 _srcBaseLayerIndex = 0, uint32 _dstBaseLayerIndex = 0, uint32 _layerCount = 1);
 	void TransitionImageLayout(VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout, uint32 _baseLayerIndex = 0, uint32 _layerCount = 1, uint32 _mipLevel = 1);
 
 private:
@@ -128,6 +130,7 @@ private:
 	void RecordCopyBuffer(VkCommandBuffer _commandBuffer, VkBuffer _srcBuffer, VkBuffer _dstBuffer, VkDeviceSize _size);
 	void RecordCopyBufferToImage(VkCommandBuffer _commandBuffer, VkBuffer _buffer, VkImage _image, uint32 _width, uint32 _height, uint32 _layerCount, uint32 _mipLevel);
 	void RecordCopyImageToBuffer(VkCommandBuffer _commandBuffer, VkImage _image, VkBuffer _buffer, uint32 _width, uint32 _height, uint32 _layerCount, uint32 _mipLevel);
+	void RecordCopyImage(VkCommandBuffer _commandBuffer, VkImage _srcImage, VkImage _dstImage, uint32 _width, uint32 _height, uint32 _srcBaseLayerIndex, uint32 _dstBaseLayerIndex, uint32 _layerCount);
 	void RecordTransitionImageLayout(VkCommandBuffer _commandBuffer, VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout, uint32 _baseLayerIndex, uint32 _layerCount, uint32 _mipLevel);
 
 	// helper functions

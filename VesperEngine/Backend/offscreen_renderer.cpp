@@ -90,14 +90,6 @@ void OffscreenRenderer::BeginOffscreenSwapChainRenderPass(VkCommandBuffer _comma
 	assertMsgReturnVoid(IsFrameStarted(), "Cannot call BeginOffscreenSwapChainRenderPass while the frame is not in progress");
 	assertMsgReturnVoid(_commandBuffer == GetCurrentCommandBuffer(), "Cannot begin render pass on command buffer from a different frame");
 
-	m_device.TransitionImageLayout(_commandBuffer, m_offscreenSwapChain->GetOffscreenImage(),
-		m_offscreenSwapChain->GetSwapChainImageFormat(),
-		VK_IMAGE_LAYOUT_UNDEFINED,
-		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-		_baseLayerIndex,
-		_layerCount,
-		_mipLevel);
-
 	// we record the render pass to begin with
 	VkRenderPassBeginInfo renderPassInfo{};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;

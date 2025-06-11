@@ -11,6 +11,7 @@
 #include <string>
 #include <set>
 #include <unordered_set>
+#include <string_view>
 
 
 VESPERENGINE_NAMESPACE_BEGIN
@@ -22,6 +23,13 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
 	const VkDebugUtilsMessengerCallbackDataEXT* _pCallbackData,
 	void* _pUserData)
 {
+	std::string_view message{ _pCallbackData->pMessage };
+	if (message.find("GalaxyOverlayVkLayer") != std::string_view::npos ||
+		message.find("VK_LAYER_OBS_HOOK") != std::string_view::npos)
+	{
+		return VK_FALSE;
+	}
+
 	LOG(Logger::ERROR, "Validation layer: ", _pCallbackData->pMessage);
 
 	return VK_FALSE;
@@ -884,6 +892,31 @@ void Device::RecordCopyImageToBuffer(VkCommandBuffer _commandBuffer, VkImage _im
 	vkCmdCopyImageToBuffer(_commandBuffer, _image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, _buffer, 1, &region);
 }
 
+void Device::RecordCopyImage(VkCommandBuffer _commandBuffer, VkImage _srcImage, VkImage _dstImage, uint32 _width, uint32 _height, uint32 _srcBaseLayerIndex, uint32 _dstBaseLayerIndex, uint32 _layerCount)
+{
+	VkImageCopy region{};
+	region.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	region.srcSubresource.mipLevel = 0;
+	region.srcSubresource.baseArrayLayer = _srcBaseLayerIndex;
+	region.srcSubresource.layerCount = _layerCount;
+	region.srcOffset = { 0, 0, 0 };
+
+	region.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	region.dstSubresource.mipLevel = 0;
+	region.dstSubresource.baseArrayLayer = _dstBaseLayerIndex;
+	region.dstSubresource.layerCount = _layerCount;
+	region.dstOffset = { 0, 0, 0 };
+
+	region.extent = { _width, _height, 1 };
+
+	vkCmdCopyImage(
+		_commandBuffer,
+		_srcImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+		_dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		1,
+		&region);
+}
+
 /**
  * EXAMPLE TRANSITIONS:
  *
@@ -999,6 +1032,27 @@ void Device::RecordTransitionImageLayout(VkCommandBuffer _commandBuffer, VkImage
 		sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 	}
+	else if (_oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && _newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+	{
+		barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	}
+	else if (_oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && _newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+	{
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	}
+	else if (_oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && _newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+	{
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	}
 	else
 	{
 		throw std::invalid_argument("Unsupported layout transition!");
@@ -1049,6 +1103,18 @@ void Device::CopyImageToBuffer(VkImage _image, VkBuffer _buffer, uint32 _width, 
 void Device::CopyImageToBuffer(VkCommandBuffer _commandBuffer, VkImage _image, VkBuffer _buffer, uint32 _width, uint32 _height, uint32 _layerCount, uint32 _mipLevel)
 {
 	RecordCopyImageToBuffer(_commandBuffer, _image, _buffer, _width, _height, _layerCount, _mipLevel);
+}
+
+void Device::CopyImage(VkImage _srcImage, VkImage _dstImage, uint32 _width, uint32 _height, uint32 _srcBaseLayerIndex, uint32 _dstBaseLayerIndex, uint32 _layerCount)
+{
+	VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+	RecordCopyImage(commandBuffer, _srcImage, _dstImage, _width, _height, _srcBaseLayerIndex, _dstBaseLayerIndex, _layerCount);
+	EndSingleTimeCommands(commandBuffer);
+}
+
+void Device::CopyImage(VkCommandBuffer _commandBuffer, VkImage _srcImage, VkImage _dstImage, uint32 _width, uint32 _height, uint32 _srcBaseLayerIndex, uint32 _dstBaseLayerIndex, uint32 _layerCount)
+{
+	RecordCopyImage(_commandBuffer, _srcImage, _dstImage, _width, _height, _srcBaseLayerIndex, _dstBaseLayerIndex, _layerCount);
 }
 
 void Device::TransitionImageLayout(VkImage _image, VkFormat _format, VkImageLayout _oldLayout, VkImageLayout _newLayout, uint32 _baseLayerIndex, uint32 _layerCount, uint32 _mipLevel)

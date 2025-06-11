@@ -412,7 +412,7 @@ std::shared_ptr<TextureData> TextureSystem::LoadCubemap(const std::string& _hdrP
 
 
 	const uint32 cubemapSize = 512; // Adjust size as needed
-	std::unique_ptr<OffscreenRenderer> offscreenRenderer = std::make_unique<OffscreenRenderer>(m_device, VkExtent2D{ cubemapSize, cubemapSize }, format, 6);
+	std::unique_ptr<OffscreenRenderer> offscreenRenderer = std::make_unique<OffscreenRenderer>(m_device, VkExtent2D{ cubemapSize, cubemapSize }, format);
 	std::unique_ptr<HDRCubemapGenerationSystem> hdrCubemapGeneration = std::make_unique<HDRCubemapGenerationSystem>(m_app, m_device, offscreenRenderer->GetOffscreenSwapChainRenderPass(), width, height);
 
 	// Upload the HDR data to a Vulkan texture
@@ -434,13 +434,50 @@ std::shared_ptr<TextureData> TextureSystem::LoadCubemap(const std::string& _hdrP
 
 	// Render the cubemap faces
 	auto commandBuffer = offscreenRenderer->BeginFrame();
+	m_device.TransitionImageLayout(commandBuffer,
+		offscreenRenderer->GetOffscreenImage(),
+		format,
+		VK_IMAGE_LAYOUT_UNDEFINED,
+		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
 	for (uint32 face = 0; face < 6; ++face)
 	{
-		offscreenRenderer->BeginOffscreenSwapChainRenderPass(commandBuffer, face, 1);
+		offscreenRenderer->BeginOffscreenSwapChainRenderPass(commandBuffer);
 
 		hdrCubemapGeneration->Generate(commandBuffer, hdrImageView, hdrImageSampler, cubemapSize, face);
 
 		offscreenRenderer->EndOffscreenSwapChainRenderPass(commandBuffer);
+
+		m_device.TransitionImageLayout(commandBuffer,
+			texture->Image,
+			format,
+			VK_IMAGE_LAYOUT_UNDEFINED,
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			face,
+			1);
+
+		m_device.CopyImage(commandBuffer,
+			offscreenRenderer->GetOffscreenImage(),
+			texture->Image,
+			cubemapSize,
+			cubemapSize,
+			0,
+			face,
+			1);
+
+		m_device.TransitionImageLayout(commandBuffer,
+			texture->Image,
+			format,
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+			face,
+			1);
+
+		m_device.TransitionImageLayout(commandBuffer,
+			offscreenRenderer->GetOffscreenImage(),
+			format,
+			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 	}
 	offscreenRenderer->EndFrame();
 
