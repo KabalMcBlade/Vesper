@@ -1,3 +1,7 @@
+// Copyright (c) 2025-2025 Michele Condo'
+// File: C:\Projects\Vesper\VesperEngine\Systems\color_tint_system.cpp
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
 #include "Systems/color_tint_system.h"
 
 #include "Backend/frame_info.h"
