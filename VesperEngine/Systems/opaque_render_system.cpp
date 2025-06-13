@@ -294,8 +294,8 @@ void OpaqueRenderSystem::CreatePipeline(VkRenderPass _renderPass)
 
 
 	const std::string vertexShaderFilepath = m_device.IsBindlessResourcesSupported()
-		? m_app.GetConfig().ShadersPath + "opaque_shader_bindless1.vert.spv"
-		: m_app.GetConfig().ShadersPath + "opaque_shader_bindless0.vert.spv";
+		? m_app.GetConfig().ShadersPath + "phong_shader_bindless1.vert.spv"
+		: m_app.GetConfig().ShadersPath + "phong_shader_bindless0.vert.spv";
 
 	ShaderInfo vertexShader(
 		vertexShaderFilepath,
@@ -304,8 +304,8 @@ void OpaqueRenderSystem::CreatePipeline(VkRenderPass _renderPass)
 
 
 	const std::string fragmentShaderFilepath = m_device.IsBindlessResourcesSupported() 
-		? m_app.GetConfig().ShadersPath + "opaque_shader_bindless1.frag.spv"
-		: m_app.GetConfig().ShadersPath + "opaque_shader_bindless0.frag.spv";
+		? m_app.GetConfig().ShadersPath + "phong_shader_bindless1.frag.spv"
+		: m_app.GetConfig().ShadersPath + "phong_shader_bindless0.frag.spv";
 
 	ShaderInfo fragmentShader(
 		fragmentShaderFilepath,
