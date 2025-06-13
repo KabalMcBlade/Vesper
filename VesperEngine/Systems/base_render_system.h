@@ -11,9 +11,15 @@
 #include <vector>
 
 
+namespace ecs {
+	class ComponentManager;
+	class Entity;
+}
+
 VESPERENGINE_NAMESPACE_BEGIN
 
 class Device;
+struct FrameInfo;
 struct IndexBufferComponent;
 struct VertexBufferComponent;
 
@@ -29,7 +35,11 @@ public:
 	void CreatePipelineLayout(const std::vector<VkDescriptorSetLayout>& _descriptorSetLayouts);
 
 protected:
+	virtual void PerEntityUpdate(const FrameInfo& _frameInfo, ecs::ComponentManager& _componentManager, const ecs::Entity& _entity) {}
+	virtual void PerEntityRender(const FrameInfo& _frameInfo, ecs::ComponentManager& _componentManager, const ecs::Entity& _entity) {}
+
     void PushConstants(VkCommandBuffer _commandBuffer, const uint32 _pushConstantIndex, const void* _pushConstantValue) const;
+	void PushConstants(VkCommandBuffer _commandBuffer, const uint32 _pushConstantIndex, uint32 _overrideOffset, uint32 _overrideSize, const void* _pushConstantValue) const;
     void PushConstants(VkCommandBuffer _commandBuffer, std::vector<const void*> _pushConstantValues) const;
 
 	void Bind(const VertexBufferComponent& _vertexBufferComponent, VkCommandBuffer _commandBuffer) const;

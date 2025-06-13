@@ -54,25 +54,24 @@ public:
             VkDescriptorSetLayout _globalDescriptorSetLayout,
             VkDescriptorSetLayout _entityDescriptorSetLayout,
             VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout = VK_NULL_HANDLE);
-    ~OpaqueRenderSystem() = default;
+    virtual ~OpaqueRenderSystem() = default;
 
 	OpaqueRenderSystem(const OpaqueRenderSystem&) = delete;
 	OpaqueRenderSystem& operator=(const OpaqueRenderSystem&) = delete;
 
 public:
+	// Call to create Pipeline, should be called as first thing after the constructor!
+	virtual void CreatePipeline(VkRenderPass _renderPass);
 	// Call at initialization time
 	void MaterialBinding();
 	// Call between begin/end frame, do not need to be called between begin/end swap chain render pass. But need to be called before Render
-	void Update(const FrameInfo& _frameInfo);
+	virtual void Update(const FrameInfo& _frameInfo);
 	// Call between begin swap chain render pass/end swap chain render pass.
 	virtual void Render(const FrameInfo& _frameInfo);
 	// Call at the end or at destruction time, anyway after the game loop is done.
 	void Cleanup();
 
 protected:
-	virtual void CreatePipeline(VkRenderPass _renderPass);
-
-private:
 	VesperApp& m_app;
 	Renderer& m_renderer;
 	std::unique_ptr<Pipeline> m_opaquePipeline;

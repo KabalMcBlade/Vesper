@@ -4,6 +4,10 @@
 
 #include "ViewerApp.h"
 
+#include "Systems/CustomOpaqueRenderSystem.h"
+#include "Systems/CustomTransparentRenderSystem.h"
+
+
 #include <array>
 #include <stdexcept>
 #include <iostream>
@@ -48,16 +52,39 @@ ViewerApp::ViewerApp(Config& _config) :
 
     m_masterRenderSystem = std::make_unique<MasterRenderSystem>(*m_device, *m_renderer);
 
+	
+	// IN-ENGINE SYSTEMS
+	/*
     m_opaqueRenderSystem = std::make_unique<OpaqueRenderSystem>(*this , *m_device, *m_renderer,
             m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
             m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
             m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
 
+	m_opaqueRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
+
     m_transparentRenderSystem = std::make_unique<TransparentRenderSystem>(*this, *m_device, *m_renderer,
             m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
             m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
             m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
-		
+
+	m_transparentRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
+	*/
+
+	// CUSTOM IN-APP SYSTEMS
+	m_opaqueRenderSystem = std::make_unique<CustomOpaqueRenderSystem>(*this, *m_device, *m_renderer,
+		m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
+		m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
+		m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
+
+	m_opaqueRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
+
+	m_transparentRenderSystem = std::make_unique<CustomTransparentRenderSystem>(*this, *m_device, *m_renderer,
+		m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
+		m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
+		m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
+
+	m_transparentRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
+
 	m_cameraSystem = std::make_unique<CameraSystem>(*this);
 	m_objLoader = std::make_unique<ObjLoader>(*this , *m_device, *m_materialSystem);
 

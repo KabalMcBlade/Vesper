@@ -1,0 +1,2 @@
+tint_phong_shader.vert BINDLESS 0 1
+tint_phong_shader.frag BINDLESS 0 1

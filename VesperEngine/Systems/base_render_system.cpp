@@ -8,6 +8,8 @@
 
 #include "Components/graphics_components.h"
 
+#include "ECS/ECS/ecs.h"
+
 
 VESPERENGINE_NAMESPACE_BEGIN
 
@@ -47,6 +49,17 @@ void BaseRenderSystem::PushConstants(VkCommandBuffer _commandBuffer, const uint3
 		m_pushConstants[_pushConstantIndex].stageFlags,
 		m_pushConstants[_pushConstantIndex].offset,
 		m_pushConstants[_pushConstantIndex].size,
+		_pushConstantValue);
+}
+
+void BaseRenderSystem::PushConstants(VkCommandBuffer _commandBuffer, const uint32 _pushConstantIndex, uint32 _overrideOffset, uint32 _overrideSize, const void* _pushConstantValue) const
+{
+	assertMsgReturnVoid(_pushConstantIndex >= 0 && _pushConstantIndex < m_pushConstants.size(), "_pushConstantIndex out of range!");
+
+	vkCmdPushConstants(_commandBuffer, m_pipelineLayout,
+		m_pushConstants[_pushConstantIndex].stageFlags,
+		_overrideOffset,
+		_overrideSize,
 		_pushConstantValue);
 }
 

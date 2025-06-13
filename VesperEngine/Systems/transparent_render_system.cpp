@@ -75,7 +75,7 @@ TransparentRenderSystem::TransparentRenderSystem(VesperApp& _app, Device& _devic
         );
     }
 
-    CreatePipeline(m_renderer.GetSwapChainRenderPass());
+    //CreatePipeline(m_renderer.GetSwapChainRenderPass());
 }
 
 void TransparentRenderSystem::MaterialBinding()
@@ -150,6 +150,8 @@ void TransparentRenderSystem::Update(const FrameInfo& _frameInfo)
         renderComponent.ModelMatrix = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
         renderComponent.ModelMatrix = renderComponent.ModelMatrix * glm::toMat4(transformComponent.Rotation);
         renderComponent.ModelMatrix = glm::scale(renderComponent.ModelMatrix, transformComponent.Scale);
+
+        PerEntityUpdate(_frameInfo, componentManager, gameEntity);
     }
 }
 
@@ -194,6 +196,8 @@ void TransparentRenderSystem::Render(const FrameInfo& _frameInfo)
                     &dynamicOffsetComponent.DynamicOffset
             );
 
+            PerEntityRender(_frameInfo, componentManager, entityCollected);
+
             Bind(vertexBufferComponent, indexBufferComponent, _frameInfo.CommandBuffer);
             Draw(indexBufferComponent, _frameInfo.CommandBuffer);
         }
@@ -233,6 +237,8 @@ void TransparentRenderSystem::Render(const FrameInfo& _frameInfo)
                     1,
                     &dynamicOffsetComponent.DynamicOffset
             );
+
+            PerEntityRender(_frameInfo, componentManager, entityCollected);
 
             Bind(vertexBufferComponent, _frameInfo.CommandBuffer);
             Draw(vertexBufferComponent, _frameInfo.CommandBuffer);

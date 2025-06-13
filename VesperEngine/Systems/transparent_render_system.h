@@ -37,21 +37,19 @@ public:
             VkDescriptorSetLayout _globalDescriptorSetLayout,
             VkDescriptorSetLayout _entityDescriptorSetLayout,
             VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout = VK_NULL_HANDLE);
-    ~TransparentRenderSystem() = default;
+    virtual ~TransparentRenderSystem() = default;
 
     TransparentRenderSystem(const TransparentRenderSystem&) = delete;
     TransparentRenderSystem& operator=(const TransparentRenderSystem&) = delete;
 
 public:
+    virtual void CreatePipeline(VkRenderPass _renderPass);
     void MaterialBinding();
-    void Update(const FrameInfo& _frameInfo);
+    virtual void Update(const FrameInfo& _frameInfo);
     virtual void Render(const FrameInfo& _frameInfo);
     void Cleanup();
 
 protected:
-    virtual void CreatePipeline(VkRenderPass _renderPass);
-
-private:
     VesperApp& m_app;
     Renderer& m_renderer;
     std::unique_ptr<Pipeline> m_transparentPipeline;

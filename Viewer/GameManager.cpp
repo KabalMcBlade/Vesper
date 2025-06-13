@@ -4,6 +4,8 @@
 
 #include "GameManager.h"
 
+#include "Components/PushConstants.h"
+
 VESPERENGINE_USING_NAMESPACE
 
 GameManager::GameManager(
@@ -89,6 +91,12 @@ void GameManager::LoadGameEntities()
 
 		m_app.GetComponentManager().AddComponent<RotationComponent>(cubeNoIndices);
 
+		// test for custom render systems
+		if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
+		{
+			m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(cubeNoIndices);
+		}
+
 		static const float radPerFrame = 0.00174533f;     // 0.1 deg
 		RotationComponent& rotateComponent = m_app.GetComponentManager().GetComponent<RotationComponent>(cubeNoIndices);
 		rotateComponent.RotationAxis = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -115,6 +123,12 @@ void GameManager::LoadGameEntities()
 
 			m_app.GetComponentManager().AddComponent<RotationComponent>(coloredCube);
 
+			// test for custom render systems
+			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
+			{
+				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(coloredCube);
+			}
+
 			static const float radPerFrame = 0.00174533f;     // 0.1 deg
 			RotationComponent& rotateComponent = m_app.GetComponentManager().GetComponent<RotationComponent>(coloredCube);
 			rotateComponent.RotationAxis = glm::vec3(0.0f, 0.0f, 1.0f);
@@ -138,6 +152,12 @@ void GameManager::LoadGameEntities()
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
 			m_entityHandlerSystem.RegisterRenderableEntity(flatVase);
+
+			// test for custom render systems
+			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
+			{
+				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(flatVase);
+			}
 		}
 	}
 
@@ -157,6 +177,12 @@ void GameManager::LoadGameEntities()
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
 			m_entityHandlerSystem.RegisterRenderableEntity(smoothVase);
+
+			// test for custom render systems
+			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
+			{
+				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(smoothVase);
+			}
 		}
 	}
 
@@ -176,6 +202,12 @@ void GameManager::LoadGameEntities()
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
 			m_entityHandlerSystem.RegisterRenderableEntity(quad);
+
+			// test for custom render systems
+			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
+			{
+				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(quad);
+			}
 		}
 	}
 
@@ -195,6 +227,12 @@ void GameManager::LoadGameEntities()
 			transformComponent.Rotation = glm::angleAxis(glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
 			m_entityHandlerSystem.RegisterRenderableEntity(character);
+
+			// test for custom render systems
+			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
+			{
+				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(character);
+			}
 		}
 	}
 }

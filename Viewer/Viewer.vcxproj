@@ -71,7 +71,8 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>call "$(ProjectDir)copy_locally.bat" $(ProjectDir) $(OutDir) $(IntDirFullPath)</Command>
+      <Command>call "$(ProjectDir)compile_shaders.bat" $(ProjectDir) $(IntDirFullPath) || exit 0
+call "$(ProjectDir)copy_locally.bat" $(ProjectDir) $(OutDir) $(IntDirFullPath)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -97,29 +98,41 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>call "$(ProjectDir)copy_locally.bat" $(ProjectDir) $(OutDir) $(IntDirFullPath)</Command>
+      <Command>call "$(ProjectDir)compile_shaders.bat" $(ProjectDir) $(IntDirFullPath) || exit 0
+call "$(ProjectDir)copy_locally.bat" $(ProjectDir) $(OutDir) $(IntDirFullPath)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="KeyboardMovementCameraController.cpp" />
     <ClCompile Include="MouseLookCameraController.cpp" />
+    <ClCompile Include="Systems\CustomOpaqueRenderSystem.cpp" />
+    <ClCompile Include="Systems\CustomTransparentRenderSystem.cpp" />
     <ClCompile Include="Viewer.cpp" />
     <ClCompile Include="ViewerApp.cpp" />
     <ClCompile Include="WindowHandle.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Components\PushConstants.h" />
     <ClInclude Include="GameData.h" />
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="KeyboardMovementCameraController.h" />
     <ClInclude Include="MouseLookCameraController.h" />
+    <ClInclude Include="Systems\CustomOpaqueRenderSystem.h" />
+    <ClInclude Include="Systems\CustomTransparentRenderSystem.h" />
     <ClInclude Include="ThirdParty\glfw\include\glfw3.h" />
     <ClInclude Include="ThirdParty\glfw\include\glfw3native.h" />
     <ClInclude Include="ViewerApp.h" />
     <ClInclude Include="WindowHandle.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Shaders\tint_phong_shader.frag" />
+    <None Include="Assets\Shaders\tint_phong_shader.vert" />
+    <None Include="compile_shaders.bat" />
     <None Include="copy_locally.bat" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="compile_shaders_config.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
