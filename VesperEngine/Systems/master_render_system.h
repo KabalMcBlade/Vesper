@@ -23,7 +23,6 @@ class MaterialSystem;
 class DescriptorSetLayout;
 class Buffer;
 class Renderer;
-class DefaultColorTintSubsystem;
 
 struct CameraComponent;
 struct FrameInfo;
@@ -93,7 +92,6 @@ private:
 	std::vector<VkDescriptorSet> m_bindlessBindingDescriptorSets;
 
     std::unique_ptr<Buffer> m_buffer;
-    std::unique_ptr<DefaultColorTintSubsystem> m_defaultColorTintSubsystem;
 };
 
 VESPERENGINE_NAMESPACE_END

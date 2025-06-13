@@ -17,8 +17,6 @@ class Device;
 struct IndexBufferComponent;
 struct VertexBufferComponent;
 
-class RenderSubsystem;
-
 class VESPERENGINE_API BaseRenderSystem
 {
 public:
@@ -31,7 +29,6 @@ public:
 	void CreatePipelineLayout(const std::vector<VkDescriptorSetLayout>& _descriptorSetLayouts);
 
 protected:
-    void AddRenderSubsystem(RenderSubsystem* _subsystem);
     void PushConstants(VkCommandBuffer _commandBuffer, const uint32 _pushConstantIndex, const void* _pushConstantValue) const;
     void PushConstants(VkCommandBuffer _commandBuffer, std::vector<const void*> _pushConstantValues) const;
 
@@ -45,7 +42,6 @@ protected:
 	Device& m_device;
 	VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
     std::vector<VkPushConstantRange> m_pushConstants;
-    std::vector<RenderSubsystem*> m_renderSubsystems;
 };
 
 VESPERENGINE_NAMESPACE_END

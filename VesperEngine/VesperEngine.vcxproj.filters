@@ -189,12 +189,6 @@
     <ClInclude Include="Systems\transparent_render_system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Systems\color_tint_system.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Systems\render_subsystem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Backend\pipeline.cpp">
@@ -293,27 +287,22 @@
     <ClCompile Include="Systems\transparent_render_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Systems\color_tint_system.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\Shaders\phong_shader.vert" />
-    <None Include="Assets\Shaders\phong_shader.frag" />
     <None Include="compile_shaders.bat">
       <Filter>Source Files</Filter>
     </None>
     <None Include="copy_assets.bat">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="Assets\Shaders\cubemap_shader.vert" />
-    <None Include="Assets\Shaders\irradiance_convolution_shader.frag" />
-    <None Include="Assets\Shaders\pre_filtered_environment_map.frag" />
     <None Include="Assets\Shaders\brdf_lut_shader.frag" />
-    <None Include="Assets\Shaders\fullscreen.vert" />
-    <None Include="Assets\Shaders\opaque_shader.vert" />
-    <None Include="Assets\Shaders\opaque_shader.frag" />
+    <None Include="Assets\Shaders\cubemap_shader.vert" />
     <None Include="Assets\Shaders\hdr_cubemap_shader.frag" />
+    <None Include="Assets\Shaders\phong_shader.vert" />
+    <None Include="Assets\Shaders\fullscreen.vert" />
+    <None Include="Assets\Shaders\irradiance_convolution_shader.frag" />
+    <None Include="Assets\Shaders\phong_shader.frag" />
+    <None Include="Assets\Shaders\pre_filtered_environment_map.frag" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compile_shaders_config.txt" />

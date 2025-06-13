@@ -32,13 +32,11 @@ class Renderer;
 class Pipeline;
 class DescriptorSetLayout;
 class Buffer;
-class RenderSubsystem;
-class DefaultColorTintSubsystem;
 
 struct FrameInfo;
 struct BufferComponent;
 
-class VESPERENGINE_API OpaqueRenderSystem final : public BaseRenderSystem
+class VESPERENGINE_API OpaqueRenderSystem : public BaseRenderSystem
 {
 public:
 	static constexpr uint32 kPhongAmbientTextureBindingIndex = 0u;
@@ -55,8 +53,7 @@ public:
     OpaqueRenderSystem(VesperApp& _app, Device& _device, Renderer& _renderer,
             VkDescriptorSetLayout _globalDescriptorSetLayout,
             VkDescriptorSetLayout _entityDescriptorSetLayout,
-            VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout = VK_NULL_HANDLE,
-            const std::vector<RenderSubsystem*>& _subsystems = {});
+            VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout = VK_NULL_HANDLE);
     ~OpaqueRenderSystem() = default;
 
 	OpaqueRenderSystem(const OpaqueRenderSystem&) = delete;
@@ -68,12 +65,12 @@ public:
 	// Call between begin/end frame, do not need to be called between begin/end swap chain render pass. But need to be called before Render
 	void Update(const FrameInfo& _frameInfo);
 	// Call between begin swap chain render pass/end swap chain render pass.
-	void Render(const FrameInfo& _frameInfo);
+	virtual void Render(const FrameInfo& _frameInfo);
 	// Call at the end or at destruction time, anyway after the game loop is done.
 	void Cleanup();
 
-private:
-	void CreatePipeline(VkRenderPass _renderPass);
+protected:
+	virtual void CreatePipeline(VkRenderPass _renderPass);
 
 private:
 	VesperApp& m_app;
@@ -84,8 +81,6 @@ private:
     std::unique_ptr<Buffer> m_buffer;
 
     std::vector<BufferComponent> m_bindlessBindingMaterialIndexUbos;
-
-    std::unique_ptr<DefaultColorTintSubsystem> m_defaultColorTintSubsystem;
 
     uint32 m_entitySetIndex = 1;
     uint32 m_materialSetIndex = 2;

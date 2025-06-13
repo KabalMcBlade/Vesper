@@ -66,11 +66,6 @@ layout(std140, set = 2, binding = 5) uniform MaterialData
 
 #endif
 
-layout(push_constant) uniform PushConstants 
-{
-    vec3 colorTint;
-} pushConstants;
-
 // Specialization constant for brightness adjustment
 layout(constant_id = 0) const float kBrightnessFactor = 1.0;
 
@@ -192,9 +187,6 @@ void main()
 
     // Emission Contribution (Always Added)
     combinedLighting += emissionColor;
-
-    // Apply Color Tint
-    combinedLighting.rgb *= pushConstants.colorTint;
 
     // Clamp Final Result
     outColor = clamp(vec4(combinedLighting.rgb, alpha) * kBrightnessFactor, 0.0, 1.0);

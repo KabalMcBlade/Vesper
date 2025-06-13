@@ -3,8 +3,6 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
 #include "Systems/opaque_render_system.h"
-#include "Systems/render_subsystem.h"
-#include "Systems/color_tint_system.h"
 
 #include "Core/glm_config.h"
 
@@ -37,22 +35,18 @@ VESPERENGINE_NAMESPACE_BEGIN
 OpaqueRenderSystem::OpaqueRenderSystem(VesperApp& _app, Device& _device, Renderer& _renderer,
         VkDescriptorSetLayout _globalDescriptorSetLayout,
         VkDescriptorSetLayout _entityDescriptorSetLayout,
-        VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout,
-        const std::vector<RenderSubsystem*>& _subsystems)
+        VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout)
         : BaseRenderSystem{ _device }
         , m_app(_app)
         , m_renderer(_renderer)
 {
-    for (RenderSubsystem* subsystem : _subsystems)
-    {
-        AddRenderSubsystem(subsystem);
-    }
-    if (m_renderSubsystems.empty())
-    {
-        m_defaultColorTintSubsystem = std::make_unique<DefaultColorTintSubsystem>();
-        AddRenderSubsystem(m_defaultColorTintSubsystem.get());
-    }
     m_buffer = std::make_unique<Buffer>(m_device);
+
+	VkPushConstantRange defaultRange{};
+	defaultRange.stageFlags = VK_SHADER_STAGE_ALL;
+	defaultRange.offset = 0;
+	defaultRange.size = VESPERENGINE_PUSHCONSTANT_DEFAULTRANGE;
+	m_pushConstants.push_back(defaultRange);
 
 	if (m_device.IsBindlessResourcesSupported())
 	{
@@ -221,10 +215,6 @@ void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 				&dynamicOffsetComponent.DynamicOffset
 			);
 
-            for (RenderSubsystem* subsystem : m_renderSubsystems)
-            {
-                subsystem->Execute(_frameInfo.CommandBuffer, m_pipelineLayout, entityCollected);
-            }
             Bind(vertexBufferComponent, indexBufferComponent, _frameInfo.CommandBuffer);
             Draw(indexBufferComponent, _frameInfo.CommandBuffer);
 		}
@@ -269,10 +259,6 @@ void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 				&dynamicOffsetComponent.DynamicOffset
 			);
 
-            for (RenderSubsystem* subsystem : m_renderSubsystems)
-            {
-                subsystem->Execute(_frameInfo.CommandBuffer, m_pipelineLayout, entityCollected);
-            }
             Bind(vertexBufferComponent, _frameInfo.CommandBuffer);
             Draw(vertexBufferComponent, _frameInfo.CommandBuffer);
 		}
