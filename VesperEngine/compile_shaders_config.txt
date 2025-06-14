@@ -1,2 +1,3 @@
 phong_shader.vert BINDLESS 0 1
 phong_shader.frag BINDLESS 0 1
+skybox_shader.frag BINDLESS 0 1

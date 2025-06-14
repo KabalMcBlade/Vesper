@@ -194,6 +194,10 @@ void Pipeline::SkyboxPipelineConfig(PipelineConfigInfo& _outConfigInfo)
 
 	_outConfigInfo.RasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;  // Cull back faces
 	_outConfigInfo.RasterizationInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;  // Adjust for cube map orientation
+
+	// Only position attribute is required for the cube
+	_outConfigInfo.AttributeDescriptions.clear();
+	_outConfigInfo.AttributeDescriptions.push_back({ 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, Position) });
 }
 
 // Renders 2D elements like UI or HUD.

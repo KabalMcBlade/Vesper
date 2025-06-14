@@ -4,6 +4,7 @@
 
 #include "ViewerApp.h"
 
+#include "Systems/skybox_render_system.h"
 #include "Systems/CustomOpaqueRenderSystem.h"
 #include "Systems/CustomTransparentRenderSystem.h"
 
@@ -46,8 +47,8 @@ ViewerApp::ViewerApp(Config& _config) :
 
 	m_entityHandlerSystem = std::make_unique<EntityHandlerSystem>(*this, *m_device, *m_renderer);
 	m_gameEntitySystem = std::make_unique<GameEntitySystem>(*this);
-	m_texturelSystem = std::make_unique<TextureSystem>(*this, *m_device);
-	m_materialSystem = std::make_unique<MaterialSystem>(*m_device, *m_texturelSystem);
+	m_textureSystem = std::make_unique<TextureSystem>(*this, *m_device);
+	m_materialSystem = std::make_unique<MaterialSystem>(*m_device, *m_textureSystem);
 	m_modelSystem = std::make_unique<ModelSystem>(*this, *m_device, *m_materialSystem);
 
     m_masterRenderSystem = std::make_unique<MasterRenderSystem>(*m_device, *m_renderer);
@@ -78,12 +79,18 @@ ViewerApp::ViewerApp(Config& _config) :
 
 	m_opaqueRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
 
-	m_transparentRenderSystem = std::make_unique<CustomTransparentRenderSystem>(*this, *m_device, *m_renderer,
-		m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
-		m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
-		m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
+    m_transparentRenderSystem = std::make_unique<CustomTransparentRenderSystem>(*this, *m_device, *m_renderer,
+            m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
+            m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
+            m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
 
-	m_transparentRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
+    m_transparentRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
+
+    m_skyboxRenderSystem = std::make_unique<SkyboxRenderSystem>(*this, *m_device, *m_renderer,
+            m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
+            m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
+
+    m_skyboxRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
 
 	m_cameraSystem = std::make_unique<CameraSystem>(*this);
 	m_objLoader = std::make_unique<ObjLoader>(*this , *m_device, *m_materialSystem);
@@ -96,32 +103,8 @@ ViewerApp::ViewerApp(Config& _config) :
 	VkExtent2D extent;
 	extent.width = 512;
 	extent.height = 512;
-	std::shared_ptr<TextureData> brdfLut = m_texturelSystem->GenerateOrLoadBRDFLutTexture(brdfLutPath, extent);
+	std::shared_ptr<TextureData> brdfLut = m_textureSystem->GenerateOrLoadBRDFLutTexture(brdfLutPath, extent);
 	LOG(Logger::INFO, "BRDF LUT texture generated/loaded at ", brdfLutPath);
-
-	LOG_NL();
-
-	// CUBEMAP TEXTURE TEST
-	const std::string cubemapTexturesDirectoryPath = GetConfig().TexturesPath + "Yokohama3_CubeMap/";
-	LOG(Logger::INFO, "Loading Cubemap texture: ", cubemapTexturesDirectoryPath);
-
-	std::array<std::string, 6> cubemapTexturesDirectoryFilepaths;
-	cubemapTexturesDirectoryFilepaths[0] = cubemapTexturesDirectoryPath + "negx.jpg";
-	cubemapTexturesDirectoryFilepaths[1] = cubemapTexturesDirectoryPath + "negy.jpg";
-	cubemapTexturesDirectoryFilepaths[2] = cubemapTexturesDirectoryPath + "negz.jpg";
-	cubemapTexturesDirectoryFilepaths[3] = cubemapTexturesDirectoryPath + "posx.jpg";
-	cubemapTexturesDirectoryFilepaths[4] = cubemapTexturesDirectoryPath + "posy.jpg";
-	cubemapTexturesDirectoryFilepaths[5] = cubemapTexturesDirectoryPath + "posz.jpg";
-
-	std::shared_ptr<TextureData> cubeMap = m_texturelSystem->LoadCubemap(cubemapTexturesDirectoryFilepaths);
-	LOG(Logger::INFO, "Cubemap loaded!");
-
-	// CUBEMAP HDR TEXTURE TEST
-	const std::string cubemapHdrTexturesPath = GetConfig().TexturesPath + "misty_pines_4k.hdr";
-	LOG(Logger::INFO, "Loading Cubemap texture: ", cubemapHdrTexturesPath);
-
-	std::shared_ptr<TextureData> cubeMapHdr = m_texturelSystem->LoadCubemap(cubemapHdrTexturesPath);
-	LOG(Logger::INFO, "Cubemap HDR loaded!");
 
 	LOG_NL();
 
@@ -140,22 +123,25 @@ ViewerApp::ViewerApp(Config& _config) :
 		*m_modelSystem, 
 		*m_materialSystem,
 		*m_cameraSystem, 
-		*m_objLoader);
+		*m_objLoader,
+		*m_textureSystem);
 
     m_gameManager->LoadCameraEntities();
     m_gameManager->LoadGameEntities();
 
     m_opaqueRenderSystem->MaterialBinding();
-	m_transparentRenderSystem->MaterialBinding();
+    m_transparentRenderSystem->MaterialBinding();
+    m_skyboxRenderSystem->MaterialBinding();
 }
 
 ViewerApp::~ViewerApp()
 {
 	m_gameManager->UnloadGameEntities();
-	m_texturelSystem->Cleanup();
+	m_textureSystem->Cleanup();
     m_materialSystem->Cleanup();
     m_opaqueRenderSystem->Cleanup();
     m_transparentRenderSystem->Cleanup();
+    m_skyboxRenderSystem->Cleanup();
     m_masterRenderSystem->Cleanup();
 }
 
@@ -167,7 +153,7 @@ void ViewerApp::Run()
 	CameraTransformComponent activeCameraTransformComponent;
 
 	m_entityHandlerSystem->Initialize();
-	m_masterRenderSystem->Initialize(*m_texturelSystem, *m_materialSystem);
+	m_masterRenderSystem->Initialize(*m_textureSystem, *m_materialSystem);
 
 	while (!m_window->ShouldClose())
 	{
@@ -195,7 +181,8 @@ void ViewerApp::Run()
 			m_gameManager->Update(frameInfo);
 
             m_opaqueRenderSystem->Update(frameInfo);
-			m_transparentRenderSystem->Update(frameInfo);
+            m_transparentRenderSystem->Update(frameInfo);
+            m_skyboxRenderSystem->Update(frameInfo);
 
 			const float aspectRatio = m_renderer->GetAspectRatio();
 			m_cameraSystem->Update(aspectRatio);
@@ -213,6 +200,7 @@ void ViewerApp::Run()
 
             m_renderer->BeginSwapChainRenderPass(commandBuffer);
 
+            m_skyboxRenderSystem->Render(frameInfo);
             m_opaqueRenderSystem->Render(frameInfo);
             m_transparentRenderSystem->Render(frameInfo);
 
