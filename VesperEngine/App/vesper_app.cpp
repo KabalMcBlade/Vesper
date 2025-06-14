@@ -65,7 +65,7 @@ void VesperApp::RegisterDefaultComponents()
 	m_componentManager.RegisterComponent<PhongMaterialComponent>();
 	m_componentManager.RegisterComponent<PBRMaterialComponent>();
 	m_componentManager.RegisterComponent<StaticComponent>();
-        m_componentManager.RegisterComponent<SkyboxComponent>();
+    m_componentManager.RegisterComponent<SkyboxComponent>();
 
 	// BUFFERS
 	m_componentManager.RegisterComponent<VertexBufferComponent>();
@@ -90,6 +90,7 @@ void VesperApp::RegisterDefaultComponents()
 	m_componentManager.RegisterComponent<PipelineWireframeComponent>();
 	m_componentManager.RegisterComponent<PipelineBoundingBoxComponent>();
 	m_componentManager.RegisterComponent<PipelineNormalsVisualizationComponent>();
+	m_componentManager.RegisterComponent<PipelineSkyboxComponent>();
 }
 
 void VesperApp::UnregisterDefaultComponent()
@@ -105,8 +106,8 @@ void VesperApp::UnregisterDefaultComponent()
 	m_componentManager.UnregisterComponent<PhongMaterialComponent>();
 	m_componentManager.UnregisterComponent<PBRMaterialComponent>();
 	m_componentManager.UnregisterComponent<StaticComponent>();
+	m_componentManager.UnregisterComponent<SkyboxComponent>();
 
-        m_componentManager.UnregisterComponent<SkyboxComponent>();
 	// BUFFERS
 	m_componentManager.UnregisterComponent<VertexBufferComponent>();
 	m_componentManager.UnregisterComponent<IndexBufferComponent>();
@@ -130,6 +131,7 @@ void VesperApp::UnregisterDefaultComponent()
 	m_componentManager.UnregisterComponent<PipelineWireframeComponent>();
 	m_componentManager.UnregisterComponent<PipelineBoundingBoxComponent>();
 	m_componentManager.UnregisterComponent<PipelineNormalsVisualizationComponent>();
+	m_componentManager.UnregisterComponent<PipelineSkyboxComponent>();
 }
 
 VESPERENGINE_NAMESPACE_END

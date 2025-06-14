@@ -22,6 +22,7 @@
 #include "Components/graphics_components.h"
 #include "Components/object_components.h"
 #include "Components/camera_components.h"
+#include "Components/pipeline_components.h"
 
 #include "Systems/game_entity_system.h"
 #include "Systems/entity_handler_system.h"

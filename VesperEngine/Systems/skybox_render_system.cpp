@@ -9,9 +9,13 @@
 #include "Components/graphics_components.h"
 #include "Components/object_components.h"
 #include "Components/camera_components.h"
+#include "Components/pipeline_components.h"
 
 #include "App/vesper_app.h"
 #include "App/config.h"
+
+#include "ECS/ECS/ecs.h"
+
 
 VESPERENGINE_NAMESPACE_BEGIN
 
@@ -21,21 +25,21 @@ struct SkyboxPushConstant
 };
 
 SkyboxRenderSystem::SkyboxRenderSystem(VesperApp& _app, Device& _device, Renderer& _renderer,
-        VkDescriptorSetLayout _globalDescriptorSetLayout,
-        VkDescriptorSetLayout _bindlessDescriptorSetLayout)
+    VkDescriptorSetLayout _globalDescriptorSetLayout,
+    VkDescriptorSetLayout _bindlessDescriptorSetLayout)
     : BaseRenderSystem(_device)
     , m_app(_app)
     , m_renderer(_renderer)
 {
     VkPushConstantRange range{};
-    range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    range.stageFlags = VK_SHADER_STAGE_ALL;
     range.offset = 0;
-    range.size = sizeof(SkyboxPushConstant);
+    range.size = VESPERENGINE_PUSHCONSTANT_DEFAULTRANGE; //sizeof(SkyboxPushConstant);
     m_pushConstants.push_back(range);
 
     m_setLayout = DescriptorSetLayout::Builder(_device)
-            .AddBinding(kCubemapBindingIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
-            .Build();
+        .AddBinding(kCubemapBindingIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+        .Build();
 
     if (_device.IsBindlessResourcesSupported())
     {
@@ -57,9 +61,13 @@ void SkyboxRenderSystem::CreatePipeline(VkRenderPass _renderPass)
     config.PipelineLayout = m_pipelineLayout;
 
     ShaderInfo vert(m_app.GetConfig().ShadersPath + "cubemap_shader.vert.spv", ShaderType::Vertex);
-    ShaderInfo frag(m_app.GetConfig().ShadersPath + "skybox_shader.frag.spv", ShaderType::Fragment);
 
-    m_pipeline = std::make_unique<Pipeline>(m_device, std::vector{vert, frag}, config);
+    const std::string fragmentShaderFilepath = m_device.IsBindlessResourcesSupported()
+        ? m_app.GetConfig().ShadersPath + "skybox_shader_bindless1.frag.spv"
+        : m_app.GetConfig().ShadersPath + "skybox_shader_bindless0.frag.spv";
+    ShaderInfo frag(fragmentShaderFilepath, ShaderType::Fragment);
+
+    m_pipeline = std::make_unique<Pipeline>(m_device, std::vector{ vert, frag }, config);
 }
 
 void SkyboxRenderSystem::MaterialBinding()
@@ -117,7 +125,7 @@ void SkyboxRenderSystem::Render(const FrameInfo& _frameInfo)
             0,
             nullptr);
 
-        PushConstants(_frameInfo.CommandBuffer, 0, &push);
+        PushConstants(_frameInfo.CommandBuffer, 0, 0, sizeof(SkyboxPushConstant), &push);
         Bind(vertex, _frameInfo.CommandBuffer);
         Draw(vertex, _frameInfo.CommandBuffer);
     }

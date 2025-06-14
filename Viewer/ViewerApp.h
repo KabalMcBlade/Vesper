@@ -18,7 +18,6 @@ VESPERENGINE_USING_NAMESPACE
 
 class CustomOpaqueRenderSystem;
 class CustomTransparentRenderSystem;
-class SkyboxRenderSystem;
 
 class ViewerApp final : public VesperApp
 {
@@ -41,7 +40,7 @@ private:
 	std::unique_ptr<EntityHandlerSystem> m_entityHandlerSystem;
 	std::unique_ptr<GameEntitySystem> m_gameEntitySystem;
 	std::unique_ptr<ModelSystem> m_modelSystem;
-	std::unique_ptr<TextureSystem> m_texturelSystem;
+	std::unique_ptr<TextureSystem> m_textureSystem;
 	std::unique_ptr<MaterialSystem> m_materialSystem;
     std::unique_ptr<MasterRenderSystem> m_masterRenderSystem;
     
@@ -52,7 +51,7 @@ private:
 	// CUSTOM IN-APP SYSTEMS
 	std::unique_ptr<CustomOpaqueRenderSystem> m_opaqueRenderSystem;
 	std::unique_ptr<CustomTransparentRenderSystem> m_transparentRenderSystem;
-        std::unique_ptr<SkyboxRenderSystem> m_skyboxRenderSystem;
+    std::unique_ptr<SkyboxRenderSystem> m_skyboxRenderSystem;
 
 	std::unique_ptr<CameraSystem> m_cameraSystem;
 	std::unique_ptr<ObjLoader> m_objLoader;

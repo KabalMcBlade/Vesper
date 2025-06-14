@@ -22,8 +22,8 @@ public:
     static constexpr uint32 kCubemapBindingIndex = 0u;
 
     SkyboxRenderSystem(VesperApp& _app, Device& _device, Renderer& _renderer,
-            VkDescriptorSetLayout _globalDescriptorSetLayout,
-            VkDescriptorSetLayout _bindlessDescriptorSetLayout = VK_NULL_HANDLE);
+        VkDescriptorSetLayout _globalDescriptorSetLayout,
+        VkDescriptorSetLayout _bindlessDescriptorSetLayout = VK_NULL_HANDLE);
     ~SkyboxRenderSystem() = default;
 
     SkyboxRenderSystem(const SkyboxRenderSystem&) = delete;
