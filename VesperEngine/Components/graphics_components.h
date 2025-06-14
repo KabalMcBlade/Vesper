@@ -91,6 +91,13 @@ struct PBRMaterialComponent : public MaterialComponent
 	VkDescriptorImageInfo NormalImageInfo{};
 	VkDescriptorBufferInfo UniformBufferInfo{};	// colors/values
 };
+struct SkyboxComponent
+{
+        VkDescriptorImageInfo ImageInfo{};
+        std::vector<VkDescriptorSet> BoundDescriptorSet;
+};
+
+
 
 struct DynamicOffsetComponent
 {

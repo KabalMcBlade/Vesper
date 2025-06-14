@@ -5,6 +5,7 @@
 #pragma once
 
 #include "vesper.h"
+#include <memory>
 
 #include "GameData.h"
 
@@ -27,7 +28,7 @@ public:
 	void Update(const FrameInfo& _frameInfo);
 
 	void LoadCameraEntities();
-	void LoadGameEntities();
+        void LoadGameEntities(std::shared_ptr<TextureData> _skyboxTexture);
 	void UnloadGameEntities();
 
 private:

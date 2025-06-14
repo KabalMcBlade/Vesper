@@ -67,8 +67,39 @@ void GameManager::LoadCameraEntities()
 	}
 }
 
-void GameManager::LoadGameEntities()
+void GameManager::LoadGameEntities(std::shared_ptr<TextureData> _skyboxTexture)
 {
+        // Skybox
+        {
+                std::vector<std::unique_ptr<ModelData>> skyboxDataList = m_objLoader.LoadModel("cube.obj");
+                if (!skyboxDataList.empty())
+                {
+                        ecs::Entity skybox = m_gameEntitySystem.CreateGameEntity(EntityType::Renderable);
+
+                        m_modelSystem.LoadModel(skybox, std::move(skyboxDataList.front()));
+
+                        TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(skybox);
+                        transformComponent.Scale = { 50.0f, 50.0f, 50.0f };
+
+                        m_entityHandlerSystem.RegisterRenderableEntity(skybox);
+
+                        if (m_app.GetComponentManager().HasComponents<PhongMaterialComponent>(skybox))
+                        {
+                                m_app.GetComponentManager().RemoveComponent<PhongMaterialComponent>(skybox);
+                        }
+                        if (m_app.GetComponentManager().HasComponents<PipelineOpaqueComponent>(skybox))
+                        {
+                                m_app.GetComponentManager().RemoveComponent<PipelineOpaqueComponent>(skybox);
+                        }
+
+                        m_app.GetComponentManager().AddComponent<PipelineSkyboxComponent>(skybox);
+                        m_app.GetComponentManager().AddComponent<SkyboxComponent>(skybox);
+                        SkyboxComponent& sb = m_app.GetComponentManager().GetComponent<SkyboxComponent>(skybox);
+                        sb.ImageInfo.sampler = _skyboxTexture->Sampler;
+                        sb.ImageInfo.imageView = _skyboxTexture->ImageView;
+                        sb.ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                }
+        }
 	//////////////////////////////////////////////////////////////////////////
 	// Cube no Indices
 	{

@@ -4,6 +4,7 @@
 
 #include "ViewerApp.h"
 
+#include "Systems/skybox_render_system.h"
 #include "Systems/CustomOpaqueRenderSystem.h"
 #include "Systems/CustomTransparentRenderSystem.h"
 
@@ -78,12 +79,18 @@ ViewerApp::ViewerApp(Config& _config) :
 
 	m_opaqueRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
 
-	m_transparentRenderSystem = std::make_unique<CustomTransparentRenderSystem>(*this, *m_device, *m_renderer,
-		m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
-		m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
-		m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
+        m_transparentRenderSystem = std::make_unique<CustomTransparentRenderSystem>(*this, *m_device, *m_renderer,
+                m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
+                m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
+                m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
 
-	m_transparentRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
+        m_transparentRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
+
+        m_skyboxRenderSystem = std::make_unique<SkyboxRenderSystem>(*this, *m_device, *m_renderer,
+                m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
+                m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
+
+        m_skyboxRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
 
 	m_cameraSystem = std::make_unique<CameraSystem>(*this);
 	m_objLoader = std::make_unique<ObjLoader>(*this , *m_device, *m_materialSystem);
@@ -143,10 +150,11 @@ ViewerApp::ViewerApp(Config& _config) :
 		*m_objLoader);
 
     m_gameManager->LoadCameraEntities();
-    m_gameManager->LoadGameEntities();
+    m_gameManager->LoadGameEntities(cubeMap);
 
     m_opaqueRenderSystem->MaterialBinding();
-	m_transparentRenderSystem->MaterialBinding();
+    m_transparentRenderSystem->MaterialBinding();
+    m_skyboxRenderSystem->MaterialBinding();
 }
 
 ViewerApp::~ViewerApp()
@@ -156,6 +164,7 @@ ViewerApp::~ViewerApp()
     m_materialSystem->Cleanup();
     m_opaqueRenderSystem->Cleanup();
     m_transparentRenderSystem->Cleanup();
+    m_skyboxRenderSystem->Cleanup();
     m_masterRenderSystem->Cleanup();
 }
 
@@ -195,7 +204,8 @@ void ViewerApp::Run()
 			m_gameManager->Update(frameInfo);
 
             m_opaqueRenderSystem->Update(frameInfo);
-			m_transparentRenderSystem->Update(frameInfo);
+            m_transparentRenderSystem->Update(frameInfo);
+            m_skyboxRenderSystem->Update(frameInfo);
 
 			const float aspectRatio = m_renderer->GetAspectRatio();
 			m_cameraSystem->Update(aspectRatio);
@@ -213,6 +223,7 @@ void ViewerApp::Run()
 
             m_renderer->BeginSwapChainRenderPass(commandBuffer);
 
+            m_skyboxRenderSystem->Render(frameInfo);
             m_opaqueRenderSystem->Render(frameInfo);
             m_transparentRenderSystem->Render(frameInfo);
 
