@@ -48,7 +48,7 @@ The different settings for linkage are, in Windows and Visual Studio 2022:<br />
 - Integrated support for push constants (pre-allocated 128-byte layout) and specialization constants
 - PushConstants function allows injecting push constants without rebinding the global or bindless pipeline
 - Extendable render pipeline architecture (see the Viewer using CustomOpaqueRenderSystem and CustomTransparentRenderSystem, which apply per-object push constants without additional bindings)
-- Skybox support (non-HDR only, for now)
+- Skybox supports both standard and HDR formats (float32 and float16), with projection types including Equirectangular, Cubemap, Hemisphere, Parabolic, and LatLongCubemap.
 
 ## Screenshots
 

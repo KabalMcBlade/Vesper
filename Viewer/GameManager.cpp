@@ -105,7 +105,7 @@ void GameManager::LoadGameEntities()
      
         ecs::Entity skybox = m_gameEntitySystem.CreateGameEntity(EntityType::Renderable);
 
-        m_modelSystem.LoadSkyboxModel(skybox, std::move(skyboxData), cubeMap);
+        m_modelSystem.LoadSkyboxModel(skybox, std::move(skyboxData), cubeMapHdr);
 
         TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(skybox);
         transformComponent.Scale = { 50.0f, 50.0f, 50.0f };
