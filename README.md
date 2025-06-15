@@ -43,9 +43,12 @@ The different settings for linkage are, in Windows and Visual Studio 2022:<br />
 - ECS core
 - Latest Vulkan API
 - Automatically support bindless and standard binding resource (textures and buffers)
-- Opaque pipeline render system (for now just this)
-- Push constant and specialization constant support integrated
-- Extendable render pipeline
+- Phong opaque pipeline render system
+- Phong transparent pipeline render system
+- Push constant (pre allocated layout of 128 byte) and specialization constant support integrated
+- PushConstants function allow to inject pushconstant without re-bidning the global or bindless pipeline  
+- Extendable render pipeline (see Viewer using CustomOpaqueRenderSystem and CustomTransparentRenderSystem which use PushConstant per object with no additional binding)
+- Skybox support (no-hdr only for now)
 
 ## Screenshots
 
@@ -55,9 +58,11 @@ I will post screenshots here as new features are added and when there’s someth
 First render from the engine.
 <img src="./Screenshots/1.png">
 
-Second render from the engine, OBJ loaded using Phong shader rendering.
+Second render from the engine, OBJ loaded using Opaque phong shader rendering system.
 <img src="./Screenshots/2.png">
 
+Third render from the engine, OBJs loaded using Custom Opaque and Transparent phong shader rendering system having push constant with no additional binding and a Skybox.
+<img src="./Screenshots/3.png">
 
 ## LICENSE
 
