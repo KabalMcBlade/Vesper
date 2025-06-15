@@ -158,6 +158,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ $(IntDir
     <ClInclude Include="ThirdParty\stb\stb_truetype.h" />
     <ClInclude Include="ThirdParty\tiny_gltf.h" />
     <ClInclude Include="ThirdParty\tiny_obj_loader.h" />
+    <ClInclude Include="Utility\gltf_loader.h" />
     <ClInclude Include="Utility\hash.h" />
     <ClInclude Include="Utility\hdr_cubemap_generation.h" />
     <ClInclude Include="Utility\logger.h" />
@@ -205,6 +206,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ $(IntDir
     <ClCompile Include="Systems\phong_opaque_render_system.cpp" />
     <ClCompile Include="Systems\phong_transparent_render_system.cpp" />
     <ClCompile Include="Systems\texture_system.cpp" />
+    <ClCompile Include="Utility\gltf_loader.cpp" />
     <ClCompile Include="Utility\hdr_cubemap_generation.cpp" />
     <ClCompile Include="Utility\logger.cpp" />
     <ClCompile Include="Utility\obj_loader.cpp" />

@@ -43,6 +43,7 @@
 #include "Utility/logger.h"
 #include "Utility/primitive_factory.h"
 #include "Utility/obj_loader.h"
+#include "Utility/gltf_loader.h"
 
 #include "App/config.h"
 #include "App/file_system.h"

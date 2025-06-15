@@ -16,6 +16,7 @@ GameManager::GameManager(
 	MaterialSystem& _materialSystem,
 	CameraSystem& _cameraSystem,
 	ObjLoader& _objLoader,
+	GltfLoader& _gltfLoader,
 	TextureSystem& _textureSystem)
 	: m_app(_app)
 	, m_entityHandlerSystem(_entityHandlerSystem)
@@ -24,6 +25,7 @@ GameManager::GameManager(
 	, m_materialSystem(_materialSystem)
 	, m_cameraSystem(_cameraSystem)
 	, m_objLoader(_objLoader)
+	, m_gltfLoader(_gltfLoader)
 	, m_textureSystem(_textureSystem)
 {
 	m_app.GetComponentManager().RegisterComponent<RotationComponent>();
@@ -127,7 +129,7 @@ void GameManager::LoadGameEntities()
 		m_modelSystem.LoadModel(cubeNoIndices, std::move(cubeNoIndicesData));
 
 		TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(cubeNoIndices);
-		transformComponent.Position = { -1.0f, -1.0f, 0.0f };
+		transformComponent.Position = { -1.5f, -1.0f, 1.0f };
 		transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
 		transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
@@ -161,7 +163,7 @@ void GameManager::LoadGameEntities()
 			m_modelSystem.LoadModel(coloredCube, std::move(coloredCubeData));
 
 			TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(coloredCube);
-			transformComponent.Position = { 1.0f, -1.5f, 0.0f };
+			transformComponent.Position = { 1.5f, -1.5f, 1.0f };
 			transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
@@ -195,7 +197,7 @@ void GameManager::LoadGameEntities()
 			m_modelSystem.LoadModel(flatVase, std::move(flatVaseData));
 
 			TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(flatVase);
-			transformComponent.Position = { -1.0f, 0.5f, 0.0f };
+			transformComponent.Position = { -1.5f, 0.5f, 1.0f };
 			transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
@@ -222,7 +224,7 @@ void GameManager::LoadGameEntities()
 			m_modelSystem.LoadModel(smoothVase, std::move(smoothVaseData));
 
 			TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(smoothVase);
-			transformComponent.Position = { 1.0f, 0.5f, 0.0f };
+			transformComponent.Position = { 1.5f, 0.5f, 1.0f };
 			transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
@@ -250,7 +252,7 @@ void GameManager::LoadGameEntities()
 
 			TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(quad);
 			transformComponent.Position = { 0.0f, 1.0f, 0.0f };
-			transformComponent.Scale = { 3.0f, 1.0f, 3.0f };
+			transformComponent.Scale = { 5.0f, 1.0f, 5.0f };
 			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
 
 			m_entityHandlerSystem.RegisterRenderableEntity(quad);
@@ -276,7 +278,7 @@ void GameManager::LoadGameEntities()
 			m_modelSystem.LoadModel(character, std::move(characterData));
 
 			TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(character);
-			transformComponent.Position = { 0.0f, 0.0f, 1.0f };
+			transformComponent.Position = { 0.0f, 0.0f, 3.0f };
 			transformComponent.Scale = { 1.0f, 1.0f, 1.0f };
 			transformComponent.Rotation = glm::angleAxis(glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
@@ -288,6 +290,33 @@ void GameManager::LoadGameEntities()
 			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
 			{
 				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(character);
+			}
+		}
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// GLTF: DamagedHelmet
+	{
+		std::vector<std::unique_ptr<ModelData>> damagedHelmetDataList = m_gltfLoader.LoadModel("DamagedHelmet.gltf");
+		for (auto& damagedHelmetData : damagedHelmetDataList)
+		{
+			ecs::Entity damagedHelmet = m_gameEntitySystem.CreateGameEntity(EntityType::Renderable);
+
+			m_modelSystem.LoadModel(damagedHelmet, std::move(damagedHelmetData));
+
+			TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(damagedHelmet);
+			transformComponent.Position = { 0.0f, 0.0f, 1.0f };
+			transformComponent.Scale = { 1.0f, 1.0f, 1.0f };
+			transformComponent.Rotation = glm::angleAxis(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+			m_entityHandlerSystem.RegisterRenderableEntity(damagedHelmet);
+
+			// test for custom render systems: 
+			// if PhongCustomTransparentRenderSystem and/or PhongCustomOpaqueRenderSystem are used, they will push constant
+			// to change the tint of the entities having this component registered, otherwise nothing.
+			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
+			{
+				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(damagedHelmet);
 			}
 		}
 	}

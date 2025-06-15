@@ -22,6 +22,7 @@ public:
 		MaterialSystem& _materialSystem,
 		CameraSystem& _cameraSystem,
 		ObjLoader& _objLoader,
+		GltfLoader& _gltfLoader,
 		TextureSystem& _textureSystem);
 	~GameManager();
 
@@ -40,5 +41,6 @@ private:
 	MaterialSystem& m_materialSystem;
 	CameraSystem& m_cameraSystem;
 	ObjLoader& m_objLoader;
+	GltfLoader& m_gltfLoader;
 	TextureSystem& m_textureSystem;
 };

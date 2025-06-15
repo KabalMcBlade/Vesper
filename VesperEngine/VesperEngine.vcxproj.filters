@@ -36,6 +36,7 @@
     <ClCompile Include="Utility\hdr_cubemap_generation.cpp" />
     <ClCompile Include="Systems\pbr_opaque_render_system.cpp" />
     <ClCompile Include="Systems\pbr_transparent_render_system.cpp" />
+    <ClCompile Include="Utility\gltf_loader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App\config.h" />
@@ -101,6 +102,7 @@
     <ClInclude Include="Utility\hdr_cubemap_generation.h" />
     <ClInclude Include="Systems\pbr_opaque_render_system.h" />
     <ClInclude Include="Systems\pbr_transparent_render_system.h" />
+    <ClInclude Include="Utility\gltf_loader.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\brdf_lut_shader.frag" />

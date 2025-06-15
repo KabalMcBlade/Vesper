@@ -110,6 +110,7 @@ ViewerApp::ViewerApp(Config& _config) :
 
 	m_cameraSystem = std::make_unique<CameraSystem>(*this);
 	m_objLoader = std::make_unique<ObjLoader>(*this , *m_device, *m_materialSystem);
+	m_gltfLoader = std::make_unique<GltfLoader>(*this, *m_device, *m_materialSystem);
 
 	LOG_NL();
 
@@ -140,6 +141,7 @@ ViewerApp::ViewerApp(Config& _config) :
 		*m_materialSystem,
 		*m_cameraSystem, 
 		*m_objLoader,
+		*m_gltfLoader,
 		*m_textureSystem);
 
     m_gameManager->LoadCameraEntities();

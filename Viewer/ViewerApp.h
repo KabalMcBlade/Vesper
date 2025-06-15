@@ -58,6 +58,7 @@ private:
 
 	std::unique_ptr<CameraSystem> m_cameraSystem;
 	std::unique_ptr<ObjLoader> m_objLoader;
+	std::unique_ptr<GltfLoader> m_gltfLoader;
 
 	// from game side
 	std::unique_ptr<KeyboardMovementCameraController> m_keyboardController;
