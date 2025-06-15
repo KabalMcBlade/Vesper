@@ -8,7 +8,7 @@
 
 VESPERENGINE_USING_NAMESPACE
 
-class CustomOpaqueRenderSystem final : public OpaqueRenderSystem
+class CustomOpaqueRenderSystem final : public PhongOpaqueRenderSystem
 {
 public:
     CustomOpaqueRenderSystem(VesperApp& app, Device& device, Renderer& renderer,

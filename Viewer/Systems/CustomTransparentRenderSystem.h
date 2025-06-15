@@ -8,7 +8,7 @@
 
 VESPERENGINE_USING_NAMESPACE
 
-class CustomTransparentRenderSystem final : public TransparentRenderSystem
+class CustomTransparentRenderSystem final : public PhongTransparentRenderSystem
 {
 public:
     CustomTransparentRenderSystem(VesperApp& app, Device& device, Renderer& renderer,

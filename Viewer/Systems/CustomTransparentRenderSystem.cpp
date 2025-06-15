@@ -14,7 +14,7 @@ CustomTransparentRenderSystem::CustomTransparentRenderSystem(VesperApp& app, Dev
     VkDescriptorSetLayout globalDescriptorSetLayout,
     VkDescriptorSetLayout entityDescriptorSetLayout,
     VkDescriptorSetLayout bindlessBindingDescriptorSetLayout)
-    : TransparentRenderSystem(app, device, renderer, globalDescriptorSetLayout,
+    : PhongTransparentRenderSystem(app, device, renderer, globalDescriptorSetLayout,
         entityDescriptorSetLayout, bindlessBindingDescriptorSetLayout)
 {
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();

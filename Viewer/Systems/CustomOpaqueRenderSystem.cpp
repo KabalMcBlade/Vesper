@@ -14,7 +14,7 @@ CustomOpaqueRenderSystem::CustomOpaqueRenderSystem(VesperApp& app, Device& devic
     VkDescriptorSetLayout globalDescriptorSetLayout,
     VkDescriptorSetLayout entityDescriptorSetLayout,
     VkDescriptorSetLayout bindlessBindingDescriptorSetLayout)
-    : OpaqueRenderSystem(app, device, renderer, globalDescriptorSetLayout,
+    : PhongOpaqueRenderSystem(app, device, renderer, globalDescriptorSetLayout,
         entityDescriptorSetLayout, bindlessBindingDescriptorSetLayout)
 {
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();
