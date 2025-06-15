@@ -96,6 +96,16 @@ public:
 		bool _bIsTransparent,
 		MaterialType _type);
 
+	// Create material using textures already loaded. Pass nullptr entries to
+	// use default textures. The textures array MUST follow the order
+	// mentioned in the comment at the top of this file.
+	std::shared_ptr<MaterialData>  CreateMaterial(
+		const std::string _name,
+		const std::vector<std::shared_ptr<TextureData>>& _textures,
+		const std::vector<std::any>& _values,
+		bool _bIsTransparent,
+		MaterialType _type);
+
 	std::shared_ptr<MaterialData> CreateMaterial(const DefaultMaterialType& _defaultMaterial);
 
 	VESPERENGINE_INLINE std::shared_ptr<MaterialData> GetMaterial(uint32 _index) const
@@ -107,6 +117,16 @@ public:
 	VESPERENGINE_INLINE const std::vector<std::shared_ptr<MaterialData>>& GetMaterials() const
 	{
 		return m_materials;
+	}
+
+	VESPERENGINE_INLINE TextureSystem& GetTextureSystem()
+	{
+		return m_textureSystem;
+	}
+
+	VESPERENGINE_INLINE const TextureSystem& GetTextureSystem() const
+	{
+		return m_textureSystem;
 	}
 
 	void Cleanup();

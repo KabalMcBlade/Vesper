@@ -17,6 +17,7 @@
 #include "Backend/model_data.h"
 
 #include "Systems/material_system.h"
+#include "Systems/texture_system.h"
 
 #define __STDC_LIB_EXT1__					// for using sprintf_s
 #define TINYGLTF_IMPLEMENTATION
@@ -70,28 +71,69 @@ namespace
         }
     }
 
-    std::string GetTexturePath(const tinygltf::Model& _model, int _texIndex, const std::string& _modelPath, const std::string& _texturePath)
+    std::shared_ptr<TextureData> GetTexture(const tinygltf::Model& _model, int _texIndex, const std::string& _modelPath, MaterialSystem& _materialSystem)
     {
         if (_texIndex < 0 || _texIndex >= static_cast<int>(_model.textures.size()))
         {
-            return "";
+            return nullptr;
         }
 
         const tinygltf::Texture& texture = _model.textures[_texIndex];
         if (texture.source < 0 || texture.source >= static_cast<int>(_model.images.size()))
         {
-            return "";
+            return nullptr;
         }
 
         const tinygltf::Image& image = _model.images[texture.source];
+
+        TextureSystem& textureSystem = _materialSystem.GetTextureSystem();
+
         if (!image.uri.empty() && image.uri.find("data:") != 0)
         {
-            return _modelPath + image.uri;
+            return textureSystem.LoadTexture(_modelPath + image.uri);
         }
 
-        // TODO: handle embedded image data using TextureSystem directly
+        if (!image.image.empty())
+        {
+            VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
+            std::vector<uint8> data;
+
+            if (image.bits == 8)
+            {
+                if (image.component == 4)
+                {
+                    data.assign(image.image.begin(), image.image.end());
+                }
+                else if (image.component == 3)
+                {
+                    size_t pixelCount = static_cast<size_t>(image.width) * image.height;
+                    data.resize(pixelCount * 4);
+                    for (size_t i = 0; i < pixelCount; ++i)
+                    {
+                        data[i * 4 + 0] = image.image[i * 3 + 0];
+                        data[i * 4 + 1] = image.image[i * 3 + 1];
+                        data[i * 4 + 2] = image.image[i * 3 + 2];
+                        data[i * 4 + 3] = 255;
+                    }
+                }
+                else if (image.component == 1)
+                {
+                    format = VK_FORMAT_R8_UNORM;
+                    data.assign(image.image.begin(), image.image.end());
+                }
+                else
+                {
+                    LOG(Logger::WARNING, "Unsupported component count for image: ", image.name);
+                    return nullptr;
+                }
+
+                std::string texName = image.name.empty() ? ("embedded_" + std::to_string(texture.source)) : image.name;
+                return textureSystem.LoadTexture(texName, format, data.data(), image.width, image.height);
+            }
+        }
+
         LOG(Logger::WARNING, "Embedded image not supported: ", image.name);
-        return "";
+        return nullptr;
     }
 }
 
@@ -149,24 +191,27 @@ std::vector<std::unique_ptr<ModelData>> GltfLoader::LoadModel(const std::string&
                 const tinygltf::Material& gltfMaterial = gltfModel.materials[primitive.material];
                 const tinygltf::PbrMetallicRoughness& pbr = gltfMaterial.pbrMetallicRoughness;
 
-                std::string roughTex = GetTexturePath(gltfModel, pbr.metallicRoughnessTexture.index, texturePath, texturePath);
-                std::string metallicTex = roughTex;
-                std::string emissiveTex = GetTexturePath(gltfModel, gltfMaterial.emissiveTexture.index, texturePath, texturePath);
-                std::string normalTex = GetTexturePath(gltfModel, gltfMaterial.normalTexture.index, texturePath, texturePath);
+                auto roughTex = GetTexture(gltfModel, pbr.metallicRoughnessTexture.index, texturePath, m_materialSystem);
+                auto metallicTex = roughTex;
+                auto emissiveTex = GetTexture(gltfModel, gltfMaterial.emissiveTexture.index, texturePath, m_materialSystem);
+                auto normalTex = GetTexture(gltfModel, gltfMaterial.normalTexture.index, texturePath, m_materialSystem);
 
                 modelData->Material = m_materialSystem.CreateMaterial(
                     gltfMaterial.name,
-                    { roughTex, metallicTex, "", emissiveTex, normalTex },
+                    { roughTex, metallicTex, nullptr, emissiveTex, normalTex },
                     { static_cast<float>(pbr.roughnessFactor), static_cast<float>(pbr.metallicFactor), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
                     gltfMaterial.alphaMode == "BLEND",
                     MaterialType::PBR);
             }
             else
             {
+                std::vector<std::shared_ptr<vesper::TextureData>> emptyTextures = { nullptr, nullptr, nullptr, nullptr, nullptr };
+                std::vector<std::any> emptyMetadata = { 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+
                 modelData->Material = m_materialSystem.CreateMaterial(
                     "_DefaultGltfPBR_",
-                    { "", "", "", "", "" },
-                    { 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f },
+                    emptyTextures,
+                    emptyMetadata,
                     false,
                     MaterialType::PBR);
             }
