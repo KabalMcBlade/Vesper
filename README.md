@@ -45,6 +45,8 @@ The different settings for linkage are, in Windows and Visual Studio 2022:<br />
 - Automatic support for both bindless and standard resource binding (textures and buffers)
 - Phong shading pipeline for opaque rendering
 - Phong shading pipeline for transparent rendering
+- PBR shading pipeline for opaque rendering
+- PBR shading pipeline for transparent rendering
 - Integrated support for push constants (pre-allocated 128-byte layout) and specialization constants
 - PushConstants function allows injecting push constants without rebinding the global or bindless pipeline
 - Extendable render pipeline architecture (see the Viewer using CustomOpaqueRenderSystem and CustomTransparentRenderSystem, which apply per-object push constants without additional bindings)

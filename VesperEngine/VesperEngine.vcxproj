@@ -144,6 +144,8 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ $(IntDir
     <ClInclude Include="Systems\material_system.h" />
     <ClInclude Include="Systems\opaque_render_system.h" />
     <ClInclude Include="Systems\transparent_render_system.h" />
+    <ClInclude Include="Systems\pbr_opaque_render_system.h" />
+    <ClInclude Include="Systems\pbr_transparent_render_system.h" />
     <ClInclude Include="Systems\texture_system.h" />
     <ClInclude Include="Systems\uniform_buffer.h" />
     <ClInclude Include="Systems\skybox_render_system.h" />
@@ -200,6 +202,8 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ $(IntDir
     <ClCompile Include="Systems\material_system.cpp" />
     <ClCompile Include="Systems\opaque_render_system.cpp" />
     <ClCompile Include="Systems\transparent_render_system.cpp" />
+    <ClCompile Include="Systems\pbr_opaque_render_system.cpp" />
+    <ClCompile Include="Systems\pbr_transparent_render_system.cpp" />
     <ClCompile Include="Systems\texture_system.cpp" />
     <ClCompile Include="Utility\hdr_cubemap_generation.cpp" />
     <ClCompile Include="Utility\logger.cpp" />
