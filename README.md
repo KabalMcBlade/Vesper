@@ -40,15 +40,15 @@ The different settings for linkage are, in Windows and Visual Studio 2022:<br />
 
 ### Features
 
-- ECS core
-- Latest Vulkan API
-- Automatically support bindless and standard binding resource (textures and buffers)
-- Phong opaque pipeline render system
-- Phong transparent pipeline render system
-- Push constant (pre allocated layout of 128 byte) and specialization constant support integrated
-- PushConstants function allow to inject pushconstant without re-bidning the global or bindless pipeline  
-- Extendable render pipeline (see Viewer using CustomOpaqueRenderSystem and CustomTransparentRenderSystem which use PushConstant per object with no additional binding)
-- Skybox support (no-hdr only for now)
+- ECS core architecture
+- Latest Vulkan API support
+- Automatic support for both bindless and standard resource binding (textures and buffers)
+- Phong shading pipeline for opaque rendering
+- Phong shading pipeline for transparent rendering
+- Integrated support for push constants (pre-allocated 128-byte layout) and specialization constants
+- PushConstants function allows injecting push constants without rebinding the global or bindless pipeline
+- Extendable render pipeline architecture (see the Viewer using CustomOpaqueRenderSystem and CustomTransparentRenderSystem, which apply per-object push constants without additional bindings)
+- Skybox support (non-HDR only, for now)
 
 ## Screenshots
 
@@ -58,10 +58,10 @@ I will post screenshots here as new features are added and when there’s someth
 First render from the engine.
 <img src="./Screenshots/1.png">
 
-Second render from the engine, OBJ loaded using Opaque phong shader rendering system.
+Second render from the engine: OBJ loaded using Opaque Phong shader rendering system.
 <img src="./Screenshots/2.png">
 
-Third render from the engine, OBJs loaded using Custom Opaque and Transparent phong shader rendering system having push constant with no additional binding and a Skybox.
+Third render from the engine: OBJs loaded using the Custom Opaque and Custom Transparent Phong shader rendering systems, utilizing push constants without additional bindings, and featuring a skybox.
 <img src="./Screenshots/3.png">
 
 ## LICENSE
