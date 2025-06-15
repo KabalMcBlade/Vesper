@@ -31,8 +31,12 @@ public:
     PreFilteredEnvironmentGenerationSystem(const PreFilteredEnvironmentGenerationSystem&) = delete;
     PreFilteredEnvironmentGenerationSystem& operator=(const PreFilteredEnvironmentGenerationSystem&) = delete;
 
-    void Generate(VkCommandBuffer _commandBuffer, const VkDescriptorImageInfo& _envMapInfo, const glm::mat4& _viewProj, float _roughness);
-
+    void Generate(
+        VkCommandBuffer _commandBuffer,
+        const VkDescriptorImageInfo& _envMapInfo,
+        const glm::mat4& _viewProj,
+        float _roughness,
+        uint32 _numSamples = 32u);
 private:
     void CreateDescriptorResources();
     void CreatePipeline(VkRenderPass _renderPass);

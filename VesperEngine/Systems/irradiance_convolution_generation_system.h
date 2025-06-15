@@ -31,7 +31,12 @@ public:
     IrradianceConvolutionGenerationSystem(const IrradianceConvolutionGenerationSystem&) = delete;
     IrradianceConvolutionGenerationSystem& operator=(const IrradianceConvolutionGenerationSystem&) = delete;
 
-    void Generate(VkCommandBuffer _commandBuffer, const VkDescriptorImageInfo& _envMapInfo, const glm::mat4& _viewProj);
+    void Generate(
+        VkCommandBuffer _commandBuffer,
+        const VkDescriptorImageInfo& _envMapInfo,
+        const glm::mat4& _viewProj,
+        float _deltaPhi = glm::two_pi<float>() / 180.0f,
+        float _deltaTheta = (0.5f * glm::pi<float>()) / 64.0f);
 
 private:
     void CreateDescriptorResources();

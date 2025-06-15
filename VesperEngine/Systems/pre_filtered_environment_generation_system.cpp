@@ -23,6 +23,7 @@ namespace
     {
         glm::mat4 ViewProjection{ 1.f };
         float Roughness{ 0.f };
+        uint32 NumSamples{ 32u };
     };
 
     static std::vector<Vertex> CreateCubeVertices()
@@ -89,13 +90,19 @@ void PreFilteredEnvironmentGenerationSystem::CreatePipeline(VkRenderPass _render
     config.PipelineLayout = m_pipelineLayout;
     config.DepthStencilInfo.depthTestEnable = VK_FALSE;
     config.DepthStencilInfo.depthWriteEnable = VK_FALSE;
+    config.RasterizationInfo.cullMode = VK_CULL_MODE_NONE;
 
     ShaderInfo vert(m_app.GetConfig().ShadersPath + "cubemap_shader.vert.spv", ShaderType::Vertex);
     ShaderInfo frag(m_app.GetConfig().ShadersPath + "pre_filtered_environment_map.frag.spv", ShaderType::Fragment);
     m_pipeline = std::make_unique<Pipeline>(m_device, std::vector{ vert, frag }, config);
 }
 
-void PreFilteredEnvironmentGenerationSystem::Generate(VkCommandBuffer _commandBuffer, const VkDescriptorImageInfo& _envMapInfo, const glm::mat4& _viewProj, float _roughness)
+void PreFilteredEnvironmentGenerationSystem::Generate(
+    VkCommandBuffer _commandBuffer,
+    const VkDescriptorImageInfo& _envMapInfo,
+    const glm::mat4& _viewProj,
+    float _roughness,
+    uint32 _numSamples) 
 {
     if (m_cubeVertex.Buffer == VK_NULL_HANDLE)
     {
@@ -119,7 +126,7 @@ void PreFilteredEnvironmentGenerationSystem::Generate(VkCommandBuffer _commandBu
     m_pipeline->Bind(_commandBuffer);
     vkCmdBindDescriptorSets(_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptorSet, 0, nullptr);
 
-    PushConstant pc{ _viewProj, _roughness };
+    PushConstant pc{ _viewProj, _roughness, _numSamples };
     PushConstants(_commandBuffer, 0, &pc);
 
     Bind(m_cubeVertex, _commandBuffer);

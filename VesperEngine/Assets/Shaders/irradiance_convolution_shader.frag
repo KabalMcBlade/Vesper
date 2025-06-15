@@ -30,3 +30,4 @@ void main()
     }
     outColor = vec4(PI * color / float(sampleCount), 1.0);
 }
+

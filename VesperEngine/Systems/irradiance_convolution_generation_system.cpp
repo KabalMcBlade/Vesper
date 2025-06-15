@@ -22,6 +22,8 @@ namespace
     struct PushConstant
     {
         glm::mat4 ViewProjection{ 1.f };
+        float DeltaPhi{ glm::two_pi<float>() / 180.0f };
+        float DeltaTheta{ (0.5f * glm::pi<float>()) / 64.0f };
     };
 
     static std::vector<Vertex> CreateCubeVertices()
@@ -64,7 +66,7 @@ IrradianceConvolutionGenerationSystem::IrradianceConvolutionGenerationSystem(Ves
     CreateDescriptorResources();
 
     VkPushConstantRange range{};
-    range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
     range.offset = 0;
     range.size = sizeof(PushConstant);
     m_pushConstants.push_back(range);
@@ -101,6 +103,7 @@ void IrradianceConvolutionGenerationSystem::CreatePipeline(VkRenderPass _renderP
     config.PipelineLayout = m_pipelineLayout;
     config.DepthStencilInfo.depthTestEnable = VK_FALSE;
     config.DepthStencilInfo.depthWriteEnable = VK_FALSE;
+    config.RasterizationInfo.cullMode = VK_CULL_MODE_NONE;
 
     ShaderInfo vert(m_app.GetConfig().ShadersPath + "cubemap_shader.vert.spv", ShaderType::Vertex);
     ShaderInfo frag(m_app.GetConfig().ShadersPath + "irradiance_convolution_shader.frag.spv", ShaderType::Fragment);
@@ -108,7 +111,12 @@ void IrradianceConvolutionGenerationSystem::CreatePipeline(VkRenderPass _renderP
     m_pipeline = std::make_unique<Pipeline>(m_device, std::vector{ vert, frag }, config);
 }
 
-void IrradianceConvolutionGenerationSystem::Generate(VkCommandBuffer _commandBuffer, const VkDescriptorImageInfo& _envMapInfo, const glm::mat4& _viewProj)
+void IrradianceConvolutionGenerationSystem::Generate(
+    VkCommandBuffer _commandBuffer,
+    const VkDescriptorImageInfo& _envMapInfo,
+    const glm::mat4& _viewProj,
+    float _deltaPhi,
+    float _deltaTheta) 
 {
     if (m_cubeVertex.Buffer == VK_NULL_HANDLE)
     {
@@ -137,7 +145,7 @@ void IrradianceConvolutionGenerationSystem::Generate(VkCommandBuffer _commandBuf
     m_pipeline->Bind(_commandBuffer);
     vkCmdBindDescriptorSets(_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptorSet, 0, nullptr);
 
-    PushConstant pc{ _viewProj };
+    PushConstant pc{ _viewProj, _deltaPhi, _deltaTheta };
     PushConstants(_commandBuffer, 0, &pc);
 
     Bind(m_cubeVertex, _commandBuffer);
