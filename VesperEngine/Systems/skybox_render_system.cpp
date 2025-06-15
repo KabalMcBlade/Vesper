@@ -103,7 +103,10 @@ void SkyboxRenderSystem::Render(const FrameInfo& _frameInfo)
     // Get active camera data
     std::vector<ecs::Entity> cameras = ecs::EntityCollector::CollectEntitiesWithAll<CameraActive, CameraComponent, CameraTransformComponent>(entityManager, componentManager);
     if (cameras.empty())
+    {
         return;
+    }
+
     CameraComponent camera = componentManager.GetComponent<CameraComponent>(cameras[0]);
 
     glm::mat4 view = glm::mat4(glm::mat3(camera.ViewMatrix));
@@ -113,6 +116,7 @@ void SkyboxRenderSystem::Render(const FrameInfo& _frameInfo)
     for (auto entity : ecs::IterateEntitiesWithAll<PipelineSkyboxComponent, RenderComponent, VertexBufferComponent, SkyboxComponent>(entityManager, componentManager))
     {
         const VertexBufferComponent& vertex = componentManager.GetComponent<VertexBufferComponent>(entity);
+        const IndexBufferComponent& index = componentManager.GetComponent<IndexBufferComponent>(entity);
         SkyboxComponent& sb = componentManager.GetComponent<SkyboxComponent>(entity);
 
         vkCmdBindDescriptorSets(
@@ -126,8 +130,8 @@ void SkyboxRenderSystem::Render(const FrameInfo& _frameInfo)
             nullptr);
 
         PushConstants(_frameInfo.CommandBuffer, 0, 0, sizeof(SkyboxPushConstant), &push);
-        Bind(vertex, _frameInfo.CommandBuffer);
-        Draw(vertex, _frameInfo.CommandBuffer);
+        Bind(vertex, index, _frameInfo.CommandBuffer);
+        Draw(index, _frameInfo.CommandBuffer);
     }
 }
 

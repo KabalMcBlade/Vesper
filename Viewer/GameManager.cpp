@@ -78,13 +78,13 @@ void GameManager::LoadGameEntities()
 		LOG(Logger::INFO, "Loading Cubemap texture: ", cubemapTexturesDirectoryPath);
 
 		std::array<std::string, 6> cubemapTexturesDirectoryFilepaths;
-		cubemapTexturesDirectoryFilepaths[0] = cubemapTexturesDirectoryPath + "negx.jpg";
-		cubemapTexturesDirectoryFilepaths[1] = cubemapTexturesDirectoryPath + "negy.jpg";
-		cubemapTexturesDirectoryFilepaths[2] = cubemapTexturesDirectoryPath + "negz.jpg";
-		cubemapTexturesDirectoryFilepaths[3] = cubemapTexturesDirectoryPath + "posx.jpg";
-		cubemapTexturesDirectoryFilepaths[4] = cubemapTexturesDirectoryPath + "posy.jpg";
-		cubemapTexturesDirectoryFilepaths[5] = cubemapTexturesDirectoryPath + "posz.jpg";
-
+        cubemapTexturesDirectoryFilepaths[0] = cubemapTexturesDirectoryPath + "posx.jpg";
+        cubemapTexturesDirectoryFilepaths[1] = cubemapTexturesDirectoryPath + "negx.jpg";
+        cubemapTexturesDirectoryFilepaths[2] = cubemapTexturesDirectoryPath + "posy.jpg";
+        cubemapTexturesDirectoryFilepaths[3] = cubemapTexturesDirectoryPath + "negy.jpg";
+        cubemapTexturesDirectoryFilepaths[4] = cubemapTexturesDirectoryPath + "posz.jpg";
+        cubemapTexturesDirectoryFilepaths[5] = cubemapTexturesDirectoryPath + "negz.jpg";
+		
 		std::shared_ptr<TextureData> cubeMap = m_textureSystem.LoadCubemap(cubemapTexturesDirectoryFilepaths);
 		LOG(Logger::INFO, "Cubemap loaded!");
 

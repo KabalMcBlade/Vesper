@@ -11,5 +11,7 @@ layout(set = 1, binding = 0) uniform samplerCube skyboxTexture;
 
 void main()
 {
-    outColor = texture(skyboxTexture, fragPosition);
+    // Flip the Y direction to account for the engine's inverted Y axis
+    vec3 dir = vec3(fragPosition.x, -fragPosition.y, fragPosition.z);
+    outColor = texture(skyboxTexture, dir);
 }
