@@ -15,7 +15,8 @@ GameManager::GameManager(
 	ModelSystem& _modelSystem,
 	MaterialSystem& _materialSystem,
 	CameraSystem& _cameraSystem,
-	ObjLoader& _objLoader)
+	ObjLoader& _objLoader,
+	TextureSystem& _textureSystem)
 	: m_app(_app)
 	, m_entityHandlerSystem(_entityHandlerSystem)
 	, m_gameEntitySystem(_gameEntitySystem)
@@ -23,6 +24,7 @@ GameManager::GameManager(
 	, m_materialSystem(_materialSystem)
 	, m_cameraSystem(_cameraSystem)
 	, m_objLoader(_objLoader)
+	, m_textureSystem(_textureSystem)
 {
 	m_app.GetComponentManager().RegisterComponent<RotationComponent>();
 }
@@ -69,6 +71,63 @@ void GameManager::LoadCameraEntities()
 
 void GameManager::LoadGameEntities()
 {
+    // Skybox
+    {
+		// CUBEMAP TEXTURE TEST
+		const std::string cubemapTexturesDirectoryPath = m_app.GetConfig().TexturesPath + "Yokohama3_CubeMap/";
+		LOG(Logger::INFO, "Loading Cubemap texture: ", cubemapTexturesDirectoryPath);
+
+		std::array<std::string, 6> cubemapTexturesDirectoryFilepaths;
+        cubemapTexturesDirectoryFilepaths[0] = cubemapTexturesDirectoryPath + "posx.jpg";
+        cubemapTexturesDirectoryFilepaths[1] = cubemapTexturesDirectoryPath + "negx.jpg";
+        cubemapTexturesDirectoryFilepaths[2] = cubemapTexturesDirectoryPath + "posy.jpg";
+        cubemapTexturesDirectoryFilepaths[3] = cubemapTexturesDirectoryPath + "negy.jpg";
+        cubemapTexturesDirectoryFilepaths[4] = cubemapTexturesDirectoryPath + "posz.jpg";
+        cubemapTexturesDirectoryFilepaths[5] = cubemapTexturesDirectoryPath + "negz.jpg";
+		
+		std::shared_ptr<TextureData> cubeMap = m_textureSystem.LoadCubemap(cubemapTexturesDirectoryFilepaths);
+		LOG(Logger::INFO, "Cubemap loaded!");
+
+		// CUBEMAP HDR TEXTURE TEST
+		const std::string cubemapHdrTexturesPath = m_app.GetConfig().TexturesPath + "misty_pines_4k.hdr";
+		LOG(Logger::INFO, "Loading Cubemap texture: ", cubemapHdrTexturesPath);
+
+		std::shared_ptr<TextureData> cubeMapHdr = m_textureSystem.LoadCubemap(cubemapHdrTexturesPath);
+		LOG(Logger::INFO, "Cubemap HDR loaded!");
+
+		LOG_NL();
+
+        std::vector<std::unique_ptr<ModelData>> skyboxDataList = m_objLoader.LoadModel("cube.obj");
+        if (!skyboxDataList.empty())
+        {
+            ecs::Entity skybox = m_gameEntitySystem.CreateGameEntity(EntityType::Renderable);
+
+            m_modelSystem.LoadModel(skybox, std::move(skyboxDataList.front()));
+
+            TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(skybox);
+            transformComponent.Scale = { 50.0f, 50.0f, 50.0f };
+
+            m_entityHandlerSystem.RegisterRenderableEntity(skybox);
+
+            if (m_app.GetComponentManager().HasComponents<PhongMaterialComponent>(skybox))
+            {
+                    m_app.GetComponentManager().RemoveComponent<PhongMaterialComponent>(skybox);
+            }
+			if (m_app.GetComponentManager().HasComponents<PipelineOpaqueComponent>(skybox))
+			{
+				m_app.GetComponentManager().RemoveComponent<PipelineOpaqueComponent>(skybox);
+			}
+
+            m_app.GetComponentManager().AddComponent<PipelineSkyboxComponent>(skybox);
+            m_app.GetComponentManager().AddComponent<SkyboxComponent>(skybox);
+
+            SkyboxComponent& sb = m_app.GetComponentManager().GetComponent<SkyboxComponent>(skybox);
+            sb.ImageInfo.sampler = cubeMap->Sampler;
+            sb.ImageInfo.imageView = cubeMap->ImageView;
+            sb.ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        }
+    }
+
 	//////////////////////////////////////////////////////////////////////////
 	// Cube no Indices
 	{

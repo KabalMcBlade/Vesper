@@ -178,6 +178,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Systems\uniform_buffer.h">
+    <ClInclude Include="Systems\skybox_render_system.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Systems\hdr_cubemap_generation_system.h">
@@ -285,6 +288,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Systems\transparent_render_system.cpp">
+    <ClCompile Include="Systems\skybox_render_system.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -303,6 +309,7 @@
     <None Include="Assets\Shaders\irradiance_convolution_shader.frag" />
     <None Include="Assets\Shaders\phong_shader.frag" />
     <None Include="Assets\Shaders\pre_filtered_environment_map.frag" />
+    <None Include="Assets\Shaders\skybox_shader.frag" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compile_shaders_config.txt" />

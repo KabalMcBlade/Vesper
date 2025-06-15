@@ -5,6 +5,7 @@
 #pragma once
 
 #include "vesper.h"
+#include <memory>
 
 #include "GameData.h"
 
@@ -20,14 +21,15 @@ public:
 		ModelSystem& _modelSystem,
 		MaterialSystem& _materialSystem,
 		CameraSystem& _cameraSystem,
-		ObjLoader& _objLoader);
+		ObjLoader& _objLoader,
+		TextureSystem& _textureSystem);
 	~GameManager();
 
 public:
 	void Update(const FrameInfo& _frameInfo);
 
 	void LoadCameraEntities();
-	void LoadGameEntities();
+    void LoadGameEntities();
 	void UnloadGameEntities();
 
 private:
@@ -38,4 +40,5 @@ private:
 	MaterialSystem& m_materialSystem;
 	CameraSystem& m_cameraSystem;
 	ObjLoader& m_objLoader;
+	TextureSystem& m_textureSystem;
 };

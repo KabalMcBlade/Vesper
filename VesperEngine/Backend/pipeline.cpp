@@ -191,9 +191,17 @@ void Pipeline::SkyboxPipelineConfig(PipelineConfigInfo& _outConfigInfo)
 	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
 	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_TRUE;
 	_outConfigInfo.DepthStencilInfo.depthWriteEnable = VK_FALSE;  // Prevent depth overwrite
+	_outConfigInfo.DepthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+	
+	// Render the skybox from inside the cube
+	_outConfigInfo.RasterizationInfo.cullMode = VK_CULL_MODE_FRONT_BIT;  // Cull front faces
+	// Cube indices are defined clockwise from the outside, so treat
+	// counter-clockwise as front-facing to discard the outer surface
+	_outConfigInfo.RasterizationInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
-	_outConfigInfo.RasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;  // Cull back faces
-	_outConfigInfo.RasterizationInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;  // Adjust for cube map orientation
+	// Only position attribute is required for the cube
+	_outConfigInfo.AttributeDescriptions.clear();
+	_outConfigInfo.AttributeDescriptions.push_back({ 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, Position) });
 }
 
 // Renders 2D elements like UI or HUD.
