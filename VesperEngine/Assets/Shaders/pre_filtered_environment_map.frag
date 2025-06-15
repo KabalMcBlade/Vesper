@@ -1,71 +1,89 @@
 #version 450
 
-layout(location = 0) in vec3 fragPosition;
-layout(location = 0) out vec4 outColor;
+layout (location = 0) in vec3 inPos;
+layout (location = 0) out vec4 outColor;
 
-layout(binding = 0) uniform samplerCube environmentMap;
+layout (binding = 0) uniform samplerCube samplerEnv;
 
-layout(push_constant) uniform PushConstants 
+layout(push_constant) uniform PushConsts {
+    layout (offset = 64) float roughness;
+} consts;
+
+const float PI = 3.1415926536;
+const uint NUM_SAMPLES = 32u;
+
+float random(vec2 co)
 {
-    float roughness;
-} pushConstants;
+    float a = 12.9898;
+    float b = 78.233;
+    float c = 43758.5453;
+    float dt= dot(co.xy ,vec2(a,b));
+    float sn= mod(dt,3.14);
+    return fract(sin(sn) * c);
+}
 
-const float PI = 3.14159265359;
-
-float RadicalInverse_VdC(uint bits) 
+vec2 hammersley2d(uint i, uint N)
 {
-    bits = (bits << 16u) | (bits >> 16u);
+    uint bits = (i << 16u) | (i >> 16u);
     bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
     bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
     bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
     bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
-    return float(bits) * 2.3283064365386963e-10; // Divide by 2^32
+    float rdi = float(bits) * 2.3283064365386963e-10;
+    return vec2(float(i) /float(N), rdi);
 }
 
-vec2 Hammersley(uint i, uint N) 
+vec3 importanceSample_GGX(vec2 Xi, float roughness, vec3 normal)
 {
-    return vec2(float(i) / float(N), RadicalInverse_VdC(i));
-}
-
-vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float roughness) 
-{
-    float a = roughness * roughness;
-    float phi = 2.0 * PI * Xi.x;
-    float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (a * a - 1.0) * Xi.y));
+    float alpha = roughness * roughness;
+    float phi = 2.0 * PI * Xi.x + random(normal.xz) * 0.1;
+    float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (alpha*alpha - 1.0) * Xi.y));
     float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+    vec3 H = vec3(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);
 
-    vec3 H;
-    H.x = cos(phi) * sinTheta;
-    H.y = sin(phi) * sinTheta;
-    H.z = cosTheta;
+    vec3 up = abs(normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
+    vec3 tangentX = normalize(cross(up, normal));
+    vec3 tangentY = normalize(cross(normal, tangentX));
 
-    vec3 up = abs(N.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
-    vec3 tangent = normalize(cross(up, N));
-    vec3 bitangent = cross(N, tangent);
-
-    return tangent * H.x + bitangent * H.y + N * H.z;
+    return normalize(tangentX * H.x + tangentY * H.y + normal * H.z);
 }
 
-void main() 
+float D_GGX(float dotNH, float roughness)
 {
-    vec3 N = normalize(fragPosition);
-    vec3 V = N; // Assume view direction equals normal for cubemap
-    vec3 prefilteredColor = vec3(0.0);
+    float alpha = roughness * roughness;
+    float alpha2 = alpha * alpha;
+    float denom = dotNH * dotNH * (alpha2 - 1.0) + 1.0;
+    return (alpha2)/(PI * denom*denom);
+}
 
-    const uint SAMPLE_COUNT = 1024u;
-    for (uint i = 0u; i < SAMPLE_COUNT; ++i) 
-    {
-        vec2 Xi = Hammersley(i, SAMPLE_COUNT); // Sampling function
-        vec3 H = ImportanceSampleGGX(Xi, N, pushConstants.roughness);
-        vec3 L = normalize(2.0 * dot(V, H) * H - V);
-
-        float NdotL = max(dot(N, L), 0.0);
-        if (NdotL > 0.0) 
-        {
-            prefilteredColor += texture(environmentMap, L).rgb * NdotL;
+vec3 prefilterEnvMap(vec3 R, float roughness)
+{
+    vec3 N = R;
+    vec3 V = R;
+    vec3 color = vec3(0.0);
+    float totalWeight = 0.0;
+    float envMapDim = float(textureSize(samplerEnv, 0).s);
+    for(uint i = 0u; i < NUM_SAMPLES; i++) {
+        vec2 Xi = hammersley2d(i, NUM_SAMPLES);
+        vec3 H = importanceSample_GGX(Xi, roughness, N);
+        vec3 L = 2.0 * dot(V, H) * H - V;
+        float dotNL = clamp(dot(N, L), 0.0, 1.0);
+        if(dotNL > 0.0) {
+            float dotNH = clamp(dot(N, H), 0.0, 1.0);
+            float dotVH = clamp(dot(V, H), 0.0, 1.0);
+            float pdf = D_GGX(dotNH, roughness) * dotNH / (4.0 * dotVH) + 0.0001;
+            float omegaS = 1.0 / (float(NUM_SAMPLES) * pdf);
+            float omegaP = 4.0 * PI / (6.0 * envMapDim * envMapDim);
+            float mipLevel = roughness == 0.0 ? 0.0 : max(0.5 * log2(omegaS / omegaP) + 1.0, 0.0f);
+            color += textureLod(samplerEnv, L, mipLevel).rgb * dotNL;
+            totalWeight += dotNL;
         }
     }
+    return (color / totalWeight);
+}
 
-    prefilteredColor /= float(SAMPLE_COUNT);
-    outColor = vec4(prefilteredColor, 1.0);
+void main()
+{
+    vec3 N = normalize(inPos);
+    outColor = vec4(prefilterEnvMap(N, consts.roughness), 1.0);
 }

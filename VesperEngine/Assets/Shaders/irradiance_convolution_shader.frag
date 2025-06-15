@@ -1,46 +1,32 @@
 #version 450
 
-layout(location = 0) in vec3 fragPosition;
-layout(location = 0) out vec4 outColor;
+layout (location = 0) in vec3 inPos;
+layout (location = 0) out vec4 outColor;
+layout (binding = 0) uniform samplerCube samplerEnv;
 
-layout(binding = 0) uniform samplerCube environmentMap;
+#define PI 3.1415926535897932384626433832795
+const float deltaPhi = (2.0 * PI) / 180.0;
+const float deltaTheta = (0.5 * PI) / 64.0;
 
-const float PI = 3.14159265359;
-
-vec3 SampleHemisphere(vec3 normal) 
+void main()
 {
-    // Generate random sample in a hemisphere aligned with normal
-    float phi = 2.0 * 3.14159265359 * fract(sin(dot(normal.xy, vec2(12.9898, 78.233))) * 43758.5453123);
-    float cosTheta = sqrt(1.0 - fract(sin(dot(normal.zx, vec2(34.1234, 12.4567))) * 7867.123));
-    float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+    vec3 N = normalize(inPos);
+    vec3 up = vec3(0.0, 1.0, 0.0);
+    vec3 right = normalize(cross(up, N));
+    up = cross(N, right);
 
-    vec3 sampleDir;
-    sampleDir.x = cos(phi) * sinTheta;
-    sampleDir.y = sin(phi) * sinTheta;
-    sampleDir.z = cosTheta;
+    const float TWO_PI = PI * 2.0;
+    const float HALF_PI = PI * 0.5;
 
-    // Construct tangent space for the hemisphere
-    vec3 up = abs(normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
-    vec3 tangent = normalize(cross(up, normal));
-    vec3 bitangent = cross(normal, tangent);
-
-    // Transform the sample into the hemisphere aligned with the 'normal'
-    return tangent * sampleDir.x + bitangent * sampleDir.y + normal * sampleDir.z;
-}
-
-void main() 
-{
-    vec3 normal = normalize(fragPosition);
-
-    vec3 irradiance = vec3(0.0);
-    const uint SAMPLE_COUNT = 1024u;
-    for (uint i = 0u; i < SAMPLE_COUNT; ++i)
-    {
-        vec3 sampleDir = SampleHemisphere(normal); // Generate random sample
-        float NdotL = max(dot(normal, sampleDir), 0.0);
-        irradiance += texture(environmentMap, sampleDir).rgb * NdotL;
+    vec3 color = vec3(0.0);
+    uint sampleCount = 0u;
+    for (float phi = 0.0; phi < TWO_PI; phi += deltaPhi) {
+        for (float theta = 0.0; theta < HALF_PI; theta += deltaTheta) {
+            vec3 tempVec = cos(phi) * right + sin(phi) * up;
+            vec3 sampleVector = cos(theta) * N + sin(theta) * tempVec;
+            color += texture(samplerEnv, sampleVector).rgb * cos(theta) * sin(theta);
+            sampleCount++;
+        }
     }
-
-    irradiance *= (1.0 / float(SAMPLE_COUNT)) * PI;
-    outColor = vec4(irradiance, 1.0);
+    outColor = vec4(PI * color / float(sampleCount), 1.0);
 }
