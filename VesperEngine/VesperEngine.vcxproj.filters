@@ -15,10 +15,10 @@
     <ClCompile Include="Systems\base_render_system.cpp" />
     <ClCompile Include="Systems\entity_handler_system.cpp" />
     <ClCompile Include="Systems\material_system.cpp" />
-    <ClCompile Include="Systems\opaque_render_system.cpp" />
-    <ClCompile Include="Systems\transparent_render_system.cpp" />
-    <ClCompile Include="Systems\pbr_opaque_render_system.cpp" />
-    <ClCompile Include="Systems\pbr_transparent_render_system.cpp" />
+    <ClCompile Include="Systems\phong_opaque_render_system.cpp" />
+    <ClCompile Include="Systems\phong_transparent_render_system.cpp" />
+    <ClInclude Include="Systems\phong_opaque_render_system.h" />
+    <ClInclude Include="Systems\phong_transparent_render_system.h" />
     <ClCompile Include="Systems\texture_system.cpp" />
     <ClCompile Include="Utility\logger.cpp" />
     <ClCompile Include="Utility\obj_loader.cpp" />

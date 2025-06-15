@@ -20,7 +20,7 @@ class Buffer;
 struct FrameInfo;
 struct BufferComponent;
 
-class VESPERENGINE_API TransparentRenderSystem : public BaseRenderSystem
+class VESPERENGINE_API PhongTransparentRenderSystem : public BaseRenderSystem
 {
 public:
     static constexpr uint32 kPhongAmbientTextureBindingIndex = 0u;
@@ -33,14 +33,14 @@ public:
     static constexpr uint32 kPhongUniformBufferOnlyBindingIndex = 0u;
 
 public:
-    TransparentRenderSystem(VesperApp& _app, Device& _device, Renderer& _renderer,
+    PhongTransparentRenderSystem(VesperApp& _app, Device& _device, Renderer& _renderer,
             VkDescriptorSetLayout _globalDescriptorSetLayout,
             VkDescriptorSetLayout _entityDescriptorSetLayout,
             VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout = VK_NULL_HANDLE);
-    virtual ~TransparentRenderSystem() = default;
+    virtual ~PhongTransparentRenderSystem() = default;
 
-    TransparentRenderSystem(const TransparentRenderSystem&) = delete;
-    TransparentRenderSystem& operator=(const TransparentRenderSystem&) = delete;
+    PhongTransparentRenderSystem(const PhongTransparentRenderSystem&) = delete;
+    PhongTransparentRenderSystem& operator=(const PhongTransparentRenderSystem&) = delete;
 
 public:
     virtual void CreatePipeline(VkRenderPass _renderPass);

@@ -45,18 +45,24 @@ namespace std
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-bool IsPBRMaterial(const tinyobj::material_t& m) {
-	constexpr float epsilon = 1e-6f;
+bool IsPBRMaterial(const tinyobj::material_t& _material)
+{
+        constexpr float epsilon = 1e-6f;
 
-	bool hasPBRParams = (
-		m.metallic > epsilon ||
-		m.roughness > epsilon ||
-		m.sheen > epsilon ||
-		m.clearcoat_thickness > epsilon ||
-		m.clearcoat_roughness > epsilon ||
-		m.anisotropy > epsilon ||
-		m.anisotropy_rotation > epsilon
-		);
+        return (
+                _material.metallic > epsilon ||
+                _material.roughness > epsilon ||
+                _material.sheen > epsilon ||
+                _material.clearcoat_thickness > epsilon ||
+                _material.clearcoat_roughness > epsilon ||
+                _material.anisotropy > epsilon ||
+                _material.anisotropy_rotation > epsilon ||
+                !_material.roughness_texname.empty() ||
+                !_material.metallic_texname.empty() ||
+                !_material.sheen_texname.empty() ||
+                !_material.emissive_texname.empty() ||
+                !_material.normal_texname.empty());
+}
 
 	bool hasPBRTextures = (
 		!m.metallic_texname.empty() ||

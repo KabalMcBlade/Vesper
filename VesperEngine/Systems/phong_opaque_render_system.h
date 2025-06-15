@@ -1,5 +1,5 @@
 // Copyright (c) 2025-2025 Michele Condo'
-// File: C:\Projects\Vesper\VesperEngine\Systems\opaque_render_system.h
+// File: C:\Projects\Vesper\VesperEngine\Systems\phong_opaque_render_system.h
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
 #pragma once
@@ -36,7 +36,7 @@ class Buffer;
 struct FrameInfo;
 struct BufferComponent;
 
-class VESPERENGINE_API OpaqueRenderSystem : public BaseRenderSystem
+class VESPERENGINE_API PhongOpaqueRenderSystem : public BaseRenderSystem
 {
 public:
 	static constexpr uint32 kPhongAmbientTextureBindingIndex = 0u;
@@ -50,14 +50,14 @@ public:
 	static constexpr uint32 kPhongUniformBufferOnlyBindingIndex = 0u;
 
 public:
-    OpaqueRenderSystem(VesperApp& _app, Device& _device, Renderer& _renderer,
+    PhongOpaqueRenderSystem(VesperApp& _app, Device& _device, Renderer& _renderer,
             VkDescriptorSetLayout _globalDescriptorSetLayout,
             VkDescriptorSetLayout _entityDescriptorSetLayout,
             VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout = VK_NULL_HANDLE);
-    virtual ~OpaqueRenderSystem() = default;
+    virtual ~PhongOpaqueRenderSystem() = default;
 
-	OpaqueRenderSystem(const OpaqueRenderSystem&) = delete;
-	OpaqueRenderSystem& operator=(const OpaqueRenderSystem&) = delete;
+    PhongOpaqueRenderSystem(const PhongOpaqueRenderSystem&) = delete;
+    PhongOpaqueRenderSystem& operator=(const PhongOpaqueRenderSystem&) = delete;
 
 public:
 	// Call to create Pipeline, should be called as first thing after the constructor!
