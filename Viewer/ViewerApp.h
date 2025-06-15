@@ -47,6 +47,8 @@ private:
 	// IN-ENGINE SYSTEMS
 	std::unique_ptr<PhongOpaqueRenderSystem> m_phongOpaqueRenderSystem;
     std::unique_ptr<PhongTransparentRenderSystem> m_phongTransparentRenderSystem;
+	std::unique_ptr<PBROpaqueRenderSystem> m_pbrOpaqueRenderSystem;
+	std::unique_ptr<PBRTransparentRenderSystem> m_pbrTransparentRenderSystem;
 	
 	// CUSTOM IN-APP SYSTEMS
 	//std::unique_ptr<PhongCustomOpaqueRenderSystem> m_phongOpaqueRenderSystem;

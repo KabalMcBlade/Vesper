@@ -55,6 +55,7 @@ ViewerApp::ViewerApp(Config& _config) :
 
 	
 	// IN-ENGINE SYSTEMS
+	// PHONG
     m_phongOpaqueRenderSystem = std::make_unique<PhongOpaqueRenderSystem>(*this , *m_device, *m_renderer,
             m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
             m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
@@ -68,6 +69,21 @@ ViewerApp::ViewerApp(Config& _config) :
             m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
 
 	m_phongTransparentRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
+
+	// PBR
+	m_pbrOpaqueRenderSystem = std::make_unique<PBROpaqueRenderSystem>(*this, *m_device, *m_renderer,
+		m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
+		m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
+		m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
+
+	m_pbrOpaqueRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
+
+	m_pbrTransparentRenderSystem = std::make_unique<PBRTransparentRenderSystem>(*this, *m_device, *m_renderer,
+		m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
+		m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
+		m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
+
+	m_pbrTransparentRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
 
 	// CUSTOM IN-APP SYSTEMS
 	/*
@@ -131,6 +147,8 @@ ViewerApp::ViewerApp(Config& _config) :
 
     m_phongOpaqueRenderSystem->MaterialBinding();
     m_phongTransparentRenderSystem->MaterialBinding();
+	m_pbrOpaqueRenderSystem->MaterialBinding();
+	m_pbrTransparentRenderSystem->MaterialBinding();
     m_skyboxRenderSystem->MaterialBinding();
 }
 
@@ -141,6 +159,8 @@ ViewerApp::~ViewerApp()
     m_materialSystem->Cleanup();
     m_phongOpaqueRenderSystem->Cleanup();
     m_phongTransparentRenderSystem->Cleanup();
+	m_pbrOpaqueRenderSystem->Cleanup();
+	m_pbrTransparentRenderSystem->Cleanup();
     m_skyboxRenderSystem->Cleanup();
     m_masterRenderSystem->Cleanup();
 }
@@ -182,6 +202,10 @@ void ViewerApp::Run()
 
             m_phongOpaqueRenderSystem->Update(frameInfo);
             m_phongTransparentRenderSystem->Update(frameInfo);
+
+			m_pbrOpaqueRenderSystem->Update(frameInfo);
+			m_pbrTransparentRenderSystem->Update(frameInfo);
+
             m_skyboxRenderSystem->Update(frameInfo);
 
 			const float aspectRatio = m_renderer->GetAspectRatio();
@@ -201,8 +225,12 @@ void ViewerApp::Run()
             m_renderer->BeginSwapChainRenderPass(commandBuffer);
 
             m_skyboxRenderSystem->Render(frameInfo);
+
             m_phongOpaqueRenderSystem->Render(frameInfo);
-            m_phongTransparentRenderSystem->Render(frameInfo);
+			m_phongTransparentRenderSystem->Render(frameInfo);
+
+			m_pbrOpaqueRenderSystem->Render(frameInfo);
+			m_pbrTransparentRenderSystem->Render(frameInfo);
 
 			m_renderer->EndSwapChainRenderPass(commandBuffer);
 			m_renderer->EndFrame();

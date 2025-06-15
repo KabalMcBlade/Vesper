@@ -33,6 +33,8 @@
 #include "Systems/master_render_system.h"
 #include "Systems/phong_opaque_render_system.h"
 #include "Systems/phong_transparent_render_system.h"
+#include "Systems/pbr_opaque_render_system.h"
+#include "Systems/pbr_transparent_render_system.h"
 #include "Systems/skybox_render_system.h"
 #include "Systems/camera_system.h"
 #include "Systems/brdf_lut_generation_system.h"

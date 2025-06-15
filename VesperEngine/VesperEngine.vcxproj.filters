@@ -34,6 +34,8 @@
     <ClCompile Include="App\vesper_app.cpp" />
     <ClCompile Include="Utility\stb_loader.cpp" />
     <ClCompile Include="Utility\hdr_cubemap_generation.cpp" />
+    <ClCompile Include="Systems\pbr_opaque_render_system.cpp" />
+    <ClCompile Include="Systems\pbr_transparent_render_system.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App\config.h" />
@@ -97,6 +99,8 @@
     <ClInclude Include="ThirdParty\json.hpp" />
     <ClInclude Include="ThirdParty\tiny_gltf.h" />
     <ClInclude Include="Utility\hdr_cubemap_generation.h" />
+    <ClInclude Include="Systems\pbr_opaque_render_system.h" />
+    <ClInclude Include="Systems\pbr_transparent_render_system.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\brdf_lut_shader.frag" />
@@ -109,6 +113,8 @@
     <None Include="Assets\Shaders\skybox_shader.frag" />
     <None Include="compile_shaders.bat" />
     <None Include="copy_assets.bat" />
+    <None Include="Assets\Shaders\pbr_shader.frag" />
+    <None Include="Assets\Shaders\pbr_shader.vert" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compile_shaders_config.txt" />
