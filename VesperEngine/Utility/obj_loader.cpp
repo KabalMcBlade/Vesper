@@ -61,29 +61,44 @@ bool IsPBRMaterial(const tinyobj::material_t& _material)
                 !_material.metallic_texname.empty() ||
                 !_material.sheen_texname.empty() ||
                 !_material.emissive_texname.empty() ||
-                !_material.normal_texname.empty());
+std::string ResolveTexturePath(const std::string& _texname, const std::string& _texturePath)
+{
+        if (_texname.empty())
+        {
+                return "";
+        }
+
+        if (FileSystem::IsAbsolutePath(_texname) || FileSystem::IsFilePath(_texname))
+        {
+                return _texname;
+        }
+
+        return _texturePath + _texname;
 }
 
-
 std::shared_ptr<MaterialData> CreateMaterial(MaterialSystem& _materialSystem, const tinyobj::material_t& _tinyMaterial, const std::string& _texturePath)
-{
-	// for now we support only Phong and PBR
-	auto materialType = IsPBRMaterial(_tinyMaterial) ? MaterialType::PBR : MaterialType::Phong;
-
-	if (materialType == MaterialType::Phong)
+                return _materialSystem.CreateMaterial(
+                        _tinyMaterial.name,
+                        {
+                                ResolveTexturePath(_tinyMaterial.ambient_texname, _texturePath),
+                                ResolveTexturePath(_tinyMaterial.diffuse_texname, _texturePath),
+                                ResolveTexturePath(_tinyMaterial.specular_texname, _texturePath),
+                                ResolveTexturePath(_tinyMaterial.normal_texname, _texturePath),
+                                ResolveTexturePath(_tinyMaterial.alpha_texname, _texturePath),
+                        },
 	{
-		return _materialSystem.CreateMaterial(
-			_tinyMaterial.name,
+                return _materialSystem.CreateMaterial(
+                        _tinyMaterial.name,
+                        {
+                                ResolveTexturePath(_tinyMaterial.roughness_texname, _texturePath),
+                                ResolveTexturePath(_tinyMaterial.metallic_texname, _texturePath),
+                                ResolveTexturePath(_tinyMaterial.sheen_texname, _texturePath),
+                                ResolveTexturePath(_tinyMaterial.emissive_texname, _texturePath),
+                                ResolveTexturePath(_tinyMaterial.normal_texname, _texturePath)
+                        },
 			{
-				_tinyMaterial.ambient_texname.empty() ? "" : _texturePath + _tinyMaterial.ambient_texname,
-				_tinyMaterial.diffuse_texname.empty() ? "" : _texturePath + _tinyMaterial.diffuse_texname,
-				_tinyMaterial.specular_texname.empty() ? "" : _texturePath + _tinyMaterial.specular_texname,
-				_tinyMaterial.normal_texname.empty() ? "" : _texturePath + _tinyMaterial.normal_texname,
-                _tinyMaterial.alpha_texname.empty() ? "" : _texturePath + _tinyMaterial.alpha_texname,
-			},
-			{
-				glm::vec4(_tinyMaterial.ambient[0], _tinyMaterial.ambient[1], _tinyMaterial.ambient[2], 1.0f),
-				glm::vec4(_tinyMaterial.diffuse[0], _tinyMaterial.diffuse[1], _tinyMaterial.diffuse[2], _tinyMaterial.dissolve),
+        const std::string modelPath = bIsFilepath ? FileSystem::GetDirectoryPath(_fileName) : m_app.GetConfig().ModelsPath;
+        const std::string texturePath = bIsFilepath ? FileSystem::GetDirectoryPath(_fileName) : m_app.GetConfig().TexturesPath;
 				glm::vec4(_tinyMaterial.specular[0],_tinyMaterial.specular[1],_tinyMaterial.specular[2],_tinyMaterial.dissolve),
 				glm::vec4(_tinyMaterial.emission[0], _tinyMaterial.emission[1], _tinyMaterial.emission[2], 1.0f),
 				_tinyMaterial.shininess
