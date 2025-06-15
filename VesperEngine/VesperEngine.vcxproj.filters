@@ -37,6 +37,8 @@
     <ClCompile Include="Systems\pbr_opaque_render_system.cpp" />
     <ClCompile Include="Systems\pbr_transparent_render_system.cpp" />
     <ClCompile Include="Utility\gltf_loader.cpp" />
+    <ClCompile Include="Systems\irradiance_convolution_generation_system.cpp" />
+    <ClCompile Include="Systems\pre_filtered_environment_generation_system.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App\config.h" />
@@ -103,6 +105,8 @@
     <ClInclude Include="Systems\pbr_opaque_render_system.h" />
     <ClInclude Include="Systems\pbr_transparent_render_system.h" />
     <ClInclude Include="Utility\gltf_loader.h" />
+    <ClInclude Include="Systems\irradiance_convolution_generation_system.h" />
+    <ClInclude Include="Systems\pre_filtered_environment_generation_system.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\brdf_lut_shader.frag" />

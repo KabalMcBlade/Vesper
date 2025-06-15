@@ -4,6 +4,8 @@
 
 #include "Systems/texture_system.h"
 #include "Systems/brdf_lut_generation_system.h"
+#include "Systems/irradiance_convolution_generation_system.h"
+#include "Systems/pre_filtered_environment_generation_system.h"
 
 #include "Backend/offscreen_renderer.h"
 #include "Backend/device.h"
@@ -13,9 +15,11 @@
 
 #include "Utility/hash.h"
 #include "Utility/hdr_cubemap_generation.h"
+#include "Core/glm_config.h"
 
 #include "ThirdParty/stb/stb_image.h"
 
+#include <filesystem>
 #include <algorithm>
 
 VESPERENGINE_NAMESPACE_BEGIN
@@ -474,6 +478,93 @@ std::shared_ptr<TextureData> TextureSystem::GenerateOrLoadBRDFLutTexture(const s
 	offscreenRenderer->FlushBufferToFile(_saveLoadPath, stagingBuffer);
 
 	return LoadTexture(_saveLoadPath, VK_FORMAT_R8G8B8A8_UNORM);
+}
+
+std::shared_ptr<TextureData> TextureSystem::GenerateOrLoadIrradianceCubemap(const std::string& _savePrefix, uint32 _faceSize, std::shared_ptr<TextureData> _environment)
+{
+	std::array<std::string, 6> paths;
+	static const char* suffixes[6]{ "posx.png","negx.png","posy.png","negy.png","posz.png","negz.png" };
+	for (uint32 i = 0;i < 6;++i) paths[i] = _savePrefix + suffixes[i];
+
+	bool allExist = true;
+	for (const auto& p : paths) if (!std::filesystem::exists(p)) { allExist = false; break; }
+	if (allExist)
+	{
+		return LoadCubemap(paths, VK_FORMAT_R8G8B8A8_UNORM);
+	}
+
+	VkExtent2D extent{ _faceSize, _faceSize };
+	std::unique_ptr<OffscreenRenderer> offscreen = std::make_unique<OffscreenRenderer>(m_device, extent, VK_FORMAT_R8G8B8A8_UNORM);
+	std::unique_ptr<IrradianceConvolutionGenerationSystem> system = std::make_unique<IrradianceConvolutionGenerationSystem>(m_app, m_device, offscreen->GetOffscreenSwapChainRenderPass());
+
+	VkDescriptorImageInfo envInfo{};
+	envInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	envInfo.imageView = _environment->ImageView;
+	envInfo.sampler = _environment->Sampler;
+
+	const glm::mat4 proj = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+	const glm::vec3 dirs[6]{ {1,0,0},{-1,0,0},{0,1,0},{0,-1,0},{0,0,1},{0,0,-1} };
+	const glm::vec3 ups[6]{ {0,-1,0},{0,-1,0},{0,0,1},{0,0,-1},{0,-1,0},{0,-1,0} };
+
+	for (uint32 face = 0; face < 6; ++face)
+	{
+		auto cmd = offscreen->BeginFrame();
+		offscreen->BeginOffscreenSwapChainRenderPass(cmd);
+
+		glm::mat4 view = glm::lookAt(glm::vec3(0.0f), dirs[face], ups[face]);
+		glm::mat4 vp = proj * view;
+		system->Generate(cmd, envInfo, vp);
+
+		offscreen->EndOffscreenSwapChainRenderPass(cmd);
+		BufferComponent staging = offscreen->PrepareImageCopy(cmd);
+		offscreen->EndFrame();
+		offscreen->FlushBufferToFile(paths[face], staging);
+	}
+
+	return LoadCubemap(paths, VK_FORMAT_R8G8B8A8_UNORM);
+}
+
+std::shared_ptr<TextureData> TextureSystem::GenerateOrLoadPreFilteredEnvironment(const std::string& _savePrefix, uint32 _faceSize, std::shared_ptr<TextureData> _environment)
+{
+	std::array<std::string, 6> paths;
+	static const char* suffixes[6]{ "posx.png","negx.png","posy.png","negy.png","posz.png","negz.png" };
+	for (uint32 i = 0;i < 6;++i) paths[i] = _savePrefix + suffixes[i];
+	bool allExist = true;
+	for (const auto& p : paths) if (!std::filesystem::exists(p)) { allExist = false; break; }
+	if (allExist)
+	{
+		return LoadCubemap(paths, VK_FORMAT_R8G8B8A8_UNORM);
+	}
+
+	VkExtent2D extent{ _faceSize, _faceSize };
+	std::unique_ptr<OffscreenRenderer> offscreen = std::make_unique<OffscreenRenderer>(m_device, extent, VK_FORMAT_R8G8B8A8_UNORM);
+	std::unique_ptr<PreFilteredEnvironmentGenerationSystem> system = std::make_unique<PreFilteredEnvironmentGenerationSystem>(m_app, m_device, offscreen->GetOffscreenSwapChainRenderPass());
+
+	VkDescriptorImageInfo envInfo{};
+	envInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	envInfo.imageView = _environment->ImageView;
+	envInfo.sampler = _environment->Sampler;
+
+	const glm::mat4 proj = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+	const glm::vec3 dirs[6]{ {1,0,0},{-1,0,0},{0,1,0},{0,-1,0},{0,0,1},{0,0,-1} };
+	const glm::vec3 ups[6]{ {0,-1,0},{0,-1,0},{0,0,1},{0,0,-1},{0,-1,0},{0,-1,0} };
+
+	for (uint32 face = 0; face < 6; ++face)
+	{
+		auto cmd = offscreen->BeginFrame();
+		offscreen->BeginOffscreenSwapChainRenderPass(cmd);
+
+		glm::mat4 view = glm::lookAt(glm::vec3(0.0f), dirs[face], ups[face]);
+		glm::mat4 vp = proj * view;
+		system->Generate(cmd, envInfo, vp, 0.0f);
+
+		offscreen->EndOffscreenSwapChainRenderPass(cmd);
+		BufferComponent staging = offscreen->PrepareImageCopy(cmd);
+		offscreen->EndFrame();
+		offscreen->FlushBufferToFile(paths[face], staging);
+	}
+
+	return LoadCubemap(paths, VK_FORMAT_R8G8B8A8_UNORM);
 }
 
 uint8* TextureSystem::LoadTextureData(const std::string& _path, int32& _width, int32& _height, int32& _channels, int32 _desired_channels)

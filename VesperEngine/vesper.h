@@ -38,6 +38,8 @@
 #include "Systems/skybox_render_system.h"
 #include "Systems/camera_system.h"
 #include "Systems/brdf_lut_generation_system.h"
+#include "Systems/irradiance_convolution_generation_system.h"
+#include "Systems/pre_filtered_environment_generation_system.h"
 
 #include "Utility/hash.h"
 #include "Utility/logger.h"
