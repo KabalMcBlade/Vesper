@@ -1,8 +1,8 @@
 // Copyright (c) 2022-2025 Michele Condo'
-// File: C:\Projects\Vesper\Viewer\CustomOpaqueRenderSystem.cpp
+// File: C:\Projects\Vesper\Viewer\PhongCustomOpaqueRenderSystem.cpp
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
-#include "CustomOpaqueRenderSystem.h"
+#include "PhongCustomOpaqueRenderSystem.h"
 
 #include "../Components/PushConstants.h"
 
@@ -10,11 +10,11 @@
 
 VESPERENGINE_USING_NAMESPACE
 
-CustomOpaqueRenderSystem::CustomOpaqueRenderSystem(VesperApp& app, Device& device, Renderer& renderer,
+PhongCustomOpaqueRenderSystem::PhongCustomOpaqueRenderSystem(VesperApp& app, Device& device, Renderer& renderer,
     VkDescriptorSetLayout globalDescriptorSetLayout,
     VkDescriptorSetLayout entityDescriptorSetLayout,
     VkDescriptorSetLayout bindlessBindingDescriptorSetLayout)
-    : OpaqueRenderSystem(app, device, renderer, globalDescriptorSetLayout,
+    : PhongOpaqueRenderSystem(app, device, renderer, globalDescriptorSetLayout,
         entityDescriptorSetLayout, bindlessBindingDescriptorSetLayout)
 {
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();
@@ -24,7 +24,7 @@ CustomOpaqueRenderSystem::CustomOpaqueRenderSystem(VesperApp& app, Device& devic
     }
 }
 
-CustomOpaqueRenderSystem::~CustomOpaqueRenderSystem()
+PhongCustomOpaqueRenderSystem::~PhongCustomOpaqueRenderSystem()
 {
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();
     if (componentManager.IsComponentRegistered<ColorTintPushConstantData>())
@@ -33,7 +33,7 @@ CustomOpaqueRenderSystem::~CustomOpaqueRenderSystem()
     }
 }
 
-void CustomOpaqueRenderSystem::PerEntityUpdate(const FrameInfo& _frameInfo, ecs::ComponentManager& _componentManager, const ecs::Entity& _entity)
+void PhongCustomOpaqueRenderSystem::PerEntityUpdate(const FrameInfo& _frameInfo, ecs::ComponentManager& _componentManager, const ecs::Entity& _entity)
 {
     if (_componentManager.HasComponents<ColorTintPushConstantData>(_entity))
     {
@@ -50,7 +50,7 @@ void CustomOpaqueRenderSystem::PerEntityUpdate(const FrameInfo& _frameInfo, ecs:
     }
 }
 
-void CustomOpaqueRenderSystem::PerEntityRender(const FrameInfo& _frameInfo, ecs::ComponentManager& _componentManager, const ecs::Entity& _entity)
+void PhongCustomOpaqueRenderSystem::PerEntityRender(const FrameInfo& _frameInfo, ecs::ComponentManager& _componentManager, const ecs::Entity& _entity)
 {
     if (_componentManager.HasComponents<ColorTintPushConstantData>(_entity))
     {
@@ -60,7 +60,7 @@ void CustomOpaqueRenderSystem::PerEntityRender(const FrameInfo& _frameInfo, ecs:
     }
 }
 
-void CustomOpaqueRenderSystem::CreatePipeline(VkRenderPass renderPass)
+void PhongCustomOpaqueRenderSystem::CreatePipeline(VkRenderPass renderPass)
 {
     // Use custom shader filenames
     assertMsgReturnVoid(m_pipelineLayout != nullptr, "Cannot create pipeline before pipeline layout");

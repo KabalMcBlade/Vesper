@@ -106,8 +106,8 @@ call "$(ProjectDir)copy_locally.bat" $(ProjectDir) $(OutDir) $(IntDirFullPath)</
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="KeyboardMovementCameraController.cpp" />
     <ClCompile Include="MouseLookCameraController.cpp" />
-    <ClCompile Include="Systems\CustomOpaqueRenderSystem.cpp" />
-    <ClCompile Include="Systems\CustomTransparentRenderSystem.cpp" />
+    <ClCompile Include="Systems\PhongCustomOpaqueRenderSystem.cpp" />
+    <ClCompile Include="Systems\PhongCustomTransparentRenderSystem.cpp" />
     <ClCompile Include="Viewer.cpp" />
     <ClCompile Include="ViewerApp.cpp" />
     <ClCompile Include="WindowHandle.cpp" />
@@ -118,8 +118,8 @@ call "$(ProjectDir)copy_locally.bat" $(ProjectDir) $(OutDir) $(IntDirFullPath)</
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="KeyboardMovementCameraController.h" />
     <ClInclude Include="MouseLookCameraController.h" />
-    <ClInclude Include="Systems\CustomOpaqueRenderSystem.h" />
-    <ClInclude Include="Systems\CustomTransparentRenderSystem.h" />
+    <ClInclude Include="Systems\PhongCustomOpaqueRenderSystem.h" />
+    <ClInclude Include="Systems\PhongCustomTransparentRenderSystem.h" />
     <ClInclude Include="ThirdParty\glfw\include\glfw3.h" />
     <ClInclude Include="ThirdParty\glfw\include\glfw3native.h" />
     <ClInclude Include="ViewerApp.h" />

@@ -1,5 +1,5 @@
 // Copyright (c) 2022-2025 Michele Condo'
-// File: C:\Projects\Vesper\Viewer\CustomOpaqueRenderSystem.h
+// File: C:\Projects\Vesper\Viewer\PhongCustomOpaqueRenderSystem.h
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
 #pragma once
@@ -8,14 +8,14 @@
 
 VESPERENGINE_USING_NAMESPACE
 
-class CustomOpaqueRenderSystem final : public OpaqueRenderSystem
+class PhongCustomOpaqueRenderSystem final : public PhongOpaqueRenderSystem
 {
 public:
-    CustomOpaqueRenderSystem(VesperApp& app, Device& device, Renderer& renderer,
+    PhongCustomOpaqueRenderSystem(VesperApp& app, Device& device, Renderer& renderer,
         VkDescriptorSetLayout globalDescriptorSetLayout,
         VkDescriptorSetLayout entityDescriptorSetLayout,
         VkDescriptorSetLayout bindlessBindingDescriptorSetLayout = VK_NULL_HANDLE);
-    ~CustomOpaqueRenderSystem() override;
+    ~PhongCustomOpaqueRenderSystem() override;
 
 public:
     void CreatePipeline(VkRenderPass renderPass) override;

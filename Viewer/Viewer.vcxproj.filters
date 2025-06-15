@@ -33,10 +33,10 @@
     <ClCompile Include="GameManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Systems\CustomOpaqueRenderSystem.cpp">
+    <ClCompile Include="Systems\PhongCustomOpaqueRenderSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Systems\CustomTransparentRenderSystem.cpp">
+    <ClCompile Include="Systems\PhongCustomTransparentRenderSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -65,10 +65,10 @@
     <ClInclude Include="GameData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Systems\CustomOpaqueRenderSystem.h">
+    <ClInclude Include="Systems\PhongCustomOpaqueRenderSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Systems\CustomTransparentRenderSystem.h">
+    <ClInclude Include="Systems\PhongCustomTransparentRenderSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Components\PushConstants.h">

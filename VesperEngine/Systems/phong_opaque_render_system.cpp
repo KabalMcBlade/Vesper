@@ -1,8 +1,8 @@
 // Copyright (c) 2025-2025 Michele Condo'
-// File: C:\Projects\Vesper\VesperEngine\Systems\opaque_render_system.cpp
+// File: C:\Projects\Vesper\VesperEngine\Systems\phong_opaque_render_system.cpp
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
-#include "Systems/opaque_render_system.h"
+#include "Systems/phong_opaque_render_system.h"
 
 #include "Core/glm_config.h"
 
@@ -32,7 +32,7 @@
 VESPERENGINE_NAMESPACE_BEGIN
 
 
-OpaqueRenderSystem::OpaqueRenderSystem(VesperApp& _app, Device& _device, Renderer& _renderer,
+PhongOpaqueRenderSystem::PhongOpaqueRenderSystem(VesperApp& _app, Device& _device, Renderer& _renderer,
         VkDescriptorSetLayout _globalDescriptorSetLayout,
         VkDescriptorSetLayout _entityDescriptorSetLayout,
         VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout)
@@ -95,7 +95,7 @@ OpaqueRenderSystem::OpaqueRenderSystem(VesperApp& _app, Device& _device, Rendere
 	//CreatePipeline(m_renderer.GetSwapChainRenderPass());
 }
 
-void OpaqueRenderSystem::MaterialBinding()
+void PhongOpaqueRenderSystem::MaterialBinding()
 {
 	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
@@ -155,7 +155,7 @@ void OpaqueRenderSystem::MaterialBinding()
 
 }
 
-void OpaqueRenderSystem::Update(const FrameInfo& _frameInfo)
+void PhongOpaqueRenderSystem::Update(const FrameInfo& _frameInfo)
 {
 	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
@@ -173,7 +173,7 @@ void OpaqueRenderSystem::Update(const FrameInfo& _frameInfo)
 	}
 }
 
-void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
+void PhongOpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 {
 	// this bind only the opaque pipeline
 	m_opaquePipeline->Bind(_frameInfo.CommandBuffer);
@@ -273,7 +273,7 @@ void OpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 	entitiesGroupedAndCollected.clear();
 }
 
-void OpaqueRenderSystem::CreatePipeline(VkRenderPass _renderPass)
+void PhongOpaqueRenderSystem::CreatePipeline(VkRenderPass _renderPass)
 {
 	assertMsgReturnVoid(m_pipelineLayout != nullptr, "Cannot create pipeline before pipeline layout");
 
@@ -317,7 +317,7 @@ void OpaqueRenderSystem::CreatePipeline(VkRenderPass _renderPass)
 		);
 }
 
-void OpaqueRenderSystem::Cleanup()
+void PhongOpaqueRenderSystem::Cleanup()
 {
 	for (int32 i = 0; i < m_bindlessBindingMaterialIndexUbos.size(); ++i)
 	{

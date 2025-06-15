@@ -1,4 +1,8 @@
-#include "Systems/transparent_render_system.h"
+// Copyright (c) 2025-2025 Michele Condo'
+// File: C:\Projects\Vesper\VesperEngine\Systems\phong_transparent_render_system.cpp
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
+#include "Systems/phong_transparent_render_system.h"
 
 #include "Core/glm_config.h"
 
@@ -24,7 +28,7 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-TransparentRenderSystem::TransparentRenderSystem(VesperApp& _app, Device& _device, Renderer& _renderer,
+PhongTransparentRenderSystem::PhongTransparentRenderSystem(VesperApp& _app, Device& _device, Renderer& _renderer,
         VkDescriptorSetLayout _globalDescriptorSetLayout,
         VkDescriptorSetLayout _entityDescriptorSetLayout,
         VkDescriptorSetLayout _bindlessBindingDescriptorSetLayout)
@@ -78,7 +82,7 @@ TransparentRenderSystem::TransparentRenderSystem(VesperApp& _app, Device& _devic
     //CreatePipeline(m_renderer.GetSwapChainRenderPass());
 }
 
-void TransparentRenderSystem::MaterialBinding()
+void PhongTransparentRenderSystem::MaterialBinding()
 {
     ecs::EntityManager& entityManager = m_app.GetEntityManager();
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();
@@ -137,7 +141,7 @@ void TransparentRenderSystem::MaterialBinding()
     }
 }
 
-void TransparentRenderSystem::Update(const FrameInfo& _frameInfo)
+void PhongTransparentRenderSystem::Update(const FrameInfo& _frameInfo)
 {
     ecs::EntityManager& entityManager = m_app.GetEntityManager();
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();
@@ -155,7 +159,7 @@ void TransparentRenderSystem::Update(const FrameInfo& _frameInfo)
     }
 }
 
-void TransparentRenderSystem::Render(const FrameInfo& _frameInfo)
+void PhongTransparentRenderSystem::Render(const FrameInfo& _frameInfo)
 {
     m_transparentPipeline->Bind(_frameInfo.CommandBuffer);
 
@@ -248,7 +252,7 @@ void TransparentRenderSystem::Render(const FrameInfo& _frameInfo)
     entitiesGroupedAndCollected.clear();
 }
 
-void TransparentRenderSystem::CreatePipeline(VkRenderPass _renderPass)
+void PhongTransparentRenderSystem::CreatePipeline(VkRenderPass _renderPass)
 {
     assertMsgReturnVoid(m_pipelineLayout != nullptr, "Cannot create pipeline before pipeline layout");
 
@@ -289,7 +293,7 @@ void TransparentRenderSystem::CreatePipeline(VkRenderPass _renderPass)
             );
 }
 
-void TransparentRenderSystem::Cleanup()
+void PhongTransparentRenderSystem::Cleanup()
 {
     for (int32 i = 0; i < m_bindlessBindingMaterialIndexUbos.size(); ++i)
     {

@@ -135,7 +135,9 @@ void GameManager::LoadGameEntities()
 
 		m_app.GetComponentManager().AddComponent<RotationComponent>(cubeNoIndices);
 
-		// test for custom render systems
+		// test for custom render systems: 
+		// if PhongCustomTransparentRenderSystem and/or PhongCustomOpaqueRenderSystem are used, they will push constant
+		// to change the tint of the entities having this component registered, otherwise nothing.
 		if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
 		{
 			m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(cubeNoIndices);
@@ -167,7 +169,9 @@ void GameManager::LoadGameEntities()
 
 			m_app.GetComponentManager().AddComponent<RotationComponent>(coloredCube);
 
-			// test for custom render systems
+			// test for custom render systems: 
+			// if PhongCustomTransparentRenderSystem and/or PhongCustomOpaqueRenderSystem are used, they will push constant
+			// to change the tint of the entities having this component registered, otherwise nothing.
 			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
 			{
 				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(coloredCube);
@@ -197,7 +201,9 @@ void GameManager::LoadGameEntities()
 
 			m_entityHandlerSystem.RegisterRenderableEntity(flatVase);
 
-			// test for custom render systems
+			// test for custom render systems: 
+			// if PhongCustomTransparentRenderSystem and/or PhongCustomOpaqueRenderSystem are used, they will push constant
+			// to change the tint of the entities having this component registered, otherwise nothing.
 			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
 			{
 				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(flatVase);
@@ -222,7 +228,9 @@ void GameManager::LoadGameEntities()
 
 			m_entityHandlerSystem.RegisterRenderableEntity(smoothVase);
 
-			// test for custom render systems
+			// test for custom render systems: 
+			// if PhongCustomTransparentRenderSystem and/or PhongCustomOpaqueRenderSystem are used, they will push constant
+			// to change the tint of the entities having this component registered, otherwise nothing.
 			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
 			{
 				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(smoothVase);
@@ -247,7 +255,9 @@ void GameManager::LoadGameEntities()
 
 			m_entityHandlerSystem.RegisterRenderableEntity(quad);
 
-			// test for custom render systems
+			// test for custom render systems: 
+			// if PhongCustomTransparentRenderSystem and/or PhongCustomOpaqueRenderSystem are used, they will push constant
+			// to change the tint of the entities having this component registered, otherwise nothing.
 			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
 			{
 				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(quad);
@@ -272,7 +282,9 @@ void GameManager::LoadGameEntities()
 
 			m_entityHandlerSystem.RegisterRenderableEntity(character);
 
-			// test for custom render systems
+			// test for custom render systems: 
+			// if PhongCustomTransparentRenderSystem and/or PhongCustomOpaqueRenderSystem are used, they will push constant
+			// to change the tint of the entities having this component registered, otherwise nothing.
 			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
 			{
 				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(character);

@@ -1,8 +1,8 @@
 // Copyright (c) 2022-2025 Michele Condo'
-// File: C:\Projects\Vesper\Viewer\CustomTransparentRenderSystem.cpp
+// File: C:\Projects\Vesper\Viewer\PhongCustomTransparentRenderSystem.cpp
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
-#include "CustomTransparentRenderSystem.h"
+#include "PhongCustomTransparentRenderSystem.h"
 
 #include "../Components/PushConstants.h"
 
@@ -10,11 +10,11 @@
 
 VESPERENGINE_USING_NAMESPACE
 
-CustomTransparentRenderSystem::CustomTransparentRenderSystem(VesperApp& app, Device& device, Renderer& renderer,
+PhongCustomTransparentRenderSystem::PhongCustomTransparentRenderSystem(VesperApp& app, Device& device, Renderer& renderer,
     VkDescriptorSetLayout globalDescriptorSetLayout,
     VkDescriptorSetLayout entityDescriptorSetLayout,
     VkDescriptorSetLayout bindlessBindingDescriptorSetLayout)
-    : TransparentRenderSystem(app, device, renderer, globalDescriptorSetLayout,
+    : PhongTransparentRenderSystem(app, device, renderer, globalDescriptorSetLayout,
         entityDescriptorSetLayout, bindlessBindingDescriptorSetLayout)
 {
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();
@@ -24,7 +24,7 @@ CustomTransparentRenderSystem::CustomTransparentRenderSystem(VesperApp& app, Dev
     }
 }
 
-CustomTransparentRenderSystem::~CustomTransparentRenderSystem()
+PhongCustomTransparentRenderSystem::~PhongCustomTransparentRenderSystem()
 {
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();
     if (componentManager.IsComponentRegistered<ColorTintPushConstantData>())
@@ -33,7 +33,7 @@ CustomTransparentRenderSystem::~CustomTransparentRenderSystem()
     }
 }
 
-void CustomTransparentRenderSystem::PerEntityUpdate(const FrameInfo& _frameInfo, ecs::ComponentManager& _componentManager, const ecs::Entity& _entity)
+void PhongCustomTransparentRenderSystem::PerEntityUpdate(const FrameInfo& _frameInfo, ecs::ComponentManager& _componentManager, const ecs::Entity& _entity)
 {
     if (_componentManager.HasComponents<ColorTintPushConstantData>(_entity))
     {
@@ -50,7 +50,7 @@ void CustomTransparentRenderSystem::PerEntityUpdate(const FrameInfo& _frameInfo,
     }
 }
 
-void CustomTransparentRenderSystem::PerEntityRender(const FrameInfo& _frameInfo, ecs::ComponentManager& _componentManager, const ecs::Entity& _entity)
+void PhongCustomTransparentRenderSystem::PerEntityRender(const FrameInfo& _frameInfo, ecs::ComponentManager& _componentManager, const ecs::Entity& _entity)
 {
     if (_componentManager.HasComponents<ColorTintPushConstantData>(_entity))
     {
@@ -60,7 +60,7 @@ void CustomTransparentRenderSystem::PerEntityRender(const FrameInfo& _frameInfo,
     }
 }
 
-void CustomTransparentRenderSystem::CreatePipeline(VkRenderPass renderPass)
+void PhongCustomTransparentRenderSystem::CreatePipeline(VkRenderPass renderPass)
 {
     assertMsgReturnVoid(m_pipelineLayout != nullptr, "Cannot create pipeline before pipeline layout");
 

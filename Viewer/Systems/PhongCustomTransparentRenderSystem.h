@@ -1,5 +1,5 @@
 // Copyright (c) 2022-2025 Michele Condo'
-// File: C:\Projects\Vesper\Viewer\CustomTransparentRenderSystem.h
+// File: C:\Projects\Vesper\Viewer\PhongCustomTransparentRenderSystem.h
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
 #pragma once
@@ -8,14 +8,14 @@
 
 VESPERENGINE_USING_NAMESPACE
 
-class CustomTransparentRenderSystem final : public TransparentRenderSystem
+class PhongCustomTransparentRenderSystem final : public PhongTransparentRenderSystem
 {
 public:
-    CustomTransparentRenderSystem(VesperApp& app, Device& device, Renderer& renderer,
+    PhongCustomTransparentRenderSystem(VesperApp& app, Device& device, Renderer& renderer,
         VkDescriptorSetLayout globalDescriptorSetLayout,
         VkDescriptorSetLayout entityDescriptorSetLayout,
         VkDescriptorSetLayout bindlessBindingDescriptorSetLayout = VK_NULL_HANDLE);
-    ~CustomTransparentRenderSystem() override;
+    ~PhongCustomTransparentRenderSystem() override;
 
 public:
     void CreatePipeline(VkRenderPass renderPass) override;
