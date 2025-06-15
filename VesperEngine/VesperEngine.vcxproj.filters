@@ -113,6 +113,8 @@
     <None Include="Assets\Shaders\skybox_shader.frag" />
     <None Include="compile_shaders.bat" />
     <None Include="copy_assets.bat" />
+    <None Include="Assets\Shaders\pbr_shader.frag" />
+    <None Include="Assets\Shaders\pbr_shader.vert" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="compile_shaders_config.txt" />

@@ -55,7 +55,6 @@ ViewerApp::ViewerApp(Config& _config) :
 
 	
 	// IN-ENGINE SYSTEMS
-	/*
     m_opaqueRenderSystem = std::make_unique<OpaqueRenderSystem>(*this , *m_device, *m_renderer,
             m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
             m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
@@ -69,9 +68,28 @@ ViewerApp::ViewerApp(Config& _config) :
             m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
 
 	m_transparentRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
-	*/
+
+
+
+	m_pbrOpaqueRenderSystem = std::make_unique<PBROpaqueRenderSystem>(*this, *m_device, *m_renderer,
+		m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
+		m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
+		m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
+
+	m_pbrOpaqueRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
+
+
+	m_pbrTransparentRenderSystem = std::make_unique<PBRTransparentRenderSystem>(*this, *m_device, *m_renderer,
+		m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
+		m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
+		m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
+
+	m_pbrTransparentRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
+
+
 
 	// CUSTOM IN-APP SYSTEMS
+	/*
 	m_opaqueRenderSystem = std::make_unique<CustomOpaqueRenderSystem>(*this, *m_device, *m_renderer,
 		m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
 		m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
@@ -85,6 +103,7 @@ ViewerApp::ViewerApp(Config& _config) :
             m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
 
     m_transparentRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
+	*/
 
     m_skyboxRenderSystem = std::make_unique<SkyboxRenderSystem>(*this, *m_device, *m_renderer,
             m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
@@ -131,6 +150,8 @@ ViewerApp::ViewerApp(Config& _config) :
 
     m_opaqueRenderSystem->MaterialBinding();
     m_transparentRenderSystem->MaterialBinding();
+	m_pbrOpaqueRenderSystem->MaterialBinding();
+	m_pbrTransparentRenderSystem->MaterialBinding();
     m_skyboxRenderSystem->MaterialBinding();
 }
 
@@ -139,6 +160,8 @@ ViewerApp::~ViewerApp()
 	m_gameManager->UnloadGameEntities();
 	m_textureSystem->Cleanup();
     m_materialSystem->Cleanup();
+	m_pbrOpaqueRenderSystem->Cleanup();
+	m_pbrTransparentRenderSystem->Cleanup();
     m_opaqueRenderSystem->Cleanup();
     m_transparentRenderSystem->Cleanup();
     m_skyboxRenderSystem->Cleanup();
@@ -182,6 +205,10 @@ void ViewerApp::Run()
 
             m_opaqueRenderSystem->Update(frameInfo);
             m_transparentRenderSystem->Update(frameInfo);
+
+			m_pbrOpaqueRenderSystem->Update(frameInfo);
+			m_pbrTransparentRenderSystem->Update(frameInfo);
+
             m_skyboxRenderSystem->Update(frameInfo);
 
 			const float aspectRatio = m_renderer->GetAspectRatio();
@@ -201,8 +228,12 @@ void ViewerApp::Run()
             m_renderer->BeginSwapChainRenderPass(commandBuffer);
 
             m_skyboxRenderSystem->Render(frameInfo);
+
             m_opaqueRenderSystem->Render(frameInfo);
             m_transparentRenderSystem->Render(frameInfo);
+
+			m_pbrOpaqueRenderSystem->Render(frameInfo);
+			m_pbrTransparentRenderSystem->Render(frameInfo);
 
 			m_renderer->EndSwapChainRenderPass(commandBuffer);
 			m_renderer->EndFrame();

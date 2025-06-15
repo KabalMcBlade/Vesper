@@ -73,7 +73,8 @@ Third render from the engine: OBJs loaded using the Custom Opaque and Custom Tra
 - Assets (if not mine):
 	- **A_blonde_twintailed_g_1228205950_texture** is downloadable from FAB store (https://www.fab.com/listings/e8be1218-232d-45a7-94cc-71ad83750803) under Creative Commons Attribution (CC BY 4.0): https://creativecommons.org/licenses/by/4.0/
  	- **Laboratory_cabinet_NakedSingularity** is downloadable from FAB store (https://www.fab.com/listings/d6284011-bf69-4af2-b2ba-21c93d037910) under Standard License: https://www.fab.com/eula
- 	- **colored_cube**, **cube**, **flat_vase**, **quad**, **smooth_vase** they have all been found around on different tutorials and pages, without any explicit license. They are pretty generic, so I guess they are Creative Commons Attribution.
+ 	- **drone_LP** is downloadable from FAB store (https://www.fab.com/listings/0464b8fa-983e-4f20-83c2-71148cfafb5b) under Creative Commons Attribution (CC BY 4.0): https://creativecommons.org/licenses/by/4.0/
+	- **colored_cube**, **cube**, **flat_vase**, **quad**, **smooth_vase** they have all been found around on different tutorials and pages, without any explicit license. They are pretty generic, so I guess they are Creative Commons Attribution.
  	- **Yokohama3** cubemap is the work of Emil Persson, aka Humus, and it is under Creative Commons Attribution (CC BY 3.0) Unported License: https://creativecommons.org/licenses/by/3.0/
 	- **misty_pines_4k.hdr** is under CC0 license (https://creativecommons.org/publicdomain/zero/1.0/) and was downloaded from here https://hdrihaven.com/hdri/?c=morning-afternoon&h=misty_pines
 

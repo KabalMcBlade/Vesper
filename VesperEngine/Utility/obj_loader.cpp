@@ -45,18 +45,35 @@ namespace std
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-bool IsPBRMaterial(const tinyobj::material_t& _material)
-{
+bool IsPBRMaterial(const tinyobj::material_t& m) {
 	constexpr float epsilon = 1e-6f;
 
-	return (_material.metallic > epsilon ||
-		_material.roughness > epsilon ||
-		_material.sheen > epsilon ||
-		_material.clearcoat_thickness > epsilon ||
-		_material.clearcoat_roughness > epsilon ||
-		_material.anisotropy > epsilon ||
-		_material.anisotropy_rotation > epsilon);
+	bool hasPBRParams = (
+		m.metallic > epsilon ||
+		m.roughness > epsilon ||
+		m.sheen > epsilon ||
+		m.clearcoat_thickness > epsilon ||
+		m.clearcoat_roughness > epsilon ||
+		m.anisotropy > epsilon ||
+		m.anisotropy_rotation > epsilon
+		);
+
+	bool hasPBRTextures = (
+		!m.metallic_texname.empty() ||
+		!m.roughness_texname.empty() ||
+		!m.sheen_texname.empty() ||
+		!m.emissive_texname.empty() ||
+		!m.normal_texname.empty()
+		);
+
+	bool heuristicFallback = (
+		m.specular_texname.find("rough") != std::string::npos ||
+		m.reflection_texname.find("metal") != std::string::npos
+		);
+
+	return hasPBRParams || hasPBRTextures || heuristicFallback;
 }
+
 
 std::shared_ptr<MaterialData> CreateMaterial(MaterialSystem& _materialSystem, const tinyobj::material_t& _tinyMaterial, const std::string& _texturePath)
 {

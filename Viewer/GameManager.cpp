@@ -135,7 +135,7 @@ void GameManager::LoadGameEntities()
 
 		m_app.GetComponentManager().AddComponent<RotationComponent>(cubeNoIndices);
 
-		// test for custom render systems
+		// test for custom render systems (if used, otherwise is ignored by the render systems!)
 		if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
 		{
 			m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(cubeNoIndices);
@@ -167,7 +167,7 @@ void GameManager::LoadGameEntities()
 
 			m_app.GetComponentManager().AddComponent<RotationComponent>(coloredCube);
 
-			// test for custom render systems
+			// test for custom render systems (if used, otherwise is ignored by the render systems
 			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
 			{
 				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(coloredCube);
@@ -197,7 +197,7 @@ void GameManager::LoadGameEntities()
 
 			m_entityHandlerSystem.RegisterRenderableEntity(flatVase);
 
-			// test for custom render systems
+			// test for custom render systems (if used, otherwise is ignored by the render systems
 			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
 			{
 				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(flatVase);
@@ -222,7 +222,7 @@ void GameManager::LoadGameEntities()
 
 			m_entityHandlerSystem.RegisterRenderableEntity(smoothVase);
 
-			// test for custom render systems
+			// test for custom render systems (if used, otherwise is ignored by the render systems
 			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
 			{
 				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(smoothVase);
@@ -247,7 +247,7 @@ void GameManager::LoadGameEntities()
 
 			m_entityHandlerSystem.RegisterRenderableEntity(quad);
 
-			// test for custom render systems
+			// test for custom render systems (if used, otherwise is ignored by the render systems
 			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
 			{
 				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(quad);
@@ -272,10 +272,35 @@ void GameManager::LoadGameEntities()
 
 			m_entityHandlerSystem.RegisterRenderableEntity(character);
 
-			// test for custom render systems
+			// test for custom render systems (if used, otherwise is ignored by the render systems
 			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
 			{
 				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(character);
+			}
+		}
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// drone_LP PBR
+	{
+		std::vector<std::unique_ptr<ModelData>> droneDataList = m_objLoader.LoadModel("drone_LP.obj");
+		for (auto& droneData : droneDataList)
+		{
+			ecs::Entity drone = m_gameEntitySystem.CreateGameEntity(EntityType::Renderable);
+
+			m_modelSystem.LoadModel(drone, std::move(droneData));
+
+			TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(drone);
+			transformComponent.Position = { 0.0f, -0.5f, 0.0f };
+			transformComponent.Scale = { 0.25f, 0.25f, 0.25f };
+			transformComponent.Rotation = glm::angleAxis(glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+			m_entityHandlerSystem.RegisterRenderableEntity(drone);
+
+			// test for custom render systems (if used, otherwise is ignored by the render systems
+			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
+			{
+				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(drone);
 			}
 		}
 	}
