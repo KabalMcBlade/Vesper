@@ -19,13 +19,9 @@ VESPERENGINE_NAMESPACE_BEGIN
 
 namespace
 {
-    struct PushVP
+    struct PushConstant
     {
         glm::mat4 ViewProjection{ 1.f };
-    };
-
-    struct PushRoughness
-    {
         float Roughness{ 0.f };
     };
 
@@ -58,17 +54,11 @@ PreFilteredEnvironmentGenerationSystem::PreFilteredEnvironmentGenerationSystem(V
     m_buffer = std::make_unique<Buffer>(m_device);
     CreateDescriptorResources();
 
-    VkPushConstantRange vp{};
-    vp.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-    vp.offset = 0;
-    vp.size = sizeof(PushVP);
-    m_pushConstants.push_back(vp);
-
-    VkPushConstantRange rough{};
-    rough.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-    rough.offset = sizeof(PushVP);
-    rough.size = sizeof(PushRoughness);
-    m_pushConstants.push_back(rough);
+    VkPushConstantRange range{};
+    range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+    range.offset = 0;
+    range.size = sizeof(PushConstant);
+    m_pushConstants.push_back(range);
 
     CreatePipelineLayout({ m_setLayout->GetDescriptorSetLayout() });
     CreatePipeline(_renderPass);
@@ -129,9 +119,8 @@ void PreFilteredEnvironmentGenerationSystem::Generate(VkCommandBuffer _commandBu
     m_pipeline->Bind(_commandBuffer);
     vkCmdBindDescriptorSets(_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptorSet, 0, nullptr);
 
-    PushVP vp{ _viewProj };
-    PushRoughness r{ _roughness };
-    PushConstants(_commandBuffer, { &vp, &r });
+    PushConstant pc{ _viewProj, _roughness };
+    PushConstants(_commandBuffer, 0, &pc);
 
     Bind(m_cubeVertex, _commandBuffer);
     Draw(m_cubeVertex, _commandBuffer);
