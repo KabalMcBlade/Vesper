@@ -152,6 +152,63 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 	}
 }
 
+void ModelSystem::LoadSkyboxModel(ecs::Entity _entity, std::shared_ptr<ModelData> _modelData, std::shared_ptr<TextureData> _textureData) const
+{
+	m_app.GetComponentManager().AddComponent<PipelineSkyboxComponent>(_entity);
+
+	m_app.GetComponentManager().AddComponent<SkyboxMaterialComponent>(_entity);
+	SkyboxMaterialComponent& sb = m_app.GetComponentManager().GetComponent<SkyboxMaterialComponent>(_entity);
+	sb.ImageInfo.sampler = _textureData->Sampler;
+	sb.ImageInfo.imageView = _textureData->ImageView;
+	sb.ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+	// depending by the data, add the component
+	if (_modelData->IsStatic)
+	{
+		m_app.GetComponentManager().AddComponent<StaticComponent>(_entity);
+	}
+
+	if (_modelData->Vertices.size() > 0)
+	{
+		m_app.GetComponentManager().AddComponent<VertexBufferComponent>(_entity);
+
+		VertexBufferComponent& vertexBuffer = m_app.GetComponentManager().GetComponent<VertexBufferComponent>(_entity);
+
+		if (m_app.GetComponentManager().HasComponents<StaticComponent>(_entity))
+		{
+			vertexBuffer = CreateVertexBuffersWithStagingBuffer(_modelData->Vertices);
+		}
+		else
+		{
+			vertexBuffer = CreateVertexBuffers(_modelData->Vertices);
+		}
+	}
+	else
+	{
+		m_app.GetComponentManager().AddComponent<NotVertexBufferComponent>(_entity);
+	}
+
+	if (_modelData->Indices.size() > 0)
+	{
+		m_app.GetComponentManager().AddComponent<IndexBufferComponent>(_entity);
+
+		IndexBufferComponent& indexBuffer = m_app.GetComponentManager().GetComponent<IndexBufferComponent>(_entity);
+
+		if (_modelData->IsStatic)
+		{
+			indexBuffer = CreateIndexBufferWithStagingBuffer(_modelData->Indices);
+		}
+		else
+		{
+			indexBuffer = CreateIndexBuffer(_modelData->Indices);
+		}
+	}
+	else
+	{
+		m_app.GetComponentManager().AddComponent<NotIndexBufferComponent>(_entity);
+	}
+}
+
 void ModelSystem::UnloadModel(ecs::Entity _entity) const
 {
 	if (m_app.GetComponentManager().HasComponents<VertexBufferComponent>(_entity))
@@ -210,6 +267,16 @@ void ModelSystem::UnloadModel(ecs::Entity _entity) const
 	if (m_app.GetComponentManager().HasComponents<PipelineOpaqueComponent>(_entity))
 	{
 		m_app.GetComponentManager().RemoveComponent<PipelineOpaqueComponent>(_entity);
+	}
+
+	if (m_app.GetComponentManager().HasComponents<PipelineSkyboxComponent>(_entity))
+	{
+		m_app.GetComponentManager().RemoveComponent<PipelineSkyboxComponent>(_entity);
+	}
+
+	if (m_app.GetComponentManager().HasComponents<SkyboxMaterialComponent>(_entity))
+	{
+		m_app.GetComponentManager().RemoveComponent<SkyboxMaterialComponent>(_entity);
 	}
 }
 

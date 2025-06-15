@@ -75,9 +75,9 @@ void SkyboxRenderSystem::MaterialBinding()
     ecs::EntityManager& entityManager = m_app.GetEntityManager();
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-    for (auto entity : ecs::IterateEntitiesWithAll<PipelineSkyboxComponent, SkyboxComponent>(entityManager, componentManager))
+    for (auto entity : ecs::IterateEntitiesWithAll<PipelineSkyboxComponent, SkyboxMaterialComponent>(entityManager, componentManager))
     {
-        SkyboxComponent& sb = componentManager.GetComponent<SkyboxComponent>(entity);
+        SkyboxMaterialComponent& sb = componentManager.GetComponent<SkyboxMaterialComponent>(entity);
         sb.BoundDescriptorSet.resize(SwapChain::kMaxFramesInFlight);
         for (int32 i = 0; i < SwapChain::kMaxFramesInFlight; ++i)
         {
@@ -113,11 +113,11 @@ void SkyboxRenderSystem::Render(const FrameInfo& _frameInfo)
     SkyboxPushConstant push{};
     push.ViewProjection = camera.ProjectionMatrix * view;
 
-    for (auto entity : ecs::IterateEntitiesWithAll<PipelineSkyboxComponent, RenderComponent, VertexBufferComponent, SkyboxComponent>(entityManager, componentManager))
+    for (auto entity : ecs::IterateEntitiesWithAll<PipelineSkyboxComponent, RenderComponent, VertexBufferComponent, SkyboxMaterialComponent>(entityManager, componentManager))
     {
         const VertexBufferComponent& vertex = componentManager.GetComponent<VertexBufferComponent>(entity);
         const IndexBufferComponent& index = componentManager.GetComponent<IndexBufferComponent>(entity);
-        SkyboxComponent& sb = componentManager.GetComponent<SkyboxComponent>(entity);
+        SkyboxMaterialComponent& sb = componentManager.GetComponent<SkyboxMaterialComponent>(entity);
 
         vkCmdBindDescriptorSets(
             _frameInfo.CommandBuffer,

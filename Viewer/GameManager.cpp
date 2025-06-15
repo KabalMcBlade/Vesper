@@ -102,29 +102,12 @@ void GameManager::LoadGameEntities()
         {
             ecs::Entity skybox = m_gameEntitySystem.CreateGameEntity(EntityType::Renderable);
 
-            m_modelSystem.LoadModel(skybox, std::move(skyboxDataList.front()));
+            m_modelSystem.LoadSkyboxModel(skybox, std::move(skyboxDataList.front()), cubeMap);
 
             TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(skybox);
             transformComponent.Scale = { 50.0f, 50.0f, 50.0f };
 
             m_entityHandlerSystem.RegisterRenderableEntity(skybox);
-
-            if (m_app.GetComponentManager().HasComponents<PhongMaterialComponent>(skybox))
-            {
-                    m_app.GetComponentManager().RemoveComponent<PhongMaterialComponent>(skybox);
-            }
-			if (m_app.GetComponentManager().HasComponents<PipelineOpaqueComponent>(skybox))
-			{
-				m_app.GetComponentManager().RemoveComponent<PipelineOpaqueComponent>(skybox);
-			}
-
-            m_app.GetComponentManager().AddComponent<PipelineSkyboxComponent>(skybox);
-            m_app.GetComponentManager().AddComponent<SkyboxComponent>(skybox);
-
-            SkyboxComponent& sb = m_app.GetComponentManager().GetComponent<SkyboxComponent>(skybox);
-            sb.ImageInfo.sampler = cubeMap->Sampler;
-            sb.ImageInfo.imageView = cubeMap->ImageView;
-            sb.ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         }
     }
 

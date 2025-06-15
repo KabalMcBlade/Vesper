@@ -24,6 +24,7 @@ class MaterialSystem;
 class Buffer;
 
 struct ModelData;
+struct TextureData;
 struct Vertex;
 
 class VESPERENGINE_API ModelSystem
@@ -37,6 +38,7 @@ public:
 
 public:
 	void LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _data) const;
+	void LoadSkyboxModel(ecs::Entity _entity, std::shared_ptr<ModelData> _modelData, std::shared_ptr<TextureData> _textureData) const;
 	void UnloadModel(ecs::Entity _entity) const;
 	void UnloadModels() const;
 

@@ -91,10 +91,11 @@ struct PBRMaterialComponent : public MaterialComponent
 	VkDescriptorImageInfo NormalImageInfo{};
 	VkDescriptorBufferInfo UniformBufferInfo{};	// colors/values
 };
-struct SkyboxComponent	// TODO, should inherit from MaterialComponent, check how then the opaque/transparent renderer use it
+
+// Skybox
+struct SkyboxMaterialComponent : public MaterialComponent
 {
     VkDescriptorImageInfo ImageInfo{};
-    std::vector<VkDescriptorSet> BoundDescriptorSet;
 };
 
 

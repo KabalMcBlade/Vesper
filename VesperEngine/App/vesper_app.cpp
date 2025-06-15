@@ -65,7 +65,7 @@ void VesperApp::RegisterDefaultComponents()
 	m_componentManager.RegisterComponent<PhongMaterialComponent>();
 	m_componentManager.RegisterComponent<PBRMaterialComponent>();
 	m_componentManager.RegisterComponent<StaticComponent>();
-    m_componentManager.RegisterComponent<SkyboxComponent>();
+    m_componentManager.RegisterComponent<SkyboxMaterialComponent>();
 
 	// BUFFERS
 	m_componentManager.RegisterComponent<VertexBufferComponent>();
@@ -106,7 +106,7 @@ void VesperApp::UnregisterDefaultComponent()
 	m_componentManager.UnregisterComponent<PhongMaterialComponent>();
 	m_componentManager.UnregisterComponent<PBRMaterialComponent>();
 	m_componentManager.UnregisterComponent<StaticComponent>();
-	m_componentManager.UnregisterComponent<SkyboxComponent>();
+	m_componentManager.UnregisterComponent<SkyboxMaterialComponent>();
 
 	// BUFFERS
 	m_componentManager.UnregisterComponent<VertexBufferComponent>();
