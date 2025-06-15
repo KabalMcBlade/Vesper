@@ -64,22 +64,6 @@ bool IsPBRMaterial(const tinyobj::material_t& _material)
                 !_material.normal_texname.empty());
 }
 
-	bool hasPBRTextures = (
-		!m.metallic_texname.empty() ||
-		!m.roughness_texname.empty() ||
-		!m.sheen_texname.empty() ||
-		!m.emissive_texname.empty() ||
-		!m.normal_texname.empty()
-		);
-
-	bool heuristicFallback = (
-		m.specular_texname.find("rough") != std::string::npos ||
-		m.reflection_texname.find("metal") != std::string::npos
-		);
-
-	return hasPBRParams || hasPBRTextures || heuristicFallback;
-}
-
 
 std::shared_ptr<MaterialData> CreateMaterial(MaterialSystem& _materialSystem, const tinyobj::material_t& _tinyMaterial, const std::string& _texturePath)
 {

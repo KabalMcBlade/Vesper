@@ -8,14 +8,14 @@
 
 VESPERENGINE_USING_NAMESPACE
 
-class CustomTransparentRenderSystem final : public PhongTransparentRenderSystem
+class PhongCustomTransparentRenderSystem final : public PhongTransparentRenderSystem
 {
 public:
-    CustomTransparentRenderSystem(VesperApp& app, Device& device, Renderer& renderer,
+    PhongCustomTransparentRenderSystem(VesperApp& app, Device& device, Renderer& renderer,
         VkDescriptorSetLayout globalDescriptorSetLayout,
         VkDescriptorSetLayout entityDescriptorSetLayout,
         VkDescriptorSetLayout bindlessBindingDescriptorSetLayout = VK_NULL_HANDLE);
-    ~CustomTransparentRenderSystem() override;
+    ~PhongCustomTransparentRenderSystem() override;
 
 public:
     void CreatePipeline(VkRenderPass renderPass) override;

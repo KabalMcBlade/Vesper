@@ -55,19 +55,19 @@ ViewerApp::ViewerApp(Config& _config) :
 
 	
 	// IN-ENGINE SYSTEMS
-    m_opaqueRenderSystem = std::make_unique<OpaqueRenderSystem>(*this , *m_device, *m_renderer,
+	m_phongOpaqueRenderSystem = std::make_unique<PhongOpaqueRenderSystem>(*this , *m_device, *m_renderer,
             m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
             m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
             m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
 
-	m_opaqueRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
+	m_phongOpaqueRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
 
-    m_transparentRenderSystem = std::make_unique<TransparentRenderSystem>(*this, *m_device, *m_renderer,
+	m_phongTransparentRenderSystem = std::make_unique<PhongTransparentRenderSystem>(*this, *m_device, *m_renderer,
             m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
             m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
             m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
 
-	m_transparentRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
+	m_phongTransparentRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
 
 
 
@@ -90,19 +90,19 @@ ViewerApp::ViewerApp(Config& _config) :
 
 	// CUSTOM IN-APP SYSTEMS
 	/*
-	m_opaqueRenderSystem = std::make_unique<CustomOpaqueRenderSystem>(*this, *m_device, *m_renderer,
+	m_phongOpaqueRenderSystem = std::make_unique<CustomOpaqueRenderSystem>(*this, *m_device, *m_renderer,
 		m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
 		m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
 		m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
 
-	m_opaqueRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
+	m_phongOpaqueRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
 
-    m_transparentRenderSystem = std::make_unique<CustomTransparentRenderSystem>(*this, *m_device, *m_renderer,
+    m_phongTransparentRenderSystem = std::make_unique<CustomTransparentRenderSystem>(*this, *m_device, *m_renderer,
             m_masterRenderSystem->GetGlobalDescriptorSetLayout(),
             m_entityHandlerSystem->GetEntityDescriptorSetLayout(),
             m_masterRenderSystem->GetBindlessBindingDescriptorSetLayout());
 
-    m_transparentRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
+    m_phongTransparentRenderSystem->CreatePipeline(m_renderer->GetSwapChainRenderPass());
 	*/
 
     m_skyboxRenderSystem = std::make_unique<SkyboxRenderSystem>(*this, *m_device, *m_renderer,
@@ -148,8 +148,8 @@ ViewerApp::ViewerApp(Config& _config) :
     m_gameManager->LoadCameraEntities();
     m_gameManager->LoadGameEntities();
 
-    m_opaqueRenderSystem->MaterialBinding();
-    m_transparentRenderSystem->MaterialBinding();
+	m_phongOpaqueRenderSystem->MaterialBinding();
+	m_phongTransparentRenderSystem->MaterialBinding();
 	m_pbrOpaqueRenderSystem->MaterialBinding();
 	m_pbrTransparentRenderSystem->MaterialBinding();
     m_skyboxRenderSystem->MaterialBinding();
@@ -162,8 +162,8 @@ ViewerApp::~ViewerApp()
     m_materialSystem->Cleanup();
 	m_pbrOpaqueRenderSystem->Cleanup();
 	m_pbrTransparentRenderSystem->Cleanup();
-    m_opaqueRenderSystem->Cleanup();
-    m_transparentRenderSystem->Cleanup();
+	m_phongOpaqueRenderSystem->Cleanup();
+	m_phongTransparentRenderSystem->Cleanup();
     m_skyboxRenderSystem->Cleanup();
     m_masterRenderSystem->Cleanup();
 }
@@ -203,8 +203,8 @@ void ViewerApp::Run()
 			
 			m_gameManager->Update(frameInfo);
 
-            m_opaqueRenderSystem->Update(frameInfo);
-            m_transparentRenderSystem->Update(frameInfo);
+			m_phongOpaqueRenderSystem->Update(frameInfo);
+			m_phongTransparentRenderSystem->Update(frameInfo);
 
 			m_pbrOpaqueRenderSystem->Update(frameInfo);
 			m_pbrTransparentRenderSystem->Update(frameInfo);
@@ -229,8 +229,8 @@ void ViewerApp::Run()
 
             m_skyboxRenderSystem->Render(frameInfo);
 
-            m_opaqueRenderSystem->Render(frameInfo);
-            m_transparentRenderSystem->Render(frameInfo);
+			m_phongOpaqueRenderSystem->Render(frameInfo);
+			m_phongTransparentRenderSystem->Render(frameInfo);
 
 			m_pbrOpaqueRenderSystem->Render(frameInfo);
 			m_pbrTransparentRenderSystem->Render(frameInfo);
