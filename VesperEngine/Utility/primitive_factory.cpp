@@ -17,27 +17,26 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateTriangleNoIndices(MaterialS
 {
 	auto data = std::make_unique<ModelData>();
 
-	data->Vertices =
-	{
-		{{0.0f, -0.5f, 0.0f}, _faceColor},
-		{{0.5f, 0.5f, 0.0f}, _faceColor},
-		{{-0.5f, 0.5f, 0.0f}, _faceColor}
+	// Single triangle, CCW winding on XY plane (Z = 0)
+	std::vector<Vertex> vertices = {
+		{{ 0.0f, -0.5f, 0.0f}, _faceColor}, // bottom center
+		{{ 0.5f,  0.5f, 0.0f}, _faceColor}, // top right
+		{{-0.5f,  0.5f, 0.0f}, _faceColor}, // top left
 	};
 
-	for (auto& v : data->Vertices)
+	for (auto& v : vertices)
 	{
 		v.Position += _offset;
 	}
 
+	data->Vertices = std::move(vertices);
 	data->Material = _materialSystem.CreateMaterial(MaterialSystem::DefaultPhongMaterial);
-
 	data->IsStatic = _isStatic;
 
 	LOG(Logger::INFO, "Model: TriangleNoIndices");
 	LOG(Logger::INFO, "Vertices count: ", data->Vertices.size());
 	LOG(Logger::INFO, "Indices count: ", data->Indices.size());
 	LOG_NL();
-
 	LOG(Logger::INFO, "Total shapes processed: 1");
 	LOG_NL();
 	LOG_NL();
@@ -49,29 +48,27 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateTriangle(MaterialSystem& _m
 {
 	auto data = std::make_unique<ModelData>();
 
-	data->Vertices =
-	{
-		{{0.0f, -0.5f, 0.0f}, _faceColor},
-		{{0.5f, 0.5f, 0.0f}, _faceColor},
-		{{-0.5f, 0.5f, 0.0f}, _faceColor}
+	std::vector<Vertex> vertices = {
+		{{ 0.0f, -0.5f, 0.0f}, _faceColor}, // bottom center
+		{{ 0.5f,  0.5f, 0.0f}, _faceColor}, // top right
+		{{-0.5f,  0.5f, 0.0f}, _faceColor}, // top left
 	};
 
-	for (auto& v : data->Vertices)
+	for (auto& v : vertices)
 	{
 		v.Position += _offset;
 	}
 
-	data->Indices = { 0,  1,  2 };
+	data->Vertices = std::move(vertices);
+	data->Indices = { 0, 1, 2 }; // CCW order
 
 	data->Material = _materialSystem.CreateMaterial(MaterialSystem::DefaultPhongMaterial);
-
 	data->IsStatic = _isStatic;
 
 	LOG(Logger::INFO, "Model: Triangle");
 	LOG(Logger::INFO, "Vertices count: ", data->Vertices.size());
 	LOG(Logger::INFO, "Indices count: ", data->Indices.size());
 	LOG_NL();
-
 	LOG(Logger::INFO, "Total shapes processed: 1");
 	LOG_NL();
 	LOG_NL();
@@ -88,79 +85,78 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateCubeNoIndices(MaterialSyste
 {
 	auto data = std::make_unique<ModelData>();
 
-	data->Vertices =
-	{
-		// left face
-		{{-.5f, -.5f, -.5f}, _facesColor[0]},
-		{{-.5f, .5f, .5f}, _facesColor[0]},
-		{{-.5f, -.5f, .5f}, _facesColor[0]},
-		{{-.5f, -.5f, -.5f}, _facesColor[0]},
-		{{-.5f, .5f, -.5f}, _facesColor[0]},
-		{{-.5f, .5f, .5f}, _facesColor[0]},
+	// Each face consists of 2 triangles (6 vertices), ordered CCW
+	std::vector<Vertex> vertices = {
+		// Front (+Z)
+		{{-0.5f, -0.5f,  0.5f}, _facesColor[0]},
+		{{ 0.5f,  0.5f,  0.5f}, _facesColor[0]},
+		{{-0.5f,  0.5f,  0.5f}, _facesColor[0]},
+		{{-0.5f, -0.5f,  0.5f}, _facesColor[0]},
+		{{ 0.5f, -0.5f,  0.5f}, _facesColor[0]},
+		{{ 0.5f,  0.5f,  0.5f}, _facesColor[0]},
 
-		// right face
-		{{.5f, -.5f, -.5f}, _facesColor[1]},
-		{{.5f, .5f, .5f},_facesColor[1]},
-		{{.5f, -.5f, .5f},_facesColor[1]},
-		{{.5f, -.5f, -.5f},_facesColor[1]},
-		{{.5f, .5f, -.5f},_facesColor[1]},
-		{{.5f, .5f, .5f},_facesColor[1]},
+		// Back (-Z)
+		{{-0.5f, -0.5f, -0.5f}, _facesColor[1]},
+		{{-0.5f,  0.5f, -0.5f}, _facesColor[1]},
+		{{ 0.5f,  0.5f, -0.5f}, _facesColor[1]},
+		{{-0.5f, -0.5f, -0.5f}, _facesColor[1]},
+		{{ 0.5f,  0.5f, -0.5f}, _facesColor[1]},
+		{{ 0.5f, -0.5f, -0.5f}, _facesColor[1]},
 
-		// top face
-		{{-.5f, -.5f, -.5f}, _facesColor[2]},
-		{{.5f, -.5f, .5f}, _facesColor[2]},
-		{{-.5f, -.5f, .5f}, _facesColor[2]},
-		{{-.5f, -.5f, -.5f}, _facesColor[2]},
-		{{.5f, -.5f, -.5f}, _facesColor[2]},
-		{{.5f, -.5f, .5f}, _facesColor[2]},
+		// Left (-X)
+		{{-0.5f, -0.5f, -0.5f}, _facesColor[2]},
+		{{-0.5f,  0.5f,  0.5f}, _facesColor[2]},
+		{{-0.5f,  0.5f, -0.5f}, _facesColor[2]},
+		{{-0.5f, -0.5f, -0.5f}, _facesColor[2]},
+		{{-0.5f, -0.5f,  0.5f}, _facesColor[2]},
+		{{-0.5f,  0.5f,  0.5f}, _facesColor[2]},
 
-		// bottom face
-		{{-.5f, .5f, -.5f}, _facesColor[3]},
-		{{.5f, .5f, .5f}, _facesColor[3]},
-		{{-.5f, .5f, .5f}, _facesColor[3]},
-		{{-.5f, .5f, -.5f}, _facesColor[3]},
-		{{.5f, .5f, -.5f}, _facesColor[3]},
-		{{.5f, .5f, .5f}, _facesColor[3]},
+		// Right (+X)
+		{{ 0.5f, -0.5f, -0.5f}, _facesColor[3]},
+		{{ 0.5f,  0.5f, -0.5f}, _facesColor[3]},
+		{{ 0.5f,  0.5f,  0.5f}, _facesColor[3]},
+		{{ 0.5f, -0.5f, -0.5f}, _facesColor[3]},
+		{{ 0.5f,  0.5f,  0.5f}, _facesColor[3]},
+		{{ 0.5f, -0.5f,  0.5f}, _facesColor[3]},
 
-		// nose face
-		{{-.5f, -.5f, 0.5f}, _facesColor[4]},
-		{{.5f, .5f, 0.5f}, _facesColor[4]},
-		{{-.5f, .5f, 0.5f}, _facesColor[4]},
-		{{-.5f, -.5f, 0.5f}, _facesColor[4]},
-		{{.5f, -.5f, 0.5f}, _facesColor[4]},
-		{{.5f, .5f, 0.5f}, _facesColor[4]},
+		// Top (+Y)
+		{{-0.5f,  0.5f, -0.5f}, _facesColor[4]},
+		{{-0.5f,  0.5f,  0.5f}, _facesColor[4]},
+		{{ 0.5f,  0.5f,  0.5f}, _facesColor[4]},
+		{{-0.5f,  0.5f, -0.5f}, _facesColor[4]},
+		{{ 0.5f,  0.5f,  0.5f}, _facesColor[4]},
+		{{ 0.5f,  0.5f, -0.5f}, _facesColor[4]},
 
-		// tail face 
-		{{-.5f, -.5f, -0.5f}, _facesColor[5]},
-		{{.5f, .5f, -0.5f}, _facesColor[5]},
-		{{-.5f, .5f, -0.5f}, _facesColor[5]},
-		{{-.5f, -.5f, -0.5f}, _facesColor[5]},
-		{{.5f, -.5f, -0.5f}, _facesColor[5]},
-		{{.5f, .5f, -0.5f}, _facesColor[5]},
-
+		// Bottom (-Y)
+		{{-0.5f, -0.5f, -0.5f}, _facesColor[5]},
+		{{ 0.5f, -0.5f,  0.5f}, _facesColor[5]},
+		{{-0.5f, -0.5f,  0.5f}, _facesColor[5]},
+		{{-0.5f, -0.5f, -0.5f}, _facesColor[5]},
+		{{ 0.5f, -0.5f, -0.5f}, _facesColor[5]},
+		{{ 0.5f, -0.5f,  0.5f}, _facesColor[5]},
 	};
 
-	for (auto& v : data->Vertices)
+	// Apply the offset to all positions
+	for (auto& v : vertices)
 	{
 		v.Position += _offset;
 	}
 
-	data->Material = _materialSystem.CreateMaterial(MaterialSystem::DefaultPhongMaterial);
+	data->Vertices = std::move(vertices);
 
+	data->Material = _materialSystem.CreateMaterial(MaterialSystem::DefaultPhongMaterial);
 	data->IsStatic = _isStatic;
 
 	LOG(Logger::INFO, "Model: CubeNoIndices");
 	LOG(Logger::INFO, "Vertices count: ", data->Vertices.size());
 	LOG(Logger::INFO, "Indices count: ", data->Indices.size());
 	LOG_NL();
-
 	LOG(Logger::INFO, "Total shapes processed: 1");
 	LOG_NL();
 	LOG_NL();
 
 	return data;
 }
-
 
 std::unique_ptr<ModelData> PrimitiveFactory::GenerateCube(MaterialSystem& _materialSystem, glm::vec3 _offset, glm::vec3 _facesColor, bool _isStatic)
 {
@@ -170,66 +166,82 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateCube(MaterialSystem& _mater
 std::unique_ptr<ModelData> PrimitiveFactory::GenerateCube(MaterialSystem& _materialSystem, glm::vec3 _offset, std::array<glm::vec3, 6> _facesColor, bool _isStatic)
 {
 	auto data = std::make_unique<ModelData>();
-	
-	data->Vertices =
-	{
-		// left face
-		{{-.5f, -.5f, -.5f}, _facesColor[0]},
-		{{-.5f, .5f, .5f}, _facesColor[0]},
-		{{-.5f, -.5f, .5f}, _facesColor[0]},
-		{{-.5f, .5f, -.5f}, _facesColor[0]},
 
-		// right face
-		{{.5f, -.5f, -.5f}, _facesColor[1]},
-		{{.5f, .5f, .5f},_facesColor[1]},
-		{{.5f, -.5f, .5f},_facesColor[1]},
-		{{.5f, .5f, -.5f},_facesColor[1]},
-
-		// top face
-		{{-.5f, -.5f, -.5f}, _facesColor[2]},
-		{{.5f, -.5f, .5f}, _facesColor[2]},
-		{{-.5f, -.5f, .5f}, _facesColor[2]},
-		{{.5f, -.5f, -.5f}, _facesColor[2]},
-
-		// bottom face
-		{{-.5f, .5f, -.5f}, _facesColor[3]},
-		{{.5f, .5f, .5f}, _facesColor[3]},
-		{{-.5f, .5f, .5f}, _facesColor[3]},
-		{{.5f, .5f, -.5f}, _facesColor[3]},
-
-		// nose face
-		{{-.5f, -.5f, 0.5f}, _facesColor[4]},
-		{{.5f, .5f, 0.5f}, _facesColor[4]},
-		{{-.5f, .5f, 0.5f}, _facesColor[4]},
-		{{.5f, -.5f, 0.5f}, _facesColor[4]},
-
-		// tail face 
-		{{-.5f, -.5f, -0.5f}, _facesColor[5]},
-		{{.5f, .5f, -0.5f}, _facesColor[5]},
-		{{-.5f, .5f, -0.5f}, _facesColor[5]},
-		{{.5f, -.5f, -0.5f}, _facesColor[5]},
-
+	// Unique 8 cube corners, shared across faces
+	std::vector<Vertex> vertices = {
+		{{-0.5f, -0.5f, -0.5f}}, // 0
+		{{ 0.5f, -0.5f, -0.5f}}, // 1
+		{{ 0.5f,  0.5f, -0.5f}}, // 2
+		{{-0.5f,  0.5f, -0.5f}}, // 3
+		{{-0.5f, -0.5f,  0.5f}}, // 4
+		{{ 0.5f, -0.5f,  0.5f}}, // 5
+		{{ 0.5f,  0.5f,  0.5f}}, // 6
+		{{-0.5f,  0.5f,  0.5f}}, // 7
 	};
 
-	for (auto& v : data->Vertices)
+	// Apply offset and assign color (one color per vertex based on which face owns it most)
+	for (auto& v : vertices)
 	{
 		v.Position += _offset;
+		v.Color = glm::vec3(1.0f); // default white, or assign a default
 	}
 
-	data->Indices = {0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
-					12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21 };
+	data->Vertices = vertices;
+
+	// Define indices using CCW order for each face and assign per-face color manually below
+	data->Indices = {
+		// Front (Z+)
+		4, 5, 6,
+		4, 6, 7,
+
+		// Back (Z-)
+		0, 2, 1,
+		0, 3, 2,
+
+		// Left (X-)
+		0, 7, 3,
+		0, 4, 7,
+
+		// Right (X+)
+		1, 2, 6,
+		1, 6, 5,
+
+		// Top (Y+)
+		3, 7, 6,
+		3, 6, 2,
+
+		// Bottom (Y-)
+		0, 1, 5,
+		0, 5, 4,
+	};
+
+	// Assign per-face color (6 sides × 6 indices = 36)
+	// You can now color the vertices based on which face they are part of
+	// This is purely for visualization and does not affect OBJ loading
+
+	std::array<std::array<int, 6>, 6> faceTriangles = { {
+		{{4, 5, 6, 4, 6, 7}},  // front
+		{{0, 2, 1, 0, 3, 2}},  // back
+		{{0, 7, 3, 0, 4, 7}},  // left
+		{{1, 2, 6, 1, 6, 5}},  // right
+		{{3, 7, 6, 3, 6, 2}},  // top
+		{{0, 1, 5, 0, 5, 4}},  // bottom
+	} };
+
+	for (size_t i = 0; i < faceTriangles.size(); ++i)
+	{
+		for (int idx : faceTriangles[i])
+		{
+			data->Vertices[idx].Color = _facesColor[i];
+		}
+	}
 
 	data->Material = _materialSystem.CreateMaterial(MaterialSystem::DefaultPhongMaterial);
-
 	data->IsStatic = _isStatic;
 
 	LOG(Logger::INFO, "Model: Cube");
 	LOG(Logger::INFO, "Vertices count: ", data->Vertices.size());
 	LOG(Logger::INFO, "Indices count: ", data->Indices.size());
-	LOG_NL();
-
-	LOG(Logger::INFO, "Total shapes processed: 1");
-	LOG_NL();
 	LOG_NL();
 
 	return data;

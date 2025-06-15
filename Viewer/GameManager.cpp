@@ -97,18 +97,20 @@ void GameManager::LoadGameEntities()
 
 		LOG_NL();
 
-        std::vector<std::unique_ptr<ModelData>> skyboxDataList = m_objLoader.LoadModel("cube.obj");
-        if (!skyboxDataList.empty())
-        {
-            ecs::Entity skybox = m_gameEntitySystem.CreateGameEntity(EntityType::Renderable);
+		std::unique_ptr<ModelData> skyboxData = PrimitiveFactory::GenerateCube(
+			m_materialSystem,
+			{ 0.0f, 0.0f, 0.0f },
+			glm::vec3(1.0f, 1.0f, 1.0f)
+		);
+     
+        ecs::Entity skybox = m_gameEntitySystem.CreateGameEntity(EntityType::Renderable);
 
-            m_modelSystem.LoadSkyboxModel(skybox, std::move(skyboxDataList.front()), cubeMap);
+        m_modelSystem.LoadSkyboxModel(skybox, std::move(skyboxData), cubeMap);
 
-            TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(skybox);
-            transformComponent.Scale = { 50.0f, 50.0f, 50.0f };
+        TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(skybox);
+        transformComponent.Scale = { 50.0f, 50.0f, 50.0f };
 
-            m_entityHandlerSystem.RegisterRenderableEntity(skybox);
-        }
+        m_entityHandlerSystem.RegisterRenderableEntity(skybox);
     }
 
 	//////////////////////////////////////////////////////////////////////////
