@@ -82,30 +82,20 @@ public:
 				throw std::invalid_argument("Format is incompatible with int8_t data type.");
 			}
 		}
-                // Handle float formats
-                else if constexpr (std::is_same<T, float>::value)
-                {
-                        if (format != VK_FORMAT_R16_SFLOAT && format != VK_FORMAT_R16G16_SFLOAT &&
-                                format != VK_FORMAT_R16G16B16_SFLOAT && format != VK_FORMAT_R16G16B16A16_SFLOAT &&
-                                format != VK_FORMAT_R32_SFLOAT && format != VK_FORMAT_R32G32_SFLOAT &&
-                                format != VK_FORMAT_R32G32B32_SFLOAT && format != VK_FORMAT_R32G32B32A32_SFLOAT)
-                        {
-                                throw std::invalid_argument("Format is incompatible with float data type.");
-                        }
-                }
-                else if constexpr (std::is_same<T, uint16_t>::value)
-                {
-                        if (format != VK_FORMAT_R16_UNORM && format != VK_FORMAT_R16_SNORM && format != VK_FORMAT_R16_UINT && format != VK_FORMAT_R16_SINT && format != VK_FORMAT_R16_SFLOAT &&
-                                format != VK_FORMAT_R16G16_UNORM && format != VK_FORMAT_R16G16_SNORM && format != VK_FORMAT_R16G16_UINT && format != VK_FORMAT_R16G16_SINT && format != VK_FORMAT_R16G16_SFLOAT &&
-                                format != VK_FORMAT_R16G16B16_UNORM && format != VK_FORMAT_R16G16B16_SNORM && format != VK_FORMAT_R16G16B16_UINT && format != VK_FORMAT_R16G16B16_SINT && format != VK_FORMAT_R16G16B16_SFLOAT &&
-                                format != VK_FORMAT_R16G16B16A16_UNORM && format != VK_FORMAT_R16G16B16A16_SNORM && format != VK_FORMAT_R16G16B16A16_UINT && format != VK_FORMAT_R16G16B16A16_SINT && format != VK_FORMAT_R16G16B16A16_SFLOAT)
-                        {
-                                throw std::invalid_argument("Format is incompatible with uint16_t data type.");
-                        }
-                }
-                // Handle int32_t formats
-                else if constexpr (std::is_same<T, int32_t>::value)
-                {
+		// Handle float formats
+		else if constexpr (std::is_same<T, float>::value)
+		{
+			if (format != VK_FORMAT_R16_SFLOAT && format != VK_FORMAT_R16G16_SFLOAT &&
+				format != VK_FORMAT_R16G16B16_SFLOAT && format != VK_FORMAT_R16G16B16A16_SFLOAT &&
+				format != VK_FORMAT_R32_SFLOAT && format != VK_FORMAT_R32G32_SFLOAT &&
+				format != VK_FORMAT_R32G32B32_SFLOAT && format != VK_FORMAT_R32G32B32A32_SFLOAT)
+			{
+				throw std::invalid_argument("Format is incompatible with float data type.");
+			}
+		}
+		// Handle int32_t formats
+		else if constexpr (std::is_same<T, int32_t>::value)
+		{
 			if (format != VK_FORMAT_R32_SINT && format != VK_FORMAT_R32G32_SINT &&
 				format != VK_FORMAT_R32G32B32_SINT && format != VK_FORMAT_R32G32B32A32_SINT)
 			{
@@ -167,7 +157,7 @@ private:
 	void CreateTextureImage(const T* _data, int32 _width, int32 _height, VkFormat _format, VkImage& _image, VmaAllocation& _allocation,
 							uint32 _layerCount = 1, uint32 _mipLevels = 1, VkImageCreateFlags _flags = 0)
 	{
-                static_assert(std::is_same<T, uint8_t>::value || std::is_same<T, float>::value || std::is_same<T, uint16_t>::value, "Unsupported data type. Only uint8, uint16 and float are allowed.");
+		static_assert(std::is_same<T, uint8_t>::value || std::is_same<T, float>::value, "Unsupported data type. Only uint8 and float are allowed.");
 
 #ifdef _DEBUG
 		ValidateFormatCompatibility<T>(_format);

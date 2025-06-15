@@ -14,7 +14,7 @@
     <ClCompile Include="Systems\brdf_lut_generation_system.cpp" />
     <ClCompile Include="Systems\base_render_system.cpp" />
     <ClCompile Include="Systems\entity_handler_system.cpp" />
-    <ClCompile Include="Systems\hdr_cpu_cubemap.cpp" />
+    <ClCompile Include="Systems\hdr_cubemap_generation_system.cpp" />
     <ClCompile Include="Systems\material_system.cpp" />
     <ClCompile Include="Systems\opaque_render_system.cpp" />
     <ClCompile Include="Systems\transparent_render_system.cpp" />
@@ -60,7 +60,7 @@
     <ClInclude Include="Systems\brdf_lut_generation_system.h" />
     <ClInclude Include="Systems\base_render_system.h" />
     <ClInclude Include="Systems\entity_handler_system.h" />
-    <ClInclude Include="Systems\hdr_cpu_cubemap.h" />
+    <ClInclude Include="Systems\hdr_cubemap_generation_system.h" />
     <ClInclude Include="Systems\material_system.h" />
     <ClInclude Include="Systems\opaque_render_system.h" />
     <ClInclude Include="Systems\transparent_render_system.h" />
@@ -101,6 +101,7 @@
   <ItemGroup>
     <None Include="Assets\Shaders\brdf_lut_shader.frag" />
     <None Include="Assets\Shaders\cubemap_shader.vert" />
+    <None Include="Assets\Shaders\hdr_cubemap_shader.frag" />
     <None Include="Assets\Shaders\phong_shader.vert" />
     <None Include="Assets\Shaders\fullscreen.vert" />
     <None Include="Assets\Shaders\irradiance_convolution_shader.frag" />

@@ -4,7 +4,7 @@
 
 #include "Systems/texture_system.h"
 #include "Systems/brdf_lut_generation_system.h"
-#include "Systems/hdr_cpu_cubemap.h"
+#include "Systems/hdr_cubemap_generation_system.h"
 
 #include "Backend/offscreen_renderer.h"
 #include "Backend/device.h"
@@ -386,43 +386,126 @@ std::shared_ptr<TextureData> TextureSystem::LoadCubemap(const std::string& _hdrP
 
 	// Load the HDR texture
 	int32 width, height, channels;
-        float* hdrData = stbi_loadf(_hdrPath.c_str(), &width, &height, &channels, STBI_rgb_alpha);
-        if (!hdrData)
-        {
-                throw std::runtime_error("Failed to load HDR file: " + _hdrPath);
-        }
+	float* hdrData = stbi_loadf(_hdrPath.c_str(), &width, &height, &channels, STBI_rgb_alpha);
+	if (!hdrData)
+	{
+		throw std::runtime_error("Failed to load HDR file: " + _hdrPath);
+	}
 
-        VkFormat format = (_overrideFormat != VK_FORMAT_UNDEFINED) ? _overrideFormat : VK_FORMAT_R32G32B32A32_SFLOAT;
-        const uint32 cubemapSize = 512;
-        HDRProjectionType projection = HDRCubemapCPU::DetectHDRProjectionType(width, height);
+	// Create an offscreen renderer for rendering cubemap faces
+	VkFormat format = VK_FORMAT_R32G32B32A32_SFLOAT;
+	if (_overrideFormat == VK_FORMAT_UNDEFINED)
+	{
+		if (channels == 1)
+		{
+			format = VK_FORMAT_R32_SFLOAT;		// Single channel (gray-scale)
+		}
+		else if (channels == 3)
+		{
+			format = VK_FORMAT_R32G32B32A32_SFLOAT;	// Convert RGB to RGBA
+		}
+	}
+	else
+	{
+		format = _overrideFormat;
+	}
 
-        std::vector<uint16_t> cubemap16;
-        std::vector<float> cubemap32;
 
-        if (format == VK_FORMAT_R16G16B16A16_SFLOAT)
-        {
-                cubemap16 = HDRCubemapCPU::GenerateHalfCubemap(hdrData, width, height, cubemapSize, projection);
-                CreateTextureImage(cubemap16.data(), cubemapSize, cubemapSize, format, texture->Image, texture->AllocationMemory, 6, 1, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT);
-        }
-        else
-        {
-                cubemap32 = HDRCubemapCPU::GenerateFloatCubemap(hdrData, width, height, cubemapSize, projection);
-                CreateTextureImage(cubemap32.data(), cubemapSize, cubemapSize, format, texture->Image, texture->AllocationMemory, 6, 1, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT);
-        }
+	const uint32 cubemapSize = 512; // Adjust size as needed
+	std::unique_ptr<OffscreenRenderer> offscreenRenderer = std::make_unique<OffscreenRenderer>(m_device, VkExtent2D{ cubemapSize, cubemapSize }, format);
+	std::unique_ptr<HDRCubemapGenerationSystem> hdrCubemapGeneration = std::make_unique<HDRCubemapGenerationSystem>(m_app, m_device, offscreenRenderer->GetOffscreenSwapChainRenderPass(), width, height);
 
-        texture->ImageView = CreateImageView(texture->Image, format, 6, 1);
-        texture->Sampler = CreateTextureSampler();
+	// Upload the HDR data to a Vulkan texture
+	VkImage hdrImage;
+	VmaAllocation hdrImageAllocation;
 
-        stbi_image_free(hdrData);
+	CreateTextureImage(hdrData, width, height, format, hdrImage, hdrImageAllocation);
 
-        m_textures.push_back(texture);
+	VkImageView hdrImageView = CreateImageView(hdrImage, format);
+	VkSampler hdrImageSampler = CreateTextureSampler();
 
-        const int32 index = static_cast<int32>(m_textures.size() - 1);
-        m_textureLookup[hash] = index;
+	// Free HDR data
+	stbi_image_free(hdrData);
 
-        texture->Index = index;
+	// Create a cubemap texture
+	CreateTextureImage(nullptr, cubemapSize, cubemapSize, format, texture->Image, texture->AllocationMemory, 6, 1, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT);
 
-        return texture;
+	texture->ImageView = CreateImageView(texture->Image, format, 6, 1);
+
+	// Render the cubemap faces
+	auto commandBuffer = offscreenRenderer->BeginFrame();
+	m_device.TransitionImageLayout(commandBuffer,
+		offscreenRenderer->GetOffscreenImage(),
+		format,
+		VK_IMAGE_LAYOUT_UNDEFINED,
+		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+	for (uint32 face = 0; face < 6; ++face)
+	{
+		offscreenRenderer->BeginOffscreenSwapChainRenderPass(commandBuffer);
+
+		hdrCubemapGeneration->Generate(commandBuffer, hdrImageView, hdrImageSampler, cubemapSize, face);
+
+		offscreenRenderer->EndOffscreenSwapChainRenderPass(commandBuffer);
+
+		m_device.TransitionImageLayout(commandBuffer,
+			texture->Image,
+			format,
+			VK_IMAGE_LAYOUT_UNDEFINED,
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			face,
+			1);
+
+		m_device.CopyImage(commandBuffer,
+			offscreenRenderer->GetOffscreenImage(),
+			texture->Image,
+			cubemapSize,
+			cubemapSize,
+			0,
+			face,
+			1);
+
+		m_device.TransitionImageLayout(commandBuffer,
+			texture->Image,
+			format,
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+			face,
+			1);
+
+		m_device.TransitionImageLayout(commandBuffer,
+			offscreenRenderer->GetOffscreenImage(),
+			format,
+			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	}
+	offscreenRenderer->EndFrame();
+
+	// Make the cubemap texture readable by shaders
+	m_device.TransitionImageLayout(
+		texture->Image,
+		format,
+		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		0,
+		6);
+
+	texture->Sampler = CreateTextureSampler();
+
+	// Cleanup HDR image and view
+	vkDestroyImageView(m_device.GetDevice(), hdrImageView, nullptr);
+	vkDestroySampler(m_device.GetDevice(), hdrImageSampler, nullptr);
+	vmaDestroyImage(m_device.GetAllocator(), hdrImage, hdrImageAllocation);
+
+	m_textures.push_back(texture);
+
+	const int32 index = static_cast<int32>(m_textures.size() - 1);
+	m_textureLookup[hash] = index;
+
+	texture->Index = index;
+
+	return texture;
+}
 
 std::shared_ptr<TextureData> TextureSystem::GenerateOrLoadBRDFLutTexture(const std::string& _saveLoadPath, VkExtent2D _extent)
 {
