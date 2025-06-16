@@ -84,7 +84,7 @@ jobs:
       - name: Download KTX Library
         run: |
           echo "Downloading KTX prebuilt library..."
-          curl -L -o ktx.zip https://github.com/KhronosGroup/KTX-Software/releases/download/v4.0.0/ktx-v4.0.0-windows-x64.zip
+          curl -L -o ktx.zip https://github.com/KhronosGroup/KTX-Software/releases/download/v4.0.0/ktx-v4.0.0-windows-vs2019-x64.zip
           7z x ktx.zip -oktx
 
       - name: Prepare KTX Paths
