@@ -8,7 +8,7 @@
 
 #include "Utility/logger.h"
 
-#include "ThirdParty/stb/stb_image_write.h"
+#include "ThirdParty/include/stb/stb_image_write.h"
 
 #include <string>
 #include <stdexcept>

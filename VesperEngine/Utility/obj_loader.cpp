@@ -21,7 +21,7 @@
 // Maybe to move in a specific loader system for obj
 #define TINYOBJLOADER_USE_MAPBOX_EARCUT	// robust triangulation
 #define TINYOBJLOADER_IMPLEMENTATION
-#include "ThirdParty/tiny_obj_loader.h"
+#include "ThirdParty/include/tiny_obj_loader.h"
 
 #include <stdexcept>
 #include <unordered_map>

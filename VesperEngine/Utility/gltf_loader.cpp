@@ -23,7 +23,7 @@
 #define TINYGLTF_IMPLEMENTATION
 //#define STB_IMAGE_IMPLEMENTATION
 //#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "ThirdParty/tiny_gltf.h"
+#include "ThirdParty/include/tiny_gltf.h"
 
 #include <stdexcept>
 #include <unordered_map>

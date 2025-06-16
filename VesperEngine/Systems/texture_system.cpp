@@ -17,7 +17,7 @@
 #include "Utility/hdr_cubemap_generation.h"
 #include "Core/glm_config.h"
 
-#include "ThirdParty/stb/stb_image.h"
+#include "ThirdParty/include/stb/stb_image.h"
 
 #include <filesystem>
 #include <algorithm>
