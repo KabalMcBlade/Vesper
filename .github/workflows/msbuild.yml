@@ -81,6 +81,11 @@ jobs:
           ls -l $env:VULKAN_SDK/Include/vma || echo "VMA header not found!"
           ls -l $env:VULKAN_SDK/Include/glm || echo "GLM headers not found!"
 
+      - name: Debug dependencies files in repo
+        run: |
+          dir ThirdParty\lib
+          dir ThirdParty\include
+
       - name: Build solution
         run: |
           msbuild Vesper.sln /p:Configuration=Release /p:VULKAN_SDK="$env:VULKAN_SDK" /m
