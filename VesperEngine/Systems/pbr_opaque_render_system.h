@@ -31,7 +31,9 @@ public:
     static constexpr uint32 kPBRSheenTextureBindingIndex = 2u;
     static constexpr uint32 kPBREmissiveTextureBindingIndex = 3u;
     static constexpr uint32 kPBRNormalTextureBindingIndex = 4u;
-    static constexpr uint32 kPBRUniformBufferBindingIndex = 5u;
+    static constexpr uint32 kPBRBaseColorTextureBindingIndex = 5u;
+    static constexpr uint32 kPBRAOTextureBindingIndex = 6u;
+    static constexpr uint32 kPBRUniformBufferBindingIndex = 7u;
 
     static constexpr uint32 kPBRUniformBufferOnlyBindingIndex = 0u;
 

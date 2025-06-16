@@ -98,6 +98,19 @@ const TextureSystem::DefaultTextureType TextureSystem::EmissiveTexture =
 	1, 1
 };
 
+const TextureSystem::DefaultTextureType TextureSystem::BaseColorTexture =
+{
+	"_BaseColorTexture_",
+	{255, 255, 255, 255},
+	VK_FORMAT_R8G8B8A8_SRGB,
+	1, 1 };
+
+const TextureSystem::DefaultTextureType TextureSystem::AOTexture = 
+{
+	"_AOTexture_",
+	{255, 255, 255, 255},
+	VK_FORMAT_R8G8B8A8_UNORM,
+	1, 1 };
 
 int32 TextureSystem::GetBytesPerPixel(VkFormat _format)
 {

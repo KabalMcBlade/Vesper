@@ -51,6 +51,8 @@ public:
 	static const DefaultTextureType MetallicTexture;
 	static const DefaultTextureType SheenTexture;
 	static const DefaultTextureType EmissiveTexture;
+	static const DefaultTextureType BaseColorTexture;
+	static const DefaultTextureType AOTexture;
 
 public:
 	static int32 GetBytesPerPixel(VkFormat _format);

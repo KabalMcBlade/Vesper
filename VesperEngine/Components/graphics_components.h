@@ -89,6 +89,8 @@ struct PBRMaterialComponent : public MaterialComponent
 	VkDescriptorImageInfo SheenImageInfo{};
 	VkDescriptorImageInfo EmissiveImageInfo{};
 	VkDescriptorImageInfo NormalImageInfo{};
+	VkDescriptorImageInfo BaseColorImageInfo{};
+	VkDescriptorImageInfo AOImageInfo{};
 	VkDescriptorBufferInfo UniformBufferInfo{};	// colors/values
 };
 

@@ -69,64 +69,62 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
 	material->Name = _name;
 #endif
 
-	switch (_type)
-	{
-	case vesper::MaterialType::PBR:
-	{
-		const int32 texCount = 5;
-		const int32 valCount = 7;
-		material->Textures.resize(texCount);
-		assert(_texturePaths.size() == texCount && "Texture array passed has not the amount of texture expected for material type!");
-		assert(_values.size() == valCount && "Values array passed has not the amount of values expected for material type!");
+    switch (_type)
+    {
+    case vesper::MaterialType::PBR: 
+    {
+        const int32 texCount = 7;
+        const int32 valCount = 7;
+        material->Textures.resize(texCount);
+        assert(_texturePaths.size() == texCount &&"Texture array passed has not the amount of texture expected for material type!");
+        assert(_values.size() == valCount && "Values array passed has not the amount of values expected for material type!");
 
-		material->Textures[0] = _texturePaths[0].empty() ? m_textureSystem.LoadTexture(TextureSystem::RoughnessTexture) : m_textureSystem.LoadTexture(_texturePaths[0]);
-		material->Textures[1] = _texturePaths[1].empty() ? m_textureSystem.LoadTexture(TextureSystem::MetallicTexture) : m_textureSystem.LoadTexture(_texturePaths[1]);
-		material->Textures[2] = _texturePaths[2].empty() ? m_textureSystem.LoadTexture(TextureSystem::SheenTexture) : m_textureSystem.LoadTexture(_texturePaths[2]);
-		material->Textures[3] = _texturePaths[3].empty() ? m_textureSystem.LoadTexture(TextureSystem::EmissiveTexture) : m_textureSystem.LoadTexture(_texturePaths[3]);
-		material->Textures[4] = _texturePaths[4].empty() ? m_textureSystem.LoadTexture(TextureSystem::NormalTexture) : m_textureSystem.LoadTexture(_texturePaths[4]);
+        material->Textures[0] = _texturePaths[0].empty() ? m_textureSystem.LoadTexture(TextureSystem::RoughnessTexture) : m_textureSystem.LoadTexture(_texturePaths[0]);
+        material->Textures[1] = _texturePaths[1].empty() ? m_textureSystem.LoadTexture(TextureSystem::MetallicTexture) : m_textureSystem.LoadTexture(_texturePaths[1]);
+        material->Textures[2] = _texturePaths[2].empty() ? m_textureSystem.LoadTexture(TextureSystem::SheenTexture) : m_textureSystem.LoadTexture(_texturePaths[2]);
+        material->Textures[3] = _texturePaths[3].empty() ? m_textureSystem.LoadTexture(TextureSystem::EmissiveTexture) : m_textureSystem.LoadTexture(_texturePaths[3]);
+        material->Textures[4] = _texturePaths[4].empty() ? m_textureSystem.LoadTexture(TextureSystem::NormalTexture) : m_textureSystem.LoadTexture(_texturePaths[4]);
+        material->Textures[5] = _texturePaths[5].empty() ? m_textureSystem.LoadTexture(TextureSystem::BaseColorTexture) : m_textureSystem.LoadTexture(_texturePaths[5]);
+        material->Textures[6] = _texturePaths[6].empty() ? m_textureSystem.LoadTexture(TextureSystem::AOTexture) : m_textureSystem.LoadTexture(_texturePaths[6]);
 
-		//const uint32 minUboAlignment = static_cast<uint32>(m_device.GetLimits().minUniformBufferOffsetAlignment);
-		material->UniformBuffer = m_buffer->Create<BufferComponent>(
-			sizeof(PBRMaterialUBO),
-			1,
-			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
-			VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
-			/*minUboAlignment*/1,
-			true
-		);
+        // const uint32 minUboAlignment = static_cast<uint32>(m_device.GetLimits().minUniformBufferOffsetAlignment);
+        material->UniformBuffer = m_buffer->Create<BufferComponent>(
+            sizeof(PBRMaterialUBO), 1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+            VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+            /*minUboAlignment*/ 1, true);
 
-		PBRMaterialUBO pbrUBO;
-		if (m_device.IsBindlessResourcesSupported())
-		{
-			for (size_t i = 0; i < _texturePaths.size(); ++i)
-			{
-				pbrUBO.TextureIndices[i] = _texturePaths[i].empty() ? -1 : m_textureSystem.GetTextureIndex(material->Textures[i]);
-			}
-		}
-		else
-		{
-			for (size_t i = 0; i < _texturePaths.size(); ++i)
-			{
-				pbrUBO.TextureIndices[i] = _texturePaths[i].empty() ? -1 : 1;
-			}
-		}
+        PBRMaterialUBO pbrUBO;
+        if (m_device.IsBindlessResourcesSupported()) 
+        {
+            for (size_t i = 0; i < _texturePaths.size(); ++i) 
+            {
+                pbrUBO.TextureIndices[i] = _texturePaths[i].empty() ? -1 : m_textureSystem.GetTextureIndex(material->Textures[i]);
+            }
+        }
+        else 
+        {
+            for (size_t i = 0; i < _texturePaths.size(); ++i) 
+            {
+                pbrUBO.TextureIndices[i] = _texturePaths[i].empty() ? -1 : 1;
+            }
+        }
 
-		pbrUBO.Roughness = std::any_cast<float>(_values[0]);
-		pbrUBO.Metallic = std::any_cast<float>(_values[1]);
-		pbrUBO.Sheen = std::any_cast<float>(_values[2]);
-		pbrUBO.ClearcoatThickness = std::any_cast<float>(_values[3]);
-		pbrUBO.ClearcoatRoughness = std::any_cast<float>(_values[4]);
-		pbrUBO.Anisotropy = std::any_cast<float>(_values[5]);
-		pbrUBO.AnisotropyRotation = std::any_cast<float>(_values[6]);
+        pbrUBO.Roughness = std::any_cast<float>(_values[0]);
+        pbrUBO.Metallic = std::any_cast<float>(_values[1]);
+        pbrUBO.Sheen = std::any_cast<float>(_values[2]);
+        pbrUBO.ClearcoatThickness = std::any_cast<float>(_values[3]);
+        pbrUBO.ClearcoatRoughness = std::any_cast<float>(_values[4]);
+        pbrUBO.Anisotropy = std::any_cast<float>(_values[5]);
+        pbrUBO.AnisotropyRotation = std::any_cast<float>(_values[6]);
 
-		material->UniformBuffer.MappedMemory = &pbrUBO;
-		m_buffer->WriteToBuffer(material->UniformBuffer);
+        material->UniformBuffer.MappedMemory = &pbrUBO;
+        m_buffer->WriteToBuffer(material->UniformBuffer);
 
-		break;
-	}
+        break;
+    }
     case vesper::MaterialType::Phong:
-    default:
+    default: 
     {
         const int32 texCount = 5;
         const int32 valCount = 5;
@@ -140,54 +138,50 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
         material->Textures[3] = _texturePaths[3].empty() ? m_textureSystem.LoadTexture(TextureSystem::NormalTexture) : m_textureSystem.LoadTexture(_texturePaths[3]);
         material->Textures[4] = _texturePaths[4].empty() ? m_textureSystem.LoadTexture(TextureSystem::AlphaTexture) : m_textureSystem.LoadTexture(_texturePaths[4]);
 
-		//const uint32 minUboAlignment = static_cast<uint32>(m_device.GetLimits().minUniformBufferOffsetAlignment);
-		material->UniformBuffer = m_buffer->Create<BufferComponent>(
-			sizeof(PhongMaterialUBO),
-			1,
-			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
-			VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
-			/*minUboAlignment*/1,
-			true
-		);
+        // const uint32 minUboAlignment = static_cast<uint32>(m_device.GetLimits().minUniformBufferOffsetAlignment);
+        material->UniformBuffer = m_buffer->Create<BufferComponent>(
+            sizeof(PhongMaterialUBO), 1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+            VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+            /*minUboAlignment*/ 1, true);
 
-		PhongMaterialUBO phongUBO;
-		if (m_device.IsBindlessResourcesSupported())
-		{
-			for (size_t i = 0; i < _texturePaths.size(); ++i)
-			{
-				phongUBO.TextureIndices[i] = _texturePaths[i].empty() ? -1 : m_textureSystem.GetTextureIndex(material->Textures[i]);
-			}
-		}
-		else
-		{
-			for (size_t i = 0; i < _texturePaths.size(); ++i)
-			{
-				phongUBO.TextureIndices[i] = _texturePaths[i].empty() ? -1 : 1;
-			}
-		}
+        PhongMaterialUBO phongUBO;
+        if (m_device.IsBindlessResourcesSupported()) 
+        {
+            for (size_t i = 0; i < _texturePaths.size(); ++i) 
+            {
+                phongUBO.TextureIndices[i] = _texturePaths[i].empty() ? -1 : m_textureSystem.GetTextureIndex(material->Textures[i]);
+            }
+        }
+        else 
+        {
+            for (size_t i = 0; i < _texturePaths.size(); ++i)
+            {
+                phongUBO.TextureIndices[i] = _texturePaths[i].empty() ? -1 : 1;
+            }
+        }
 
-		phongUBO.AmbientColor = std::any_cast<glm::vec4>(_values[0]);
-		phongUBO.DiffuseColor = std::any_cast<glm::vec4>(_values[1]);
-		phongUBO.SpecularColor = std::any_cast<glm::vec4>(_values[2]);
-		phongUBO.EmissionColor = std::any_cast<glm::vec4>(_values[3]);
-		phongUBO.Shininess = std::any_cast<float>(_values[4]);
+        phongUBO.AmbientColor = std::any_cast<glm::vec4>(_values[0]);
+        phongUBO.DiffuseColor = std::any_cast<glm::vec4>(_values[1]);
+        phongUBO.SpecularColor = std::any_cast<glm::vec4>(_values[2]);
+        phongUBO.EmissionColor = std::any_cast<glm::vec4>(_values[3]);
+        phongUBO.Shininess = std::any_cast<float>(_values[4]);
 
-		material->UniformBuffer.MappedMemory = &phongUBO;
-		m_buffer->WriteToBuffer(material->UniformBuffer);
+        material->UniformBuffer.MappedMemory = &phongUBO;
+        m_buffer->WriteToBuffer(material->UniformBuffer);
 
-		break;
-	}
-	}
+        break;
+    }
+    }
 
-	m_materials.push_back(material);
+    m_materials.push_back(material);
 
-	const int32 index = static_cast<int32>(m_materials.size() - 1);
-	m_materialLookup[hash] = index;
+    const int32 index = static_cast<int32>(m_materials.size() - 1);
+    m_materialLookup[hash] = index;
 
-	material->Index = index;
+    material->Index = index;
 
-	return material;
+    return material;
 }
 
 std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
@@ -215,11 +209,11 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
     material->Name = _name;
 #endif
 
-    switch (_type)
+    switch (_type) 
     {
-    case vesper::MaterialType::PBR:
+    case vesper::MaterialType::PBR: 
     {
-        const int32 texCount = 5;
+        const int32 texCount = 7;
         const int32 valCount = 7;
         material->Textures.resize(texCount);
         assert(_textures.size() == texCount && "Texture array passed has not the amount of texture expected for material type!");
@@ -227,30 +221,26 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
 
         material->Textures[0] = _textures[0] ? _textures[0] : m_textureSystem.LoadTexture(TextureSystem::RoughnessTexture);
         material->Textures[1] = _textures[1] ? _textures[1] : m_textureSystem.LoadTexture(TextureSystem::MetallicTexture);
-        material->Textures[2] = _textures[2] ? _textures[2] : m_textureSystem.LoadTexture(TextureSystem::SheenTexture);
+        material->Textures[2] = _textures[2]  ? _textures[2] : m_textureSystem.LoadTexture(TextureSystem::SheenTexture);
         material->Textures[3] = _textures[3] ? _textures[3] : m_textureSystem.LoadTexture(TextureSystem::EmissiveTexture);
         material->Textures[4] = _textures[4] ? _textures[4] : m_textureSystem.LoadTexture(TextureSystem::NormalTexture);
+        material->Textures[5] = _textures[5] ? _textures[5] : m_textureSystem.LoadTexture(TextureSystem::BaseColorTexture);
+        material->Textures[6] = _textures[6]  ? _textures[6] : m_textureSystem.LoadTexture(TextureSystem::AOTexture);
 
         material->UniformBuffer = m_buffer->Create<BufferComponent>(
-            sizeof(PBRMaterialUBO),
-            1,
-            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            sizeof(PBRMaterialUBO), 1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
             VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
-            VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
-            1,
-            true
-        );
+            VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT, 1, true);
 
         PBRMaterialUBO pbrUBO;
-        if (m_device.IsBindlessResourcesSupported())
+        if (m_device.IsBindlessResourcesSupported()) 
         {
             for (size_t i = 0; i < _textures.size(); ++i)
             {
                 pbrUBO.TextureIndices[i] = _textures[i] ? m_textureSystem.GetTextureIndex(material->Textures[i]) : -1;
             }
         }
-        else
-        {
+        else {
             for (size_t i = 0; i < _textures.size(); ++i)
             {
                 pbrUBO.TextureIndices[i] = _textures[i] ? 1 : -1;
@@ -271,7 +261,7 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
         break;
     }
     case vesper::MaterialType::Phong:
-    default:
+    default: 
     {
         const int32 texCount = 5;
         const int32 valCount = 5;
@@ -286,17 +276,12 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
         material->Textures[4] = _textures[4] ? _textures[4] : m_textureSystem.LoadTexture(TextureSystem::AlphaTexture);
 
         material->UniformBuffer = m_buffer->Create<BufferComponent>(
-            sizeof(PhongMaterialUBO),
-            1,
-            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            sizeof(PhongMaterialUBO), 1, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
             VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
-            VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
-            1,
-            true
-        );
+            VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT, 1, true);
 
         PhongMaterialUBO phongUBO;
-        if (m_device.IsBindlessResourcesSupported())
+        if (m_device.IsBindlessResourcesSupported()) 
         {
             for (size_t i = 0; i < _textures.size(); ++i)
             {
@@ -311,6 +296,7 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
             }
         }
 
+        m_materials.push_back(material);
         phongUBO.AmbientColor = std::any_cast<glm::vec4>(_values[0]);
         phongUBO.DiffuseColor = std::any_cast<glm::vec4>(_values[1]);
         phongUBO.SpecularColor = std::any_cast<glm::vec4>(_values[2]);

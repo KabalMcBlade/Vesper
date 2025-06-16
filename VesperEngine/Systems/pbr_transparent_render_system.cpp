@@ -56,6 +56,8 @@ PBRTransparentRenderSystem::PBRTransparentRenderSystem(VesperApp& _app, Device& 
             .AddBinding(kPBRSheenTextureBindingIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
             .AddBinding(kPBREmissiveTextureBindingIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
             .AddBinding(kPBRNormalTextureBindingIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+            .AddBinding(kPBRBaseColorTextureBindingIndex,VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+            .AddBinding(kPBRAOTextureBindingIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
             .AddBinding(kPBRUniformBufferBindingIndex, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
             .Build();
     }
@@ -129,6 +131,8 @@ void PBRTransparentRenderSystem::MaterialBinding()
                     .WriteImage(kPBRSheenTextureBindingIndex, &materialComponent.SheenImageInfo)
                     .WriteImage(kPBREmissiveTextureBindingIndex, &materialComponent.EmissiveImageInfo)
                     .WriteImage(kPBRNormalTextureBindingIndex, &materialComponent.NormalImageInfo)
+                    .WriteImage(kPBRBaseColorTextureBindingIndex, &materialComponent.BaseColorImageInfo)
+                    .WriteImage(kPBRAOTextureBindingIndex, &materialComponent.AOImageInfo)
                     .WriteBuffer(kPBRUniformBufferBindingIndex, &materialComponent.UniformBufferInfo)
                     .Build(materialComponent.BoundDescriptorSet[i]);
             }

@@ -38,7 +38,7 @@ layout(std140, set = 1, binding = 1) uniform MaterialData
     float ClearcoatRoughness;
     float Anisotropy;
     float AnisotropyRotation;
-    int TextureIndices[5];
+    int TextureIndices[7];
 } materials[];
 layout(std140, set = 3, binding = 0) uniform MaterialIndexUBO
 {
@@ -50,7 +50,9 @@ layout(set = 2, binding = 1) uniform sampler2D metallicTexture;
 layout(set = 2, binding = 2) uniform sampler2D sheenTexture;
 layout(set = 2, binding = 3) uniform sampler2D emissiveTexture;
 layout(set = 2, binding = 4) uniform sampler2D normalTexture;
-layout(std140, set = 2, binding = 5) uniform MaterialData
+layout(set = 2, binding = 5) uniform sampler2D baseColorTexture;
+layout(set = 2, binding = 6) uniform sampler2D aoTexture;
+layout(std140, set = 2, binding = 7) uniform MaterialData
 {
     float Roughness;
     float Metallic;
@@ -59,7 +61,7 @@ layout(std140, set = 2, binding = 5) uniform MaterialData
     float ClearcoatRoughness;
     float Anisotropy;
     float AnisotropyRotation;
-    int TextureIndices[5];
+    int TextureIndices[7];
 } material;
 #endif
 
@@ -120,6 +122,8 @@ void main()
     bool hasRoughness = materials[matIdx].TextureIndices[0] != -1;
     bool hasMetallic = materials[matIdx].TextureIndices[1] != -1;
     bool hasEmissive = materials[matIdx].TextureIndices[3] != -1;
+    bool hasBaseColor = materials[matIdx].TextureIndices[5] != -1;
+    bool hasAO = materials[matIdx].TextureIndices[6] != -1;
 #else
     float roughness = material.Roughness;
     float metallic = material.Metallic;
@@ -127,6 +131,8 @@ void main()
     bool hasRoughness = material.TextureIndices[0] != -1;
     bool hasMetallic = material.TextureIndices[1] != -1;
     bool hasEmissive = material.TextureIndices[3] != -1;
+    bool hasBaseColor = material.TextureIndices[5] != -1;
+    bool hasAO = material.TextureIndices[6] != -1;
 #endif
 
     vec3 N = normalize(fragNormalWorld);
@@ -136,6 +142,17 @@ void main()
 #else
     if(hasNormal)
         N = normalize(texture(normalTexture, fragUV).rgb * 2.0 - 1.0);
+#endif
+
+    vec3 baseColor = fragColor;
+#if BINDLESS == 1
+    if(hasBaseColor)
+        baseColor *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[5])], fragUV).rgb;
+    float ao = hasAO ? texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[6])], fragUV).r : 1.0;
+#else
+    if(hasBaseColor)
+        baseColor *= texture(baseColorTexture, fragUV).rgb;
+    float ao = hasAO ? texture(aoTexture, fragUV).r : 1.0;
 #endif
 
     vec3 V = normalize(vec3(inverse(sceneUBO.ViewMatrix)[3]) - fragPositionWorld);
@@ -150,7 +167,7 @@ void main()
     if(hasMetallic) metallic *= texture(metallicTexture, fragUV).r;
 #endif
 
-    vec3 F0 = mix(vec3(0.04), fragColor, metallic);
+    vec3 F0 = mix(vec3(0.04), baseColor, metallic);
     float NDF = distributionGGX(N, H, roughness);
     float G   = geometrySmith(N, V, L, roughness);
     vec3  F   = fresnelSchlick(max(dot(H, V), 0.0), F0);
@@ -161,11 +178,12 @@ void main()
 
     vec3 kS = F;
     vec3 kD = (vec3(1.0) - kS) * (1.0 - metallic);
-    vec3 diffuse = kD * fragColor / PI;
+    vec3 diffuse = kD * baseColor / PI;
 
     float NdotL = max(dot(N, L), 0.0);
     vec3 result = (diffuse + specular) * lightUBO.LightColor.rgb * lightUBO.LightColor.a * NdotL;
     result += getIBLContribution(N, V, roughness, F0, kS, kD);
+    result *= ao;
 
 #if BINDLESS == 1
     if(hasEmissive)

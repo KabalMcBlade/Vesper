@@ -88,6 +88,14 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 			pbrMaterialComponent.NormalImageInfo.imageView = _data->Material->Textures[4]->ImageView;
 			pbrMaterialComponent.NormalImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
+			pbrMaterialComponent.BaseColorImageInfo.sampler =_data->Material->Textures[5]->Sampler;
+			pbrMaterialComponent.BaseColorImageInfo.imageView = _data->Material->Textures[5]->ImageView;
+			pbrMaterialComponent.BaseColorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+			pbrMaterialComponent.AOImageInfo.sampler = _data->Material->Textures[6]->Sampler;
+			pbrMaterialComponent.AOImageInfo.imageView = _data->Material->Textures[6]->ImageView;
+			pbrMaterialComponent.AOImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
 			pbrMaterialComponent.UniformBufferInfo = m_buffer->GetDescriptorInfo(_data->Material->UniformBuffer);
 		}
 		break;

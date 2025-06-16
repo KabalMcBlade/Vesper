@@ -40,6 +40,8 @@ struct MaterialData;
  * binding = 2: uniform sampler2D sheenTexture;
  * binding = 3: uniform sampler2D emissiveTexture;
  * binding = 4: uniform sampler2D normalTexture;
+ * binding = 5: uniform sampler2D baseColorTexture;
+ * binding = 6: uniform sampler2D aoTexture;
  */
 
 
