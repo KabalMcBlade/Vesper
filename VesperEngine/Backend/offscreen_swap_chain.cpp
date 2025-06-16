@@ -11,6 +11,8 @@
 #include "ThirdParty/include/stb/stb_image_write.h"
 
 #include <string>
+#include <vector>
+#include <cstring>
 #include <stdexcept>
 #include <array>
 
@@ -175,6 +177,17 @@ void OffscreenSwapChain::FlushBufferToFile(const std::string& _filePath, BufferC
 	stbi_write_png(_filePath.c_str(), m_imageExtent.width, m_imageExtent.height, 4, _stagingBuffer.MappedMemory, m_imageExtent.width * 4);
 	m_buffer->Unmap(_stagingBuffer);
 	m_buffer->Destroy(_stagingBuffer);
+}
+
+std::vector<uint8> OffscreenSwapChain::FlushBufferToMemory(BufferComponent& _stagingBuffer)
+{
+	m_buffer->Map(_stagingBuffer);
+	m_buffer->WriteToBuffer(_stagingBuffer);
+	std::vector<uint8> data(static_cast<size_t>(_stagingBuffer.Size));
+	std::memcpy(data.data(), _stagingBuffer.MappedMemory, static_cast<size_t>(_stagingBuffer.Size));
+	m_buffer->Unmap(_stagingBuffer);
+	m_buffer->Destroy(_stagingBuffer);
+	return data;
 }
 
 VESPERENGINE_NAMESPACE_END

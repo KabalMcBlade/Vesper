@@ -114,18 +114,6 @@ ViewerApp::ViewerApp(Config& _config) :
 
 	LOG_NL();
 
-	// BRDF LUT TEXTURE
-	LOG(Logger::INFO, "Generating or loading BRDF LUT texture");
-	const std::string brdfLutPath = GetConfig().TexturesPath + "brdf_lut.png";
-	VkExtent2D extent;
-	extent.width = 512;
-	extent.height = 512;
-	std::shared_ptr<TextureData> brdfLut = m_textureSystem->GenerateOrLoadBRDFLutTexture(brdfLutPath, extent);
-	LOG(Logger::INFO, "BRDF LUT texture generated/loaded at ", brdfLutPath);
-
-	LOG_NL();
-
-
 	//////////////////////////////////////////////////////////////////////////
 	// Game side initialization
 

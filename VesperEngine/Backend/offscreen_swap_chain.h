@@ -11,6 +11,7 @@
 #include "vma/vk_mem_alloc.h"
 
 #include <memory>
+#include <vector>
 
 
 VESPERENGINE_NAMESPACE_BEGIN
@@ -48,6 +49,7 @@ public:
 
 	BufferComponent PrepareImageCopy(VkCommandBuffer _commandBuffer);
 	void FlushBufferToFile(const std::string& _filePath, BufferComponent& _stagingBuffer);
+	std::vector<uint8> FlushBufferToMemory(BufferComponent& _stagingBuffer);
 
 private:
 	void CreateOffscreenImage(uint32 _imageLayerCount);

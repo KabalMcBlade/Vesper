@@ -135,9 +135,9 @@ public:
 	std::shared_ptr<TextureData> LoadCubemap(const std::string& _hdrPath, VkFormat _overrideFormat = VK_FORMAT_UNDEFINED);
 	void Cleanup();
 
-	std::shared_ptr<TextureData> GenerateOrLoadBRDFLutTexture(const std::string& _saveLoadPath, VkExtent2D _extent);
-	std::shared_ptr<TextureData> GenerateOrLoadIrradianceCubemap(const std::string& _saveLoadPathPrefix, uint32 _faceSize, std::shared_ptr<TextureData> _environment);
-	std::shared_ptr<TextureData> GenerateOrLoadPreFilteredEnvironment(const std::string& _saveLoadPathPrefix, uint32 _faceSize, std::shared_ptr<TextureData> _environment);
+	std::shared_ptr<TextureData> GenerateBRDFLutTexture(const std::string& _name, VkExtent2D _extent);
+	std::shared_ptr<TextureData> GenerateIrradianceCubemap(const std::string& _name, uint32 _faceSize, std::shared_ptr<TextureData> _environment);
+	std::shared_ptr<TextureData> GeneratePreFilteredEnvironmentMap(const std::string& _name, uint32 _faceSize, std::shared_ptr<TextureData> _environment);
 
 	VESPERENGINE_INLINE std::shared_ptr<TextureData> GetTexture(uint32 _index) const
 	{

@@ -21,6 +21,8 @@
 
 #include <filesystem>
 #include <algorithm>
+#include <vector>
+
 
 VESPERENGINE_NAMESPACE_BEGIN
 
@@ -450,9 +452,9 @@ std::shared_ptr<TextureData> TextureSystem::LoadCubemap(const std::string& _hdrP
 	return texture;
 }
 
-std::shared_ptr<TextureData> TextureSystem::GenerateOrLoadBRDFLutTexture(const std::string& _saveLoadPath, VkExtent2D _extent)
+std::shared_ptr<TextureData> TextureSystem::GenerateBRDFLutTexture(const std::string& _name, VkExtent2D _extent)
 {
-	const uint32 hash = HashString(_saveLoadPath.c_str());
+	const uint32 hash = HashString(_name.c_str());
 
 	auto it = m_textureLookup.find(hash);
 	if (it != m_textureLookup.end())
@@ -475,22 +477,20 @@ std::shared_ptr<TextureData> TextureSystem::GenerateOrLoadBRDFLutTexture(const s
 
 	offscreenRenderer->EndFrame();
 
-	offscreenRenderer->FlushBufferToFile(_saveLoadPath, stagingBuffer);
+	std::vector<uint8> imageData = offscreenRenderer->FlushBufferToMemory(stagingBuffer);
 
-	return LoadTexture(_saveLoadPath, VK_FORMAT_R8G8B8A8_UNORM);
+	return LoadTexture(_name, VK_FORMAT_R8G8B8A8_UNORM, imageData.data(), _extent.width, _extent.height);
 }
 
-std::shared_ptr<TextureData> TextureSystem::GenerateOrLoadIrradianceCubemap(const std::string& _savePrefix, uint32 _faceSize, std::shared_ptr<TextureData> _environment)
+std::shared_ptr<TextureData> TextureSystem::GenerateIrradianceCubemap(const std::string& _name, uint32 _faceSize, std::shared_ptr<TextureData> _environment)
 {
-	std::array<std::string, 6> paths;
-	static const char* suffixes[6]{ "posx.png","negx.png","posy.png","negy.png","posz.png","negz.png" };
-	for (uint32 i = 0;i < 6;++i) paths[i] = _savePrefix + suffixes[i];
+	const uint32 hash = HashString(_name.c_str());
 
-	bool allExist = true;
-	for (const auto& p : paths) if (!std::filesystem::exists(p)) { allExist = false; break; }
-	if (allExist)
+	auto it = m_textureLookup.find(hash);
+	if (it != m_textureLookup.end())
 	{
-		return LoadCubemap(paths, VK_FORMAT_R8G8B8A8_UNORM);
+		const int32 index = it->second;
+		return m_textures[index];
 	}
 
 	VkExtent2D extent{ _faceSize, _faceSize };
@@ -506,6 +506,9 @@ std::shared_ptr<TextureData> TextureSystem::GenerateOrLoadIrradianceCubemap(cons
 	const glm::vec3 dirs[6]{ {1,0,0},{-1,0,0},{0,1,0},{0,-1,0},{0,0,1},{0,0,-1} };
 	const glm::vec3 ups[6]{ {0,-1,0},{0,-1,0},{0,0,1},{0,0,-1},{0,-1,0},{0,-1,0} };
 
+	const uint32 faceByteSize = _faceSize * _faceSize * 4;
+	std::vector<uint8> cubemapBuffer(faceByteSize * 6);
+
 	for (uint32 face = 0; face < 6; ++face)
 	{
 		auto cmd = offscreen->BeginFrame();
@@ -518,27 +521,45 @@ std::shared_ptr<TextureData> TextureSystem::GenerateOrLoadIrradianceCubemap(cons
 		offscreen->EndOffscreenSwapChainRenderPass(cmd);
 		BufferComponent staging = offscreen->PrepareImageCopy(cmd);
 		offscreen->EndFrame();
-		offscreen->FlushBufferToFile(paths[face], staging);
+
+		m_buffer->Map(staging);
+		std::memcpy(cubemapBuffer.data() + face * faceByteSize, staging.MappedMemory, faceByteSize);
+		m_buffer->Unmap(staging);
+		m_buffer->Destroy(staging);
 	}
 
-	return LoadCubemap(paths, VK_FORMAT_R8G8B8A8_UNORM);
+	auto texture = std::make_shared<TextureData>();
+	CreateTextureImage(cubemapBuffer.data(), _faceSize, _faceSize, VK_FORMAT_R8G8B8A8_UNORM, texture->Image, texture->AllocationMemory, 6, 1, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT);
+
+	texture->ImageView = CreateImageView(texture->Image, VK_FORMAT_R8G8B8A8_UNORM, 6, 1);
+	texture->Sampler = CreateTextureSampler();
+
+	m_textures.push_back(texture);
+
+	const int32 index = static_cast<int32>(m_textures.size() - 1);
+	m_textureLookup[hash] = index;
+
+	texture->Index = index;
+
+	return texture;
 }
 
-std::shared_ptr<TextureData> TextureSystem::GenerateOrLoadPreFilteredEnvironment(const std::string& _savePrefix, uint32 _faceSize, std::shared_ptr<TextureData> _environment)
+std::shared_ptr<TextureData> TextureSystem::GeneratePreFilteredEnvironmentMap(const std::string& _name, uint32 _faceSize, std::shared_ptr<TextureData> _environment)
 {
-	std::array<std::string, 6> paths;
-	static const char* suffixes[6]{ "posx.png","negx.png","posy.png","negy.png","posz.png","negz.png" };
-	for (uint32 i = 0;i < 6;++i) paths[i] = _savePrefix + suffixes[i];
-	bool allExist = true;
-	for (const auto& p : paths) if (!std::filesystem::exists(p)) { allExist = false; break; }
-	if (allExist)
+	const uint32 hash = HashString(_name.c_str());
+	auto it = m_textureLookup.find(hash);
+	if (it != m_textureLookup.end())
 	{
-		return LoadCubemap(paths, VK_FORMAT_R8G8B8A8_UNORM);
+		const int32 index = it->second;
+		return m_textures[index];
 	}
 
-	VkExtent2D extent{ _faceSize, _faceSize };
-	std::unique_ptr<OffscreenRenderer> offscreen = std::make_unique<OffscreenRenderer>(m_device, extent, VK_FORMAT_R8G8B8A8_UNORM);
-	std::unique_ptr<PreFilteredEnvironmentGenerationSystem> system = std::make_unique<PreFilteredEnvironmentGenerationSystem>(m_app, m_device, offscreen->GetOffscreenSwapChainRenderPass());
+	const uint32 mipLevels = static_cast<uint32>(std::floor(std::log2(_faceSize))) + 1;
+
+	auto texture = std::make_shared<TextureData>();
+	CreateTextureImage(nullptr, _faceSize, _faceSize, VK_FORMAT_R8G8B8A8_UNORM, texture->Image, texture->AllocationMemory, 6, mipLevels, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT);
+	texture->ImageView = CreateImageView(texture->Image, VK_FORMAT_R8G8B8A8_UNORM, 6, mipLevels);
+	texture->Sampler = CreateTextureSampler();
 
 	VkDescriptorImageInfo envInfo{};
 	envInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -549,22 +570,61 @@ std::shared_ptr<TextureData> TextureSystem::GenerateOrLoadPreFilteredEnvironment
 	const glm::vec3 dirs[6]{ {1,0,0},{-1,0,0},{0,1,0},{0,-1,0},{0,0,1},{0,0,-1} };
 	const glm::vec3 ups[6]{ {0,-1,0},{0,-1,0},{0,0,1},{0,0,-1},{0,-1,0},{0,-1,0} };
 
-	for (uint32 face = 0; face < 6; ++face)
+	VkCommandBuffer cmd = m_device.BeginSingleTimeCommands();
+	m_device.TransitionImageLayout(cmd, texture->Image, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, 6, mipLevels);
+	m_device.EndSingleTimeCommands(cmd);
+
+	for (uint32 mip = 0; mip < mipLevels; ++mip)
 	{
-		auto cmd = offscreen->BeginFrame();
-		offscreen->BeginOffscreenSwapChainRenderPass(cmd);
+		const uint32 mipSize = std::max(1u, _faceSize >> mip);
+		std::unique_ptr<OffscreenRenderer> offscreen = std::make_unique<OffscreenRenderer>(m_device, VkExtent2D{ mipSize, mipSize }, VK_FORMAT_R8G8B8A8_UNORM);
+		std::unique_ptr<PreFilteredEnvironmentGenerationSystem> system = std::make_unique<PreFilteredEnvironmentGenerationSystem>(m_app, m_device, offscreen->GetOffscreenSwapChainRenderPass());
 
-		glm::mat4 view = glm::lookAt(glm::vec3(0.0f), dirs[face], ups[face]);
-		glm::mat4 vp = proj * view;
-		system->Generate(cmd, envInfo, vp, 0.0f);
+		std::vector<uint8> cubemapData(mipSize * mipSize * 4 * 6);
 
-		offscreen->EndOffscreenSwapChainRenderPass(cmd);
-		BufferComponent staging = offscreen->PrepareImageCopy(cmd);
-		offscreen->EndFrame();
-		offscreen->FlushBufferToFile(paths[face], staging);
+		float roughness = static_cast<float>(mip) / static_cast<float>(mipLevels - 1);
+
+		for (uint32 face = 0; face < 6; ++face)
+		{
+			auto cb = offscreen->BeginFrame();
+			offscreen->BeginOffscreenSwapChainRenderPass(cb);
+
+			glm::mat4 view = glm::lookAt(glm::vec3(0.0f), dirs[face], ups[face]);
+			glm::mat4 vp = proj * view;
+			system->Generate(cb, envInfo, vp, roughness);
+
+			offscreen->EndOffscreenSwapChainRenderPass(cb);
+			BufferComponent staging = offscreen->PrepareImageCopy(cb);
+			offscreen->EndFrame();
+
+			m_buffer->Map(staging);
+			std::memcpy(cubemapData.data() + face * mipSize * mipSize * 4, staging.MappedMemory, mipSize * mipSize * 4);
+			m_buffer->Unmap(staging);
+			m_buffer->Destroy(staging);
+		}
+
+		BufferComponent upload = m_buffer->Create<BufferComponent>(cubemapData.size(), 1, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY, VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT);
+		m_buffer->Map(upload);
+		m_buffer->WriteToBuffer(upload.MappedMemory, cubemapData.data(), cubemapData.size());
+		m_buffer->Unmap(upload);
+
+		VkCommandBuffer copyCmd = m_device.BeginSingleTimeCommands();
+		m_device.CopyBufferToImage(copyCmd, upload.Buffer, texture->Image, mipSize, mipSize, 6, mip + 1);
+		m_device.EndSingleTimeCommands(copyCmd);
+
+		m_buffer->Destroy(upload);
 	}
 
-	return LoadCubemap(paths, VK_FORMAT_R8G8B8A8_UNORM);
+	cmd = m_device.BeginSingleTimeCommands();
+	m_device.TransitionImageLayout(cmd, texture->Image, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 6, mipLevels);
+	m_device.EndSingleTimeCommands(cmd);
+
+	m_textures.push_back(texture);
+	const int32 index = static_cast<int32>(m_textures.size() - 1);
+	m_textureLookup[hash] = index;
+	texture->Index = index;
+
+	return texture;
 }
 
 uint8* TextureSystem::LoadTextureData(const std::string& _path, int32& _width, int32& _height, int32& _channels, int32 _desired_channels)

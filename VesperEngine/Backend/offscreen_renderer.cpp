@@ -141,4 +141,9 @@ void OffscreenRenderer::FlushBufferToFile(const std::string& _filePath, BufferCo
 	m_offscreenSwapChain->FlushBufferToFile(_filePath, _stagingBuffer);
 }
 
+std::vector<uint8> OffscreenRenderer::FlushBufferToMemory(BufferComponent& _stagingBuffer)
+{
+	return m_offscreenSwapChain->FlushBufferToMemory(_stagingBuffer);
+}
+
 VESPERENGINE_NAMESPACE_END

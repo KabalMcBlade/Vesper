@@ -74,7 +74,20 @@ void GameManager::LoadCameraEntities()
 void GameManager::LoadGameEntities()
 {
 	//////////////////////////////////////////////////////////////////////////
+	// BRDF LUT TEXTURE
+	LOG(Logger::INFO, "Generating BRDF LUT texture");
+	const std::string brdfLutPath = m_app.GetConfig().TexturesPath + "brdf_lut.png";
+	VkExtent2D extent;
+	extent.width = 512;
+	extent.height = 512;
+	std::shared_ptr<TextureData> brdfLut = m_textureSystem.GenerateBRDFLutTexture(brdfLutPath, extent);
+	LOG(Logger::INFO, "BRDF LUT texture generated for ", brdfLutPath);
+
+	LOG_NL();
+
+	//////////////////////////////////////////////////////////////////////////
 	// CUBEMAP TEXTURE
+	/*
 	const std::string cubemapTexturesDirectoryPath = m_app.GetConfig().TexturesPath + "Yokohama3_CubeMap/";
 	LOG(Logger::INFO, "Loading Cubemap texture: ", cubemapTexturesDirectoryPath);
 
@@ -88,10 +101,12 @@ void GameManager::LoadGameEntities()
 
 	std::shared_ptr<TextureData> cubeMap = m_textureSystem.LoadCubemap(cubemapTexturesDirectoryFilepaths);
 	LOG(Logger::INFO, "Cubemap loaded!");
+	*/
 
+	//////////////////////////////////////////////////////////////////////////
 	// CUBEMAP HDR TEXTURE TEST
 	const std::string cubemapHdrTexturesPath = m_app.GetConfig().TexturesPath + "misty_pines_4k.hdr";
-	LOG(Logger::INFO, "Loading Cubemap texture: ", cubemapHdrTexturesPath);
+	LOG(Logger::INFO, "Loading HDR Cubemap texture: ", cubemapHdrTexturesPath);
 
 	std::shared_ptr<TextureData> cubeMapHdr = m_textureSystem.LoadCubemap(cubemapHdrTexturesPath);
 	LOG(Logger::INFO, "Cubemap HDR loaded!");
@@ -99,21 +114,20 @@ void GameManager::LoadGameEntities()
 	LOG_NL();
 
 	//////////////////////////////////////////////////////////////////////////
-	// IRRADIANCE CONVOLUTION MAP & PRE FILTERED ENVIRONMENT MAP
-
 	// IRRADIANCE CONVOLUTION MAP TEXTURE
-	LOG(Logger::INFO, "Generating or loading Irradiance Convolution texture");
+	LOG(Logger::INFO, "Generating Irradiance Convolution texture");
 	const std::string irradianceConvolutionPath = m_app.GetConfig().TexturesPath + "irradiance_convolution_map.png";
-	std::shared_ptr<TextureData> irradianceConvolutionMap = m_textureSystem.GenerateOrLoadIrradianceCubemap(irradianceConvolutionPath, 64, cubeMapHdr);
-	LOG(Logger::INFO, "Irradiance Convolution texture generated/loaded at ", irradianceConvolutionPath);
+	std::shared_ptr<TextureData> irradianceConvolutionMap = m_textureSystem.GenerateIrradianceCubemap(irradianceConvolutionPath, 64, cubeMapHdr);
+	LOG(Logger::INFO, "Irradiance Convolution texture generated for ", irradianceConvolutionPath);
 
 	LOG_NL();
 
+	//////////////////////////////////////////////////////////////////////////
 	// PRE FILTERED ENVIRONMENT MAP TEXTURE
-	LOG(Logger::INFO, "Generating or loading Pre Filtered Environment texture");
+	LOG(Logger::INFO, "Generating Pre Filtered Environment texture");
 	const std::string preFilteredEnvironmentPath = m_app.GetConfig().TexturesPath + "pre_filtered_environment_map.png";
-	std::shared_ptr<TextureData> preFilteredEnvironmentMap = m_textureSystem.GenerateOrLoadPreFilteredEnvironment(preFilteredEnvironmentPath, 512, cubeMapHdr);
-	LOG(Logger::INFO, "Pre Filtered Environment texture generated/loaded at ", preFilteredEnvironmentPath);
+	std::shared_ptr<TextureData> preFilteredEnvironmentMap = m_textureSystem.GeneratePreFilteredEnvironmentMap(preFilteredEnvironmentPath, 512, cubeMapHdr);
+	LOG(Logger::INFO, "Pre Filtered Environment texture generated for ", preFilteredEnvironmentPath);
 
 	LOG_NL();
 
