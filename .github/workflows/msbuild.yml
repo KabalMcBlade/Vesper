@@ -39,7 +39,7 @@ jobs:
         uses: humbletim/install-vulkan-sdk@v1.2
         with:
           version: 1.4.309.0
-          cache: trueA
+          cache: true
   
       - name: Debug Vulkan SDK Installation
         run: |
@@ -80,11 +80,6 @@ jobs:
           echo "Checking VMA and GLM headers in Vulkan SDK..."
           ls -l $env:VULKAN_SDK/Include/vma || echo "VMA header not found!"
           ls -l $env:VULKAN_SDK/Include/glm || echo "GLM headers not found!"
-
-      - name: Debug dependencies files in repo
-        run: |
-          dir ThirdParty\lib
-          dir ThirdParty\include
 
       - name: Build solution
         run: |
