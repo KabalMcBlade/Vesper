@@ -106,7 +106,8 @@ vec3 getIBLContribution(vec3 N, vec3 V, float roughness, vec3 F0, vec3 kS, vec3 
     float lod = roughness * (mipCount - 1.0);
     vec3 prefilteredColor = textureLod(prefilteredEnvMap, R, lod).rgb;
     vec2 brdf = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
-    vec3 specular = prefilteredColor * (F0 * brdf.x + brdf.y);
+    vec3 F = fresnelSchlick(max(dot(N, V), 0.0), F0);
+    vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
     vec3 irradiance = texture(irradianceMap, N).rgb;
     vec3 diffuse = irradiance * kD * baseColor;
     return diffuse + specular;
