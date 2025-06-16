@@ -81,27 +81,9 @@ jobs:
           ls -l $env:VULKAN_SDK/Include/vma || echo "VMA header not found!"
           ls -l $env:VULKAN_SDK/Include/glm || echo "GLM headers not found!"
 
-      - name: Download KTX Library
-        run: |
-          echo "Downloading KTX prebuilt library..."
-          curl -L -o ktx.zip https://github.com/KhronosGroup/KTX-Software/releases/download/v4.0.0/ktx-v4.0.0-windows-vs2019-x64.zip
-          7z x ktx.zip -oktx
-
-      - name: Prepare KTX Paths
-        run: |
-          echo "KTX_LIB_DIR=${{ github.workspace }}\\ktx\\lib\\vs2019" >> $GITHUB_ENV
-          echo "KTX_INCLUDE_DIR=${{ github.workspace }}\\ktx\\include" >> $GITHUB_ENV
-
-      - name: Verify KTX Files
-        run: |
-          echo "Verifying KTX lib path..."
-          dir $env:KTX_LIB_DIR
-          echo "Verifying KTX include path..."
-          dir $env:KTX_INCLUDE_DIR
-
       - name: Build solution
         run: |
-          msbuild Vesper.sln /p:Configuration=Release /p:VULKAN_SDK="$env:VULKAN_SDK" /p:AdditionalLibraryDirectories="$env:KTX_LIB_DIR" /p:AdditionalIncludeDirectories="$env:KTX_INCLUDE_DIR" /m
+          msbuild Vesper.sln /p:Configuration=Release /p:VULKAN_SDK="$env:VULKAN_SDK" /m
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
