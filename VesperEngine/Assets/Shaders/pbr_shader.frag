@@ -99,7 +99,7 @@ float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
     float ggx1 = geometrySchlickGGX(NdotL, roughness);
     return ggx1 * ggx2;
 }
-vec3 getIBLContribution(vec3 N, vec3 V, float roughness, vec3 F0, vec3 kS, vec3 kD)
+vec3 getIBLContribution(vec3 N, vec3 V, float roughness, vec3 F0, vec3 kS, vec3 kD, vec3 baseColor)
 {
     vec3 R = reflect(-V, N);
     float mipCount = float(textureQueryLevels(prefilteredEnvMap));
@@ -108,7 +108,7 @@ vec3 getIBLContribution(vec3 N, vec3 V, float roughness, vec3 F0, vec3 kS, vec3 
     vec2 brdf = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
     vec3 specular = prefilteredColor * (F0 * brdf.x + brdf.y);
     vec3 irradiance = texture(irradianceMap, N).rgb;
-    vec3 diffuse = irradiance * kD;
+    vec3 diffuse = irradiance * kD * baseColor;
     return diffuse + specular;
 }
 
@@ -160,11 +160,11 @@ void main()
     vec3 H = normalize(V + L);
 
 #if BINDLESS == 1
-    if(hasRoughness) roughness *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[0])], fragUV).r;
-    if(hasMetallic) metallic *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[1])], fragUV).r;
+    if(hasRoughness) roughness *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[0])], fragUV).g;
+    if(hasMetallic) metallic *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[1])], fragUV).g;
 #else
-    if(hasRoughness) roughness *= texture(roughnessTexture, fragUV).r;
-    if(hasMetallic) metallic *= texture(metallicTexture, fragUV).r;
+    if(hasRoughness) roughness *= texture(roughnessTexture, fragUV).g;
+    if(hasMetallic) metallic *= texture(metallicTexture, fragUV).g;
 #endif
 
     vec3 F0 = mix(vec3(0.04), baseColor, metallic);
@@ -182,7 +182,7 @@ void main()
 
     float NdotL = max(dot(N, L), 0.0);
     vec3 result = (diffuse + specular) * lightUBO.LightColor.rgb * lightUBO.LightColor.a * NdotL;
-    result += getIBLContribution(N, V, roughness, F0, kS, kD);
+    result += getIBLContribution(N, V, roughness, F0, kS, kD, baseColor);
     result *= ao;
 
 #if BINDLESS == 1
