@@ -264,10 +264,6 @@ std::vector<std::unique_ptr<ModelData>> GltfLoader::LoadModel(const std::string&
             if (itUV != primitive.attributes.end()) 
             {
                 ReadAccessor(gltfModel, gltfModel.accessors[itUV->second], uvs);
-                for (auto& uv : uvs)
-                {
-                    uv.y = 1.0f - uv.y;
-                }
             }
 
             auto itColor = primitive.attributes.find("COLOR_0");
