@@ -164,7 +164,10 @@ void ViewerApp::Run()
 	CameraTransformComponent activeCameraTransformComponent;
 
 	m_entityHandlerSystem->Initialize();
-	m_masterRenderSystem->Initialize(*m_textureSystem, *m_materialSystem);
+	m_masterRenderSystem->Initialize(*m_textureSystem, *m_materialSystem,
+		m_gameManager->GetIrradianceMap(),
+		m_gameManager->GetPrefilteredEnvMap(),
+		m_gameManager->GetBrdfLut());
 
 	while (!m_window->ShouldClose())
 	{

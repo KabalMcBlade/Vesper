@@ -80,7 +80,7 @@ void GameManager::LoadGameEntities()
 	VkExtent2D extent;
 	extent.width = 512;
 	extent.height = 512;
-	std::shared_ptr<TextureData> brdfLut = m_textureSystem.GenerateBRDFLutTexture(brdfLutPath, extent);
+	m_brdfLut = m_textureSystem.GenerateBRDFLutTexture(brdfLutPath, extent);
 	LOG(Logger::INFO, "BRDF LUT texture generated for ", brdfLutPath);
 
 	LOG_NL();
@@ -117,7 +117,7 @@ void GameManager::LoadGameEntities()
 	// IRRADIANCE CONVOLUTION MAP TEXTURE
 	LOG(Logger::INFO, "Generating Irradiance Convolution texture");
 	const std::string irradianceConvolutionPath = m_app.GetConfig().TexturesPath + "irradiance_convolution_map.png";
-	std::shared_ptr<TextureData> irradianceConvolutionMap = m_textureSystem.GenerateIrradianceCubemap(irradianceConvolutionPath, 64, cubeMapHdr);
+	m_irradianceMap = m_textureSystem.GenerateIrradianceCubemap(irradianceConvolutionPath, 64, cubeMapHdr);
 	LOG(Logger::INFO, "Irradiance Convolution texture generated for ", irradianceConvolutionPath);
 
 	LOG_NL();
@@ -126,7 +126,7 @@ void GameManager::LoadGameEntities()
 	// PRE FILTERED ENVIRONMENT MAP TEXTURE
 	LOG(Logger::INFO, "Generating Pre Filtered Environment texture");
 	const std::string preFilteredEnvironmentPath = m_app.GetConfig().TexturesPath + "pre_filtered_environment_map.png";
-	std::shared_ptr<TextureData> preFilteredEnvironmentMap = m_textureSystem.GeneratePreFilteredEnvironmentMap(preFilteredEnvironmentPath, 512, cubeMapHdr);
+	m_prefilteredEnvMap = m_textureSystem.GeneratePreFilteredEnvironmentMap(preFilteredEnvironmentPath, 512, cubeMapHdr);
 	LOG(Logger::INFO, "Pre Filtered Environment texture generated for ", preFilteredEnvironmentPath);
 
 	LOG_NL();

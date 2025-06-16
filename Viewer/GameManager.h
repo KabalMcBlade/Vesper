@@ -30,8 +30,12 @@ public:
 	void Update(const FrameInfo& _frameInfo);
 
 	void LoadCameraEntities();
-    void LoadGameEntities();
+	void LoadGameEntities();
 	void UnloadGameEntities();
+
+	VESPERENGINE_INLINE std::shared_ptr<TextureData> GetIrradianceMap() const { return m_irradianceMap; }
+	VESPERENGINE_INLINE std::shared_ptr<TextureData> GetPrefilteredEnvMap() const { return m_prefilteredEnvMap; }
+	VESPERENGINE_INLINE std::shared_ptr<TextureData> GetBrdfLut() const { return m_brdfLut; }
 
 private:
 	VesperApp& m_app;
@@ -43,4 +47,8 @@ private:
 	ObjLoader& m_objLoader;
 	GltfLoader& m_gltfLoader;
 	TextureSystem& m_textureSystem;
+
+	std::shared_ptr<TextureData> m_brdfLut{};
+	std::shared_ptr<TextureData> m_irradianceMap{};
+	std::shared_ptr<TextureData> m_prefilteredEnvMap{};
 };

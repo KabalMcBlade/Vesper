@@ -24,6 +24,7 @@ class DescriptorSetLayout;
 class Buffer;
 class Renderer;
 
+struct TextureData;
 struct CameraComponent;
 struct FrameInfo;
 struct BufferComponent;
@@ -43,6 +44,9 @@ class VESPERENGINE_API MasterRenderSystem : public BaseRenderSystem
 public:
 	static constexpr uint32 kGlobalBindingSceneIndex = 0u;
 	static constexpr uint32 kGlobalBindingLightsIndex = 1u;
+	static constexpr uint32 kGlobalBindingIrradianceIndex = 2u;
+	static constexpr uint32 kGlobalBindingPrefilteredEnvIndex = 3u;
+	static constexpr uint32 kGlobalBindingBrdfLutIndex = 4u;
 
 	// bindless settings
 	static constexpr uint32 kBindlessBindingTexturesIndex = 0u;
@@ -71,7 +75,10 @@ public:
 
 public:
 	// Call this at the beginning, but after all the constructors of all the system is done
-	void Initialize(TextureSystem& _textureSystem, MaterialSystem& _materialSystem);
+	void Initialize(TextureSystem& _textureSystem, MaterialSystem& _materialSystem,
+		std::shared_ptr<TextureData> _irradianceMap,
+		std::shared_ptr<TextureData> _prefilteredEnvMap,
+		std::shared_ptr<TextureData> _brdfLut);
 	// Call this within the update/render loop. Does not need to be between the swapchain, and need to be done before the render and the BindGlobalDescriptor
 	void UpdateScene(const FrameInfo& _frameInfo, const CameraComponent& _cameraComponent);
 	// Call this after the UpdateScene, but before every other Render from every other system, this is the global descriptor binding point
@@ -90,6 +97,10 @@ private:
 
 	std::vector<VkDescriptorSet> m_globalDescriptorSets;
 	std::vector<VkDescriptorSet> m_bindlessBindingDescriptorSets;
+
+	VkDescriptorImageInfo m_irradianceInfo{};
+	VkDescriptorImageInfo m_prefilteredEnvInfo{};
+	VkDescriptorImageInfo m_brdfLutInfo{};
 
     std::unique_ptr<Buffer> m_buffer;
 };

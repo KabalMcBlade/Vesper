@@ -39,6 +39,9 @@ MasterRenderSystem::MasterRenderSystem(Device& _device, Renderer& _renderer)
 		m_globalSetLayout = DescriptorSetLayout::Builder(m_device)
 			.AddBinding(kGlobalBindingSceneIndex, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
 			.AddBinding(kGlobalBindingLightsIndex, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+			.AddBinding(kGlobalBindingIrradianceIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+			.AddBinding(kGlobalBindingPrefilteredEnvIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+			.AddBinding(kGlobalBindingBrdfLutIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
 			.Build();
 
 		m_bindlesslSetLayout = DescriptorSetLayout::Builder(m_device)
@@ -55,14 +58,32 @@ MasterRenderSystem::MasterRenderSystem(Device& _device, Renderer& _renderer)
 		m_globalSetLayout = DescriptorSetLayout::Builder(m_device)
 			.AddBinding(kGlobalBindingSceneIndex, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
 			.AddBinding(kGlobalBindingLightsIndex, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+			.AddBinding(kGlobalBindingIrradianceIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+			.AddBinding(kGlobalBindingPrefilteredEnvIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+			.AddBinding(kGlobalBindingBrdfLutIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
 			.Build();
 
 		CreatePipelineLayout(std::vector<VkDescriptorSetLayout>{ m_globalSetLayout->GetDescriptorSetLayout() });
 	}
 }
 
-void MasterRenderSystem::Initialize(TextureSystem& _textureSystem, MaterialSystem& _materialSystem)
+void MasterRenderSystem::Initialize(TextureSystem& _textureSystem, MaterialSystem& _materialSystem,
+	std::shared_ptr<TextureData> _irradianceMap,
+	std::shared_ptr<TextureData> _prefilteredEnvMap,
+	std::shared_ptr<TextureData> _brdfLut)
 {
+	m_irradianceInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	m_irradianceInfo.imageView = _irradianceMap ? _irradianceMap->ImageView : VK_NULL_HANDLE;
+	m_irradianceInfo.sampler = _irradianceMap ? _irradianceMap->Sampler : VK_NULL_HANDLE;
+
+	m_prefilteredEnvInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	m_prefilteredEnvInfo.imageView = _prefilteredEnvMap ? _prefilteredEnvMap->ImageView : VK_NULL_HANDLE;
+	m_prefilteredEnvInfo.sampler = _prefilteredEnvMap ? _prefilteredEnvMap->Sampler : VK_NULL_HANDLE;
+
+	m_brdfLutInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	m_brdfLutInfo.imageView = _brdfLut ? _brdfLut->ImageView : VK_NULL_HANDLE;
+	m_brdfLutInfo.sampler = _brdfLut ? _brdfLut->Sampler : VK_NULL_HANDLE;
+
 	m_globalDescriptorSets.resize(SwapChain::kMaxFramesInFlight);
 	m_bindlessBindingDescriptorSets.resize(SwapChain::kMaxFramesInFlight);
 
@@ -100,6 +121,9 @@ void MasterRenderSystem::Initialize(TextureSystem& _textureSystem, MaterialSyste
 		DescriptorWriter(*m_globalSetLayout, *m_renderer.GetDescriptorPool())
 			.WriteBuffer(kGlobalBindingSceneIndex, &sceneBufferInfo)
 			.WriteBuffer(kGlobalBindingLightsIndex, &lightBufferInfo)
+			.WriteImage(kGlobalBindingIrradianceIndex, &m_irradianceInfo)
+			.WriteImage(kGlobalBindingPrefilteredEnvIndex, &m_prefilteredEnvInfo)
+			.WriteImage(kGlobalBindingBrdfLutIndex, &m_brdfLutInfo)
 			.Build(m_globalDescriptorSets[i]);
 	}
 

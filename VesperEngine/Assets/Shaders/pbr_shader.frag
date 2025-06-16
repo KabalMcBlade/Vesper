@@ -23,6 +23,9 @@ layout(std140, set = 0, binding = 1) uniform LightUBO
     vec4 LightPos;
     vec4 LightColor;
 } lightUBO;
+layout(set = 0, binding = 2) uniform samplerCube irradianceMap;
+layout(set = 0, binding = 3) uniform samplerCube prefilteredEnvMap;
+layout(set = 0, binding = 4) uniform sampler2D brdfLUT;
 
 #if BINDLESS == 1
 layout(set = 1, binding = 0) uniform sampler2D textures[];
@@ -94,6 +97,18 @@ float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
     float ggx1 = geometrySchlickGGX(NdotL, roughness);
     return ggx1 * ggx2;
 }
+vec3 getIBLContribution(vec3 N, vec3 V, float roughness, vec3 F0, vec3 kS, vec3 kD)
+{
+    vec3 R = reflect(-V, N);
+    float mipCount = float(textureQueryLevels(prefilteredEnvMap));
+    float lod = roughness * (mipCount - 1.0);
+    vec3 prefilteredColor = textureLod(prefilteredEnvMap, R, lod).rgb;
+    vec2 brdf = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    vec3 specular = prefilteredColor * (F0 * brdf.x + brdf.y);
+    vec3 irradiance = texture(irradianceMap, N).rgb;
+    vec3 diffuse = irradiance * kD;
+    return diffuse + specular;
+}
 
 void main()
 {
@@ -150,6 +165,7 @@ void main()
 
     float NdotL = max(dot(N, L), 0.0);
     vec3 result = (diffuse + specular) * lightUBO.LightColor.rgb * lightUBO.LightColor.a * NdotL;
+    result += getIBLContribution(N, V, roughness, F0, kS, kD);
 
 #if BINDLESS == 1
     if(hasEmissive)
