@@ -21,6 +21,7 @@
 
 #include "Components/graphics_components.h"
 #include "Components/object_components.h"
+#include "Components/light_components.h"
 #include "Components/camera_components.h"
 #include "Components/pipeline_components.h"
 
@@ -40,6 +41,7 @@
 #include "Systems/brdf_lut_generation_system.h"
 #include "Systems/irradiance_convolution_generation_system.h"
 #include "Systems/pre_filtered_environment_generation_system.h"
+#include "Systems/light_system.h"
 
 #include "Utility/hash.h"
 #include "Utility/logger.h"

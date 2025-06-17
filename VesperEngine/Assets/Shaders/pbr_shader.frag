@@ -19,11 +19,30 @@ layout(std140, set = 0, binding = 0) uniform SceneUBO
     vec4 AmbientColor; // xyz color, w intensity
 } sceneUBO;
 
-layout(std140, set = 0, binding = 1) uniform LightUBO
+
+const int c_MaxDirectionalLights = 16;
+const int c_MaxPointLights = 256;
+const int c_MaxSpotLights = 256;
+
+const float c_LightBoost = 1.0;
+
+const float c_AmbientDiffuseIntensity = 1.0;
+const float c_AmbientSpecularIntensity = 0.5;
+
+struct DirectionalLightData { vec4 Direction; vec4 Color; };
+struct PointLightData { vec4 Position; vec4 Color; vec4 Attenuation; };
+struct SpotLightData { vec4 Position; vec4 Direction; vec4 Color; vec4 Params; };
+
+layout(std140, set = 0, binding = 1) uniform LightsUBO
 {
-    vec4 LightPos;
-    vec4 LightColor; // rgb color,  a intensity
-} lightUBO;
+    int DirectionalCount;
+    int PointCount;
+    int SpotCount;
+    int _padding;
+    DirectionalLightData DirectionalLights[c_MaxDirectionalLights];
+    PointLightData PointLights[c_MaxPointLights];
+    SpotLightData SpotLights[c_MaxSpotLights];
+} lightsUBO;
 
 layout(set = 0, binding = 2) uniform samplerCube irradianceMap;
 layout(set = 0, binding = 3) uniform samplerCube prefilteredEnvMap;
@@ -88,9 +107,20 @@ struct PBRInfo
 
 vec4 tonemap(vec4 color)
 {
-    // TODO: implement proper tonemapping
-    return color;
+    const float A = 2.51;
+    const float B = 0.03;
+    const float C = 2.43;
+    const float D = 0.59;
+    const float E = 0.14;
+
+    color.rgb = (color.rgb * (A * color.rgb + B)) / (color.rgb * (C * color.rgb + D) + E);
+
+    // Gamma correction (if needed)
+    color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
+
+    return clamp(color, 0.0, 1.0);
 }
+
 
 vec4 SRGBtoLINEAR(vec4 srgbIn)
 {
@@ -151,9 +181,12 @@ vec3 getIBLContribution(PBRInfo pbrInputs, vec3 n, vec3 reflection)
     vec3 diffuse = diffuseLight * pbrInputs.diffuseColor;
     vec3 specular = specularLight * (pbrInputs.specularColor * brdf.x + brdf.y);
 
+    // roughness adjustment to avoid energy loss on rough surfaces
+    specular *= (1.0 - pbrInputs.perceptualRoughness * 0.5);
+
     // Hardcoded ambient scale for now
-    diffuse *= 1.0;
-    specular *= 1.0;
+    diffuse *= c_AmbientDiffuseIntensity;
+    specular *= c_AmbientSpecularIntensity;
 
     return diffuse + specular;
 }
@@ -219,7 +252,7 @@ void main()
     vec3 specularEnvironmentR90 = vec3(1.0) * reflectance90;
 
     vec3 v = normalize(sceneUBO.CameraPosition.xyz - fragPositionWorld);
-    vec3 l = normalize(lightUBO.LightPos.xyz - fragPositionWorld);
+    vec3 l = normalize(-lightsUBO.DirectionalLights[0].Direction.xyz);
     vec3 h = normalize(l + v);
     vec3 reflection = normalize(reflect(-v, n));
 
@@ -248,7 +281,7 @@ void main()
     float G = geometricOcclusion(pbrInputs);
     float D = microfacetDistribution(pbrInputs);
 
-    vec3 lightColor = lightUBO.LightColor.rgb * lightUBO.LightColor.a;
+    vec3 lightColor = lightsUBO.DirectionalLights[0].Color.rgb * lightsUBO.DirectionalLights[0].Color.a * c_LightBoost;
     vec3 diffuseContrib = (1.0 - F) * diffuse(pbrInputs);
     vec3 specContrib = F * G * D / (4.0 * NdotL * NdotV);
     vec3 color = NdotL * lightColor * (diffuseContrib + specContrib);
@@ -263,6 +296,11 @@ void main()
     if(hasEmissive)
         color += texture(emissiveTexture, fragUV).rgb;
 #endif
+
+    //outColor = vec4(vec3(pbrInputs.NdotL), 1.0);
+    //outColor = vec4(normalize(lightsUBO.DirectionalLights[0].Direction.xyz) * 0.5 + 0.5, 1.0);
+    //outColor = vec4(reflection * 0.5 + 0.5, 1.0); // see how it changes as camera moves
+    //outColor = vec4(vec3(metallic), 1.0); // roughness or metallic
 
     outColor = vec4(color, baseColor.a);
 }

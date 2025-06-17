@@ -130,7 +130,6 @@ void OffscreenRenderer::EndOffscreenSwapChainRenderPass(VkCommandBuffer _command
 	vkCmdEndRenderPass(_commandBuffer);
 }
 
-
 BufferComponent OffscreenRenderer::PrepareImageCopy(VkCommandBuffer _commandBuffer)
 {
 	return m_offscreenSwapChain->PrepareImageCopy(_commandBuffer);

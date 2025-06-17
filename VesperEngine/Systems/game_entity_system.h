@@ -16,12 +16,15 @@ VESPERENGINE_NAMESPACE_BEGIN
 class VesperApp;
 
 // this is the basic type, eventually the host application can add has many as it wants to the entity
-enum EntityType : uint32
+enum class EntityType : uint32
 {
-	Pure = 0,		// empty entity, logical purpose only
-	Camera = 1,		// camera, has projection and special transform
-	Object = 2,		// transform only
-	Renderable = 3	// Object can be rendered
+	Pure = 0,			// empty entity, logical purpose only
+	Camera,				// camera, has projection and special transform
+	Object,				// transform only
+	Renderable,			// Object can be rendered
+	DirectionalLight,	//
+	PointLight,
+	SpotLight
 };
 
 class VESPERENGINE_API GameEntitySystem final

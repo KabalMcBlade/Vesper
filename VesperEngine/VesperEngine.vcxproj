@@ -125,6 +125,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ $(IntDir
     <ClInclude Include="Backend\descriptors.h" />
     <ClInclude Include="Backend\offscreen_renderer.h" />
     <ClInclude Include="Backend\offscreen_swap_chain.h" />
+    <ClInclude Include="Components\light_components.h" />
     <ClInclude Include="Components\pipeline_components.h" />
     <ClInclude Include="Core\glm_config.h" />
     <ClInclude Include="ECS\ECS\component_manager.h" />
@@ -142,6 +143,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ $(IntDir
     <ClInclude Include="Systems\base_render_system.h" />
     <ClInclude Include="Systems\entity_handler_system.h" />
     <ClInclude Include="Systems\irradiance_convolution_generation_system.h" />
+    <ClInclude Include="Systems\light_system.h" />
     <ClInclude Include="Systems\material_system.h" />
     <ClInclude Include="Systems\pbr_opaque_render_system.h" />
     <ClInclude Include="Systems\pbr_transparent_render_system.h" />
@@ -212,6 +214,7 @@ call "$(ProjectDir)copy_assets.bat" $(ProjectDir) $(SolutionDir)Viewer\ $(IntDir
     <ClCompile Include="Systems\base_render_system.cpp" />
     <ClCompile Include="Systems\entity_handler_system.cpp" />
     <ClCompile Include="Systems\irradiance_convolution_generation_system.cpp" />
+    <ClCompile Include="Systems\light_system.cpp" />
     <ClCompile Include="Systems\material_system.cpp" />
     <ClCompile Include="Systems\pbr_opaque_render_system.cpp" />
     <ClCompile Include="Systems\pbr_transparent_render_system.cpp" />

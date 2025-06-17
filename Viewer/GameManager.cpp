@@ -17,7 +17,8 @@ GameManager::GameManager(
 	CameraSystem& _cameraSystem,
 	ObjLoader& _objLoader,
 	GltfLoader& _gltfLoader,
-	TextureSystem& _textureSystem)
+	TextureSystem& _textureSystem,
+	LightSystem& _lightSystem)
 	: m_app(_app)
 	, m_entityHandlerSystem(_entityHandlerSystem)
 	, m_gameEntitySystem(_gameEntitySystem)
@@ -27,6 +28,7 @@ GameManager::GameManager(
 	, m_objLoader(_objLoader)
 	, m_gltfLoader(_gltfLoader)
 	, m_textureSystem(_textureSystem)
+	, m_lightSystem(_lightSystem)
 {
 	m_app.GetComponentManager().RegisterComponent<RotationComponent>();
 }
@@ -38,6 +40,7 @@ GameManager::~GameManager()
 
 void GameManager::Update(const FrameInfo& _frameInfo)
 {
+	// Objects
 	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
@@ -50,6 +53,16 @@ void GameManager::Update(const FrameInfo& _frameInfo)
 		const glm::quat& prevRot = transformComponent.Rotation;
 		glm::quat currRot = glm::angleAxis(rotateComponent.RadiantPerFrame, rotateComponent.RotationAxis);
 		transformComponent.Rotation = prevRot * currRot;
+	}
+
+	// DirectionalLightComponent
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<DirectionalLightComponent, RotationComponent>(entityManager, componentManager))
+	{
+		DirectionalLightComponent& directionalLightComponent = componentManager.GetComponent<DirectionalLightComponent>(gameEntity);
+		RotationComponent& rotateComponent = componentManager.GetComponent<RotationComponent>(gameEntity);
+
+		directionalLightComponent.Direction = glm::rotate(directionalLightComponent.Direction, rotateComponent.RadiantPerFrame, glm::normalize(rotateComponent.RotationAxis));
+		directionalLightComponent.Direction = glm::normalize(directionalLightComponent.Direction);
 	}
 }
 
@@ -365,6 +378,19 @@ void GameManager::LoadGameEntities()
 			*/
 		}
 	}
+}
+
+void GameManager::LoadLights()
+{
+	// Create a simple directional light pointing right to left, downwards
+	ecs::Entity sceneLight = m_lightSystem.CreateDirectionalLight({ 0.7071f, -0.7071f, 0.0f }, { 1.0f, 1.0f, 1.0f }, 1.0f);
+
+	m_app.GetComponentManager().AddComponent<RotationComponent>(sceneLight);
+	
+	static const float radPerFrame = 0.00174533f;     // 0.1 deg
+	RotationComponent& rotateComponent = m_app.GetComponentManager().GetComponent<RotationComponent>(sceneLight);
+	rotateComponent.RotationAxis = glm::vec3(0.7071f, -0.7071f, 1.0f);
+	rotateComponent.RadiantPerFrame = radPerFrame;
 }
 
 void GameManager::UnloadGameEntities()

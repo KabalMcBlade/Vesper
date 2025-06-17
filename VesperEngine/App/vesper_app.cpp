@@ -9,6 +9,7 @@
 #include "Components/pipeline_components.h"
 #include "Components/object_components.h"
 #include "Components/camera_components.h"
+#include "Components/light_components.h"
 
 #include "ECS/ECS/ecs.h"
 
@@ -91,6 +92,11 @@ void VesperApp::RegisterDefaultComponents()
 	m_componentManager.RegisterComponent<PipelineBoundingBoxComponent>();
 	m_componentManager.RegisterComponent<PipelineNormalsVisualizationComponent>();
 	m_componentManager.RegisterComponent<PipelineSkyboxComponent>();
+
+	// LIGHTS
+	m_componentManager.RegisterComponent<DirectionalLightComponent>();
+	m_componentManager.RegisterComponent<PointLightComponent>();
+	m_componentManager.RegisterComponent<SpotLightComponent>();
 }
 
 void VesperApp::UnregisterDefaultComponent()
@@ -132,6 +138,11 @@ void VesperApp::UnregisterDefaultComponent()
 	m_componentManager.UnregisterComponent<PipelineBoundingBoxComponent>();
 	m_componentManager.UnregisterComponent<PipelineNormalsVisualizationComponent>();
 	m_componentManager.UnregisterComponent<PipelineSkyboxComponent>();
+
+	// LIGHTS
+	m_componentManager.UnregisterComponent<DirectionalLightComponent>();
+	m_componentManager.UnregisterComponent<PointLightComponent>();
+	m_componentManager.UnregisterComponent<SpotLightComponent>();
 }
 
 VESPERENGINE_NAMESPACE_END

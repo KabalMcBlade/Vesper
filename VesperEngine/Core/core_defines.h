@@ -68,32 +68,149 @@ typedef unsigned short      uint16;
 typedef unsigned int        uint32;
 typedef unsigned long long  uint64;
 
-// Special for UBO
+// Special for UBO,
+// In std140, a scalar like an int does not require 16-byte alignment unless it's in a struct or packing arrays of them
 typedef struct AlignedInt
 {
     VESPERENGINE_ALIGN16 int32 value;
 
+    // Implicit conversion
 	operator int32() const { return value; }
 
-	AlignedInt& operator=(int32 newValue)
+    // Assignment from int32
+    AlignedInt& operator=(int32 newValue)
     {
-		value = newValue;
-		return *this;
-	}
+        value = newValue;
+        return *this;
+    }
+
+    // Assignment from AlignedInt
+    AlignedInt& operator=(const AlignedInt& other)
+    {
+        value = other.value;
+        return *this;
+    }
+
+    // Equality operator
+    bool operator==(const AlignedInt& other) const
+    {
+        return value == other.value;
+    }
+
+    // Prefix increment
+    AlignedInt& operator++()
+    {
+        ++value;
+        return *this;
+    }
+
+    // Postfix increment
+    AlignedInt operator++(int)
+    {
+        AlignedInt temp = *this;
+        ++value;
+        return temp;
+    }
+
+    // Prefix decrement
+    AlignedInt& operator--()
+    {
+        --value;
+        return *this;
+    }
+
+    // Postfix decrement
+    AlignedInt operator--(int)
+    {
+        AlignedInt temp = *this;
+        --value;
+        return temp;
+    }
+
+    // Addition
+    AlignedInt operator+(const AlignedInt& other) const
+    {
+        return AlignedInt{ value + other.value };
+    }
+
+    // Subtraction
+    AlignedInt operator-(const AlignedInt& other) const
+    {
+        return AlignedInt{ value - other.value };
+    }
 
 } alignInt32;
 
+// Special for UBO,
+// In std140, a scalar like an int does not require 16-byte alignment unless it's in a struct or packing arrays of them
 typedef struct AlignedFloat
 {
     VESPERENGINE_ALIGN16 float value;
 
+    // Implicit conversion
 	operator float() const { return value; }
 
-	AlignedFloat& operator=(float newValue) 
+    // Assignment from float
+    AlignedFloat& operator=(float newValue)
     {
-		value = newValue;
-		return *this;
-	}
+        value = newValue;
+        return *this;
+    }
+
+    // Assignment from AlignedFloat
+    AlignedFloat& operator=(const AlignedFloat& other)
+    {
+        value = other.value;
+        return *this;
+    }
+
+    // Equality operator
+    bool operator==(const AlignedFloat& other) const
+    {
+        return value == other.value;
+    }
+
+    // Prefix increment
+    AlignedFloat& operator++()
+    {
+        ++value;
+        return *this;
+    }
+
+    // Postfix increment
+    AlignedFloat operator++(int)
+    {
+        AlignedFloat temp = *this;
+        ++value;
+        return temp;
+    }
+
+    // Prefix decrement
+    AlignedFloat& operator--()
+    {
+        --value;
+        return *this;
+    }
+
+    // Postfix decrement
+    AlignedFloat operator--(int)
+    {
+        AlignedFloat temp = *this;
+        --value;
+        return temp;
+    }
+
+    // Addition
+    AlignedFloat operator+(const AlignedFloat& other) const
+    {
+        return AlignedFloat{ value + other.value };
+    }
+
+    // Subtraction
+    AlignedFloat operator-(const AlignedFloat& other) const
+    {
+        return AlignedFloat{ value - other.value };
+    }
 
 } alignFloat;
 

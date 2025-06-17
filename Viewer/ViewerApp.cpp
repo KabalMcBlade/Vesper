@@ -50,9 +50,9 @@ ViewerApp::ViewerApp(Config& _config) :
 	m_textureSystem = std::make_unique<TextureSystem>(*this, *m_device);
 	m_materialSystem = std::make_unique<MaterialSystem>(*m_device, *m_textureSystem);
 	m_modelSystem = std::make_unique<ModelSystem>(*this, *m_device, *m_materialSystem);
+	m_lightSystem = std::make_unique<LightSystem>(*this, *m_gameEntitySystem);
 
-    m_masterRenderSystem = std::make_unique<MasterRenderSystem>(*m_device, *m_renderer);
-
+    m_masterRenderSystem = std::make_unique<MasterRenderSystem>(*m_device, *m_renderer, *m_lightSystem);
 	
 	// IN-ENGINE SYSTEMS
 	// PHONG
@@ -131,10 +131,12 @@ ViewerApp::ViewerApp(Config& _config) :
 		*m_cameraSystem, 
 		*m_objLoader,
 		*m_gltfLoader,
-		*m_textureSystem);
+		*m_textureSystem,
+		*m_lightSystem);
 
     m_gameManager->LoadCameraEntities();
     m_gameManager->LoadGameEntities();
+	m_gameManager->LoadLights();
 
     m_phongOpaqueRenderSystem->MaterialBinding();
     m_phongTransparentRenderSystem->MaterialBinding();
@@ -213,7 +215,7 @@ void ViewerApp::Run()
 			// begin off screen shadow pass
 			//	render shadow casting objects
 			// end off screen shadow pass
-
+			
 			m_masterRenderSystem->BindGlobalDescriptor(frameInfo);
 
             m_renderer->BeginSwapChainRenderPass(commandBuffer);

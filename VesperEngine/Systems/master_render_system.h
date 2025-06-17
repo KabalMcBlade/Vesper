@@ -28,6 +28,7 @@ struct TextureData;
 struct CameraTransformComponent;
 struct CameraComponent;
 struct FrameInfo;
+class LightSystem;
 struct BufferComponent;
 
 /**
@@ -57,7 +58,7 @@ public:
 	static constexpr uint32 kMaxBindlessBuffers = 1024;
 
 public:
-	MasterRenderSystem(Device& _device, Renderer& _renderer);
+	MasterRenderSystem(Device& _device, Renderer& _renderer, LightSystem& _lightSystem);
 	virtual ~MasterRenderSystem() = default;
 
 	MasterRenderSystem(const MasterRenderSystem&) = delete;
@@ -89,6 +90,7 @@ public:
 
 private:
 	Renderer& m_renderer;
+	LightSystem& m_lightSystem;
 
 	std::unique_ptr<DescriptorSetLayout> m_globalSetLayout;
 	std::unique_ptr<DescriptorSetLayout> m_bindlesslSetLayout;

@@ -39,6 +39,7 @@
     <ClCompile Include="Utility\gltf_loader.cpp" />
     <ClCompile Include="Systems\irradiance_convolution_generation_system.cpp" />
     <ClCompile Include="Systems\pre_filtered_environment_generation_system.cpp" />
+    <ClCompile Include="Systems\light_system.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App\config.h" />
@@ -116,6 +117,8 @@
     <ClInclude Include="ThirdParty\include\ktxvulkan.h" />
     <ClInclude Include="ThirdParty\include\tiny_gltf.h" />
     <ClInclude Include="ThirdParty\include\tiny_obj_loader.h" />
+    <ClInclude Include="Components\light_components.h" />
+    <ClInclude Include="Systems\light_system.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\brdf_lut_shader.frag" />

@@ -4,6 +4,7 @@
 
 #include "Systems/master_render_system.h"
 #include "Systems/uniform_buffer.h"
+#include "Systems/light_system.h"
 
 #include "Backend/swap_chain.h"
 #include "Backend/buffer.h"
@@ -20,9 +21,10 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
-MasterRenderSystem::MasterRenderSystem(Device& _device, Renderer& _renderer)
+MasterRenderSystem::MasterRenderSystem(Device& _device, Renderer& _renderer, LightSystem& _lightSystem)
 	: BaseRenderSystem(_device)
 	, m_renderer(_renderer)
+	, m_lightSystem(_lightSystem)
 {
 	// Start from here:
     m_buffer = std::make_unique<Buffer>(m_device);
@@ -103,7 +105,7 @@ void MasterRenderSystem::Initialize(TextureSystem& _textureSystem, MaterialSyste
 		);
 
 		m_globalLightsUboBuffers[i] = m_buffer->Create<BufferComponent>(
-			sizeof(LightUBO),
+			sizeof(LightsUBO),
 			1,
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, //| VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 			VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, //VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO,
@@ -161,7 +163,7 @@ void MasterRenderSystem::UpdateScene(const FrameInfo& _frameInfo, const CameraCo
 {
 	// check if is better in terms of performance to store them as class members and reusing it, or create per frame as here.
 	SceneUBO sceneUBO;
-	LightUBO lightsUBO;
+	LightsUBO lightsUBO;
 
 	sceneUBO.ProjectionMatrix = _cameraComponent.ProjectionMatrix;
 	sceneUBO.ViewMatrix = _cameraComponent.ViewMatrix;
@@ -170,6 +172,7 @@ void MasterRenderSystem::UpdateScene(const FrameInfo& _frameInfo, const CameraCo
 	m_globalSceneUboBuffers[_frameInfo.FrameIndex].MappedMemory = &sceneUBO;
 	m_buffer->WriteToBuffer(m_globalSceneUboBuffers[_frameInfo.FrameIndex]);
 
+	m_lightSystem.FillLightsUBO(lightsUBO);
 	m_globalLightsUboBuffers[_frameInfo.FrameIndex].MappedMemory = &lightsUBO;
 	m_buffer->WriteToBuffer(m_globalLightsUboBuffers[_frameInfo.FrameIndex]);
 }

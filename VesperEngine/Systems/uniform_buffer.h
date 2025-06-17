@@ -19,11 +19,43 @@ struct VESPERENGINE_ALIGN16 SceneUBO
 	glm::vec4 AmbientColor{ 1.0f, 1.0f, 1.0f, 0.3f };	// w is intensity
 };
 
-// Light
-struct VESPERENGINE_ALIGN16 LightUBO
+// Directional Light
+struct VESPERENGINE_ALIGN16 DirectionalLight
 {
-	glm::vec4 LightPos{ 0.0f, -0.25f, 0.0f, 0.0f };
-	glm::vec4 LightColor{ 1.0f, 1.0f, 1.0f, 0.5f };
+	glm::vec4 Direction{ 0.0f, -1.0f, 0.0f, 0.0f };
+	glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f }; // w intensity
+};
+
+// Point Light
+struct VESPERENGINE_ALIGN16 PointLight
+{
+	glm::vec4 Position{ 0.0f, 0.0f, 0.0f, 0.0f };
+	glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f }; // w intensity
+	glm::vec4 Attenuation{ 1.0f, 0.0f, 0.0f, 0.0f }; // constant, linear, quadratic
+};
+
+// Spot Light
+struct VESPERENGINE_ALIGN16 SpotLight
+{
+	glm::vec4 Position{ 0.0f, 0.0f, 0.0f, 0.0f };
+	glm::vec4 Direction{ 0.0f, -1.0f, 0.0f, 0.0f };
+	glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f }; // w intensity
+	glm::vec4 Params{ 0.8f, 0.9f, 0.0f, 0.0f }; // x innerCutoff, y outerCutoff
+};
+
+static constexpr uint32 kMaxDirectionalLights = 16;
+static constexpr uint32 kMaxPointLights = 256;
+static constexpr uint32 kMaxSpotLights = 256;
+
+struct VESPERENGINE_ALIGN16 LightsUBO
+{
+	int32 DirectionalCount{ 0 };
+	int32 PointCount{ 0 };
+	int32 SpotCount{ 0 };
+	int32 _padding;
+	DirectionalLight DirectionalLights[kMaxDirectionalLights];
+	PointLight PointLights[kMaxPointLights];
+	SpotLight SpotLights[kMaxSpotLights];
 };
 
 // Entity

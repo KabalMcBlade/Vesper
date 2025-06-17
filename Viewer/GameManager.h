@@ -23,7 +23,8 @@ public:
 		CameraSystem& _cameraSystem,
 		ObjLoader& _objLoader,
 		GltfLoader& _gltfLoader,
-		TextureSystem& _textureSystem);
+		TextureSystem& _textureSystem,
+		LightSystem& _lightSystem);
 	~GameManager();
 
 public:
@@ -31,6 +32,7 @@ public:
 
 	void LoadCameraEntities();
 	void LoadGameEntities();
+	void LoadLights();
 	void UnloadGameEntities();
 
 	VESPERENGINE_INLINE std::shared_ptr<TextureData> GetIrradianceMap() const { return m_irradianceMap; }
@@ -47,6 +49,7 @@ private:
 	ObjLoader& m_objLoader;
 	GltfLoader& m_gltfLoader;
 	TextureSystem& m_textureSystem;
+	LightSystem& m_lightSystem;
 
 	std::shared_ptr<TextureData> m_brdfLut{};
 	std::shared_ptr<TextureData> m_irradianceMap{};

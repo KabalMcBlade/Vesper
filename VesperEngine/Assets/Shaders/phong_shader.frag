@@ -20,11 +20,25 @@ layout(std140, set = 0, binding = 0) uniform SceneUBO
     vec4 AmbientColor; // w is intensity
 } sceneUBO;
 
-layout(std140, set = 0, binding = 1) uniform LightUBO 
+const int c_MaxDirectionalLights = 16;
+const int c_MaxPointLights = 256;
+const int c_MaxSpotLights = 256;
+
+
+struct DirectionalLightData { vec4 Direction; vec4 Color; };
+struct PointLightData { vec4 Position; vec4 Color; vec4 Attenuation; };
+struct SpotLightData { vec4 Position; vec4 Direction; vec4 Color; vec4 Params; };
+
+layout(std140, set = 0, binding = 1) uniform LightsUBO
 {
-    vec4 LightPos;
-    vec4 LightColor; // w is intensity
-} lightUBO;
+    int DirectionalCount;
+    int PointCount;
+    int SpotCount;
+    int _padding;
+    DirectionalLightData DirectionalLights[c_MaxDirectionalLights];
+    PointLightData PointLights[c_MaxPointLights];
+    SpotLightData SpotLights[c_MaxSpotLights];
+} lightsUBO;
 
 
 #if BINDLESS == 1
@@ -128,7 +142,7 @@ void main()
 
     vec3 cameraPosition = sceneUBO.CameraPosition.xyz;
     vec3 viewDir = normalize(cameraPosition - fragPositionWorld);
-    vec3 lightDir = normalize(lightUBO.LightPos.xyz - fragPositionWorld);
+    vec3 lightDir = normalize(lightsUBO.DirectionalLights[0].Direction.xyz);
 
     vec4 combinedLighting = vec4(0.0);
 
@@ -157,7 +171,7 @@ void main()
         vec4 finalDiffuseColor = diffuseTextureColor * diffuseColor;
 
         float diffIntensity = max(dot(normal, lightDir), 0.0);
-        combinedLighting += finalDiffuseColor * vec4(lightUBO.LightColor.rgb * diffIntensity * lightUBO.LightColor.a, 1.0);
+        combinedLighting += finalDiffuseColor * vec4(lightsUBO.DirectionalLights[0].Color.rgb * diffIntensity * lightsUBO.DirectionalLights[0].Color.a, 1.0);
     }
 
     // Specular Contribution
@@ -173,14 +187,14 @@ void main()
 
         vec3 reflectDir = reflect(-lightDir, normal);
         float specIntensity = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-        combinedLighting += finalSpecularColor * lightUBO.LightColor * clamp(specIntensity, 0.0, 1.0);
+        combinedLighting += finalSpecularColor * lightsUBO.DirectionalLights[0].Color * clamp(specIntensity, 0.0, 1.0);
     }
 
     // fallback vertex color
     if (!bHasAmbientTexture && !bHasDiffuseTexture && !bHasSpecularTexture) 
     {
         float attenuation = 1.0 / dot(lightDir, lightDir); // distance squared
-        vec3 lightColor = lightUBO.LightColor.rgb * lightUBO.LightColor.a * attenuation;
+        vec3 lightColor = lightsUBO.DirectionalLights[0].Color.rgb * lightsUBO.DirectionalLights[0].Color.a * attenuation;
         vec3 ambientLight = sceneUBO.AmbientColor.rgb * sceneUBO.AmbientColor.a;
         vec3 diffuseLight = lightColor * max(dot(fragNormalWorld, normalize(lightDir)), 0);
         combinedLighting = vec4((diffuseLight + ambientLight) * fragColor, 1.0);

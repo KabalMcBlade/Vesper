@@ -438,7 +438,7 @@ std::shared_ptr<TextureData> TextureSystem::LoadCubemap(const std::string& _hdrP
 
 	std::vector<uint16_t> cubemap16;
 	std::vector<float> cubemap32;
-
+	
 	if (format == VK_FORMAT_R16G16B16A16_SFLOAT)
 	{
 		cubemap16 = HDRCubemapCPU::GenerateFloat16Cubemap(hdrData, width, height, cubemapSize, projection);
