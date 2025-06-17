@@ -185,20 +185,21 @@ void main()
     vec4 baseColor = vec4(fragColor, 1.0);
 #if BINDLESS == 1
     if (hasBaseColor)
-        baseColor *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[5])], fragUV);
+        baseColor *= SRGBtoLINEAR(texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[5])], fragUV));
     float ao = hasAO ? texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[6])], fragUV).r : 1.0;
 #else
     if (hasBaseColor)
-        baseColor *= texture(baseColorTexture, fragUV);
+        baseColor *= SRGBtoLINEAR(texture(baseColorTexture, fragUV));
     float ao = hasAO ? texture(aoTexture, fragUV).r : 1.0;
 #endif
 
+
 #if BINDLESS == 1
     if(hasRoughness) roughness *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[0])], fragUV).g;
-    if(hasMetallic) metallic *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[1])], fragUV).g;
+    if(hasMetallic) metallic *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[1])], fragUV).b;
 #else
     if(hasRoughness) roughness *= texture(roughnessTexture, fragUV).g;
-    if(hasMetallic) metallic *= texture(metallicTexture, fragUV).g;
+    if(hasMetallic) metallic *= texture(metallicTexture, fragUV).b;
 #endif
 
     roughness = clamp(roughness, c_MinRoughness, 1.0);
