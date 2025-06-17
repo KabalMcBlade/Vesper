@@ -159,7 +159,7 @@ void GameManager::LoadGameEntities()
 			{ 0.0f, 0.0f, 0.0f },
 			{ glm::vec3(.9f, .9f, .9f), glm::vec3(.8f, .8f, .1f), glm::vec3(.9f, .6f, .1f), glm::vec3(.8f, .1f, .1f), glm::vec3(.1f, .1f, .8f), glm::vec3(.1f, .8f, .1f) }
 		);
-
+		
 		ecs::Entity cubeNoIndices = m_gameEntitySystem.CreateGameEntity(EntityType::Renderable);
 
 		m_modelSystem.LoadModel(cubeNoIndices, std::move(cubeNoIndicesData));
@@ -171,8 +171,6 @@ void GameManager::LoadGameEntities()
 
 		m_entityHandlerSystem.RegisterRenderableEntity(cubeNoIndices);
 
-		m_app.GetComponentManager().AddComponent<RotationComponent>(cubeNoIndices);
-
 		// test for custom render systems: 
 		// if PhongCustomTransparentRenderSystem and/or PhongCustomOpaqueRenderSystem are used, they will push constant
 		// to change the tint of the entities having this component registered, otherwise nothing.
@@ -180,6 +178,8 @@ void GameManager::LoadGameEntities()
 		{
 			m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(cubeNoIndices);
 		}
+
+		m_app.GetComponentManager().AddComponent<RotationComponent>(cubeNoIndices);
 
 		static const float radPerFrame = 0.00174533f;     // 0.1 deg
 		RotationComponent& rotateComponent = m_app.GetComponentManager().GetComponent<RotationComponent>(cubeNoIndices);
@@ -205,8 +205,6 @@ void GameManager::LoadGameEntities()
 
 			m_entityHandlerSystem.RegisterRenderableEntity(coloredCube);
 
-			m_app.GetComponentManager().AddComponent<RotationComponent>(coloredCube);
-
 			// test for custom render systems: 
 			// if PhongCustomTransparentRenderSystem and/or PhongCustomOpaqueRenderSystem are used, they will push constant
 			// to change the tint of the entities having this component registered, otherwise nothing.
@@ -214,6 +212,8 @@ void GameManager::LoadGameEntities()
 			{
 				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(coloredCube);
 			}
+
+			m_app.GetComponentManager().AddComponent<RotationComponent>(coloredCube);
 
 			static const float radPerFrame = 0.00174533f;     // 0.1 deg
 			RotationComponent& rotateComponent = m_app.GetComponentManager().GetComponent<RotationComponent>(coloredCube);
@@ -354,6 +354,15 @@ void GameManager::LoadGameEntities()
 			{
 				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(damagedHelmet);
 			}
+
+			/*
+			m_app.GetComponentManager().AddComponent<RotationComponent>(damagedHelmet);
+
+			static const float radPerFrame = 0.00174533f;     // 0.1 deg
+			RotationComponent& rotateComponent = m_app.GetComponentManager().GetComponent<RotationComponent>(damagedHelmet);
+			rotateComponent.RotationAxis = glm::vec3(0.0f, 0.0f, 1.0f);
+			rotateComponent.RadiantPerFrame = radPerFrame;
+			*/
 		}
 	}
 }

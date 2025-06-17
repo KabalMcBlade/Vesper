@@ -1,7 +1,7 @@
 #version 450
 
 #if BINDLESS == 1
-#extension GL_EXT_nonuniform_qualifier : require
+    #extension GL_EXT_nonuniform_qualifier : require
 #endif
 
 layout(location = 0) in vec3 fragColor;
@@ -15,14 +15,15 @@ layout(std140, set = 0, binding = 0) uniform SceneUBO
 {
     mat4 ProjectionMatrix;
     mat4 ViewMatrix;
-    vec4 AmbientColor;
+    vec4 AmbientColor; // xyz color, w intensity
 } sceneUBO;
 
 layout(std140, set = 0, binding = 1) uniform LightUBO
 {
     vec4 LightPos;
-    vec4 LightColor;
+    vec4 LightColor; // rgb color,  a intensity
 } lightUBO;
+
 layout(set = 0, binding = 2) uniform samplerCube irradianceMap;
 layout(set = 0, binding = 3) uniform samplerCube prefilteredEnvMap;
 layout(set = 0, binding = 4) uniform sampler2D brdfLUT;
@@ -65,51 +66,94 @@ layout(std140, set = 2, binding = 7) uniform MaterialData
 } material;
 #endif
 
-const float PI = 3.14159265359;
+const float M_PI = 3.141592653589793;
+const float c_MinRoughness = 0.04;
 
-vec3 fresnelSchlick(float cosTheta, vec3 F0)
+struct PBRInfo
 {
-    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+    float NdotL;
+    float NdotV;
+    float NdotH;
+    float LdotH;
+    float VdotH;
+    float perceptualRoughness;
+    float metalness;
+    vec3 reflectance0;
+    vec3 reflectance90;
+    float alphaRoughness;
+    vec3 diffuseColor;
+    vec3 specularColor;
+};
+
+vec4 tonemap(vec4 color)
+{
+    // TODO: implement proper tonemapping
+    return color;
 }
 
-float distributionGGX(vec3 N, vec3 H, float roughness)
+vec4 SRGBtoLINEAR(vec4 srgbIn)
 {
-    float a = roughness * roughness;
-    float a2 = a * a;
-    float NdotH = max(dot(N, H), 0.0);
-    float NdotH2 = NdotH * NdotH;
-
-    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
-    return a2 / (PI * denom * denom + 0.0001);
+    return pow(srgbIn, vec4(2.2));
 }
 
-float geometrySchlickGGX(float NdotV, float roughness)
+vec3 diffuse(PBRInfo pbrInputs)
 {
-    float r = (roughness + 1.0);
-    float k = (r * r) / 8.0;
-    float denom = NdotV * (1.0 - k) + k;
-    return NdotV / denom;
+    return pbrInputs.diffuseColor / M_PI;
 }
 
-float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
+vec3 specularReflection(PBRInfo pbrInputs)
 {
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
-    float ggx2 = geometrySchlickGGX(NdotV, roughness);
-    float ggx1 = geometrySchlickGGX(NdotL, roughness);
-    return ggx1 * ggx2;
+    return pbrInputs.reflectance0 + (pbrInputs.reflectance90 - pbrInputs.reflectance0) * pow(clamp(1.0 - pbrInputs.VdotH, 0.0, 1.0), 5.0);
 }
-vec3 getIBLContribution(vec3 N, vec3 V, float roughness, vec3 F0, vec3 kS, vec3 kD, vec3 baseColor)
+
+float geometricOcclusion(PBRInfo pbrInputs)
 {
-    vec3 R = reflect(-V, N);
+    float NdotL = pbrInputs.NdotL;
+    float NdotV = pbrInputs.NdotV;
+    float r = pbrInputs.alphaRoughness;
+
+    float attenuationL = 2.0 * NdotL / (NdotL + sqrt(r * r + (1.0 - r * r) * (NdotL * NdotL)));
+    float attenuationV = 2.0 * NdotV / (NdotV + sqrt(r * r + (1.0 - r * r) * (NdotV * NdotV)));
+    return attenuationL * attenuationV;
+}
+
+float microfacetDistribution(PBRInfo pbrInputs)
+{
+    float roughnessSq = pbrInputs.alphaRoughness * pbrInputs.alphaRoughness;
+    float f = (pbrInputs.NdotH * roughnessSq - pbrInputs.NdotH) * pbrInputs.NdotH + 1.0;
+    return roughnessSq / (M_PI * f * f);
+}
+
+vec3 getNormal(bool hasNormal)
+{
+    vec3 N = normalize(fragNormalWorld);
+#if BINDLESS == 1
+    if (hasNormal)
+        N = normalize(texture(textures[nonuniformEXT(materials[materialIndexUBO.materialIndex].TextureIndices[4])], fragUV).xyz * 2.0 - 1.0);
+#else
+    if (hasNormal)
+        N = normalize(texture(normalTexture, fragUV).xyz * 2.0 - 1.0);
+#endif
+    return N;
+}
+
+vec3 getIBLContribution(PBRInfo pbrInputs, vec3 n, vec3 reflection)
+{
     float mipCount = float(textureQueryLevels(prefilteredEnvMap));
-    float lod = roughness * (mipCount - 1.0);
-    vec3 prefilteredColor = textureLod(prefilteredEnvMap, R, lod).rgb;
-    vec2 brdf = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
-    vec3 F = fresnelSchlick(max(dot(N, V), 0.0), F0);
-    vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
-    vec3 irradiance = texture(irradianceMap, N).rgb;
-    vec3 diffuse = irradiance * kD * baseColor;
+
+    float lod = pbrInputs.perceptualRoughness * (mipCount - 1.0);
+
+    vec3 brdf = texture(brdfLUT, vec2(pbrInputs.NdotV, 1.0 - pbrInputs.perceptualRoughness)).rgb;
+    vec3 diffuseLight = SRGBtoLINEAR(tonemap(texture(irradianceMap, n))).rgb;
+    vec3 specularLight = SRGBtoLINEAR(tonemap(textureLod(prefilteredEnvMap, reflection, lod))).rgb;
+
+    vec3 diffuse = diffuseLight * pbrInputs.diffuseColor;
+    vec3 specular = specularLight * (pbrInputs.specularColor * brdf.x + brdf.y);
+
+    // Hardcoded ambient scale for now
+    diffuse *= 1.0;
+    specular *= 1.0;
+
     return diffuse + specular;
 }
 
@@ -136,29 +180,18 @@ void main()
     bool hasAO = material.TextureIndices[6] != -1;
 #endif
 
-    vec3 N = normalize(fragNormalWorld);
-#if BINDLESS == 1
-    if(hasNormal)
-        N = normalize(texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[4])], fragUV).rgb * 2.0 - 1.0);
-#else
-    if(hasNormal)
-        N = normalize(texture(normalTexture, fragUV).rgb * 2.0 - 1.0);
-#endif
+    vec3 n = getNormal(hasNormal);
 
-    vec3 baseColor = fragColor;
+    vec4 baseColor = vec4(fragColor, 1.0);
 #if BINDLESS == 1
-    if(hasBaseColor)
-        baseColor *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[5])], fragUV).rgb;
+    if (hasBaseColor)
+        baseColor *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[5])], fragUV);
     float ao = hasAO ? texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[6])], fragUV).r : 1.0;
 #else
-    if(hasBaseColor)
-        baseColor *= texture(baseColorTexture, fragUV).rgb;
+    if (hasBaseColor)
+        baseColor *= texture(baseColorTexture, fragUV);
     float ao = hasAO ? texture(aoTexture, fragUV).r : 1.0;
 #endif
-
-    vec3 V = normalize(vec3(inverse(sceneUBO.ViewMatrix)[3]) - fragPositionWorld);
-    vec3 L = normalize(lightUBO.LightPos.xyz - fragPositionWorld);
-    vec3 H = normalize(V + L);
 
 #if BINDLESS == 1
     if(hasRoughness) roughness *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[0])], fragUV).g;
@@ -168,31 +201,66 @@ void main()
     if(hasMetallic) metallic *= texture(metallicTexture, fragUV).g;
 #endif
 
-    vec3 F0 = mix(vec3(0.04), baseColor, metallic);
-    float NDF = distributionGGX(N, H, roughness);
-    float G   = geometrySmith(N, V, L, roughness);
-    vec3  F   = fresnelSchlick(max(dot(H, V), 0.0), F0);
+    roughness = clamp(roughness, c_MinRoughness, 1.0);
+    metallic = clamp(metallic, 0.0, 1.0);
 
-    vec3 numerator = NDF * G * F;
-    float denom = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001;
-    vec3 specular = numerator / denom;
+    float alphaRoughness = roughness * roughness;
 
-    vec3 kS = F;
-    vec3 kD = (vec3(1.0) - kS) * (1.0 - metallic);
-    vec3 diffuse = kD * baseColor / PI;
+    vec3 f0 = vec3(0.04);
+    vec3 diffuseColor = baseColor.rgb * (1.0 - f0);
+    diffuseColor *= 1.0 - metallic;
+    vec3 specularColor = mix(f0, baseColor.rgb, metallic);
 
-    float NdotL = max(dot(N, L), 0.0);
-    vec3 result = (diffuse + specular) * lightUBO.LightColor.rgb * lightUBO.LightColor.a * NdotL;
-    result += getIBLContribution(N, V, roughness, F0, kS, kD, baseColor);
-    result *= ao;
+    float reflectance = max(max(specularColor.r, specularColor.g), specularColor.b);
+    float reflectance90 = clamp(reflectance * 25.0, 0.0, 1.0);
+    vec3 specularEnvironmentR0 = specularColor;
+    vec3 specularEnvironmentR90 = vec3(1.0) * reflectance90;
+
+    vec3 v = normalize(vec3(inverse(sceneUBO.ViewMatrix)[3]) - fragPositionWorld);
+    vec3 l = normalize(lightUBO.LightPos.xyz - fragPositionWorld);
+    vec3 h = normalize(l + v);
+    vec3 reflection = normalize(reflect(-v, n));
+
+    float NdotL = clamp(dot(n, l), 0.001, 1.0);
+    float NdotV = clamp(abs(dot(n, v)), 0.001, 1.0);
+    float NdotH = clamp(dot(n, h), 0.0, 1.0);
+    float LdotH = clamp(dot(l, h), 0.0, 1.0);
+    float VdotH = clamp(dot(v, h), 0.0, 1.0);
+
+    PBRInfo pbrInputs = PBRInfo(
+        NdotL,
+        NdotV,
+        NdotH,
+        LdotH,
+        VdotH,
+        roughness,
+        metallic,
+        specularEnvironmentR0,
+        specularEnvironmentR90,
+        alphaRoughness,
+        diffuseColor,
+        specularColor
+    );
+
+    vec3 F = specularReflection(pbrInputs);
+    float G = geometricOcclusion(pbrInputs);
+    float D = microfacetDistribution(pbrInputs);
+
+    vec3 lightColor = lightUBO.LightColor.rgb * lightUBO.LightColor.a;
+    vec3 diffuseContrib = (1.0 - F) * diffuse(pbrInputs);
+    vec3 specContrib = F * G * D / (4.0 * NdotL * NdotV);
+    vec3 color = NdotL * lightColor * (diffuseContrib + specContrib);
+
+    color += getIBLContribution(pbrInputs, n, reflection);
+    color = mix(color, color * ao, 1.0);
 
 #if BINDLESS == 1
     if(hasEmissive)
-        result += texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[3])], fragUV).rgb;
+        color += texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[3])], fragUV).rgb;
 #else
     if(hasEmissive)
-        result += texture(emissiveTexture, fragUV).rgb;
+        color += texture(emissiveTexture, fragUV).rgb;
 #endif
 
-    outColor = vec4(result, 1.0);
+    outColor = vec4(color, baseColor.a);
 }
