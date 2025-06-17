@@ -16,6 +16,7 @@ layout(std140, set = 0, binding = 0) uniform SceneUBO
 {
     mat4 ProjectionMatrix;
     mat4 ViewMatrix;
+    vec4 CameraPosition;
     vec4 AmbientColor; // w is intensity
 } sceneUBO;
 
@@ -130,7 +131,7 @@ void main()
         normal = normalize(normalMap);
     }
 
-    vec3 cameraPosition = vec3(inverse(sceneUBO.ViewMatrix)[3]);
+    vec3 cameraPosition = sceneUBO.CameraPosition.xyz;
     vec3 viewDir = normalize(cameraPosition - fragPositionWorld);
     vec3 lightDir = normalize(lightUBO.LightPos.xyz - fragPositionWorld);
 

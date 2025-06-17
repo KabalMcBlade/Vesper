@@ -206,7 +206,7 @@ void ViewerApp::Run()
 			m_cameraSystem->Update(aspectRatio);
 			m_cameraSystem->GetActiveCameraData(0, activeCameraComponent, activeCameraTransformComponent);
 
-			m_masterRenderSystem->UpdateScene(frameInfo, activeCameraComponent);
+			m_masterRenderSystem->UpdateScene(frameInfo, activeCameraComponent, activeCameraTransformComponent);
 			m_entityHandlerSystem->UpdateEntities(frameInfo);
 
 			// For instance, add here before the swap chain:

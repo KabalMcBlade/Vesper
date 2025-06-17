@@ -25,6 +25,7 @@ class Buffer;
 class Renderer;
 
 struct TextureData;
+struct CameraTransformComponent;
 struct CameraComponent;
 struct FrameInfo;
 struct BufferComponent;
@@ -80,7 +81,7 @@ public:
 		std::shared_ptr<TextureData> _prefilteredEnvMap,
 		std::shared_ptr<TextureData> _brdfLut);
 	// Call this within the update/render loop. Does not need to be between the swapchain, and need to be done before the render and the BindGlobalDescriptor
-	void UpdateScene(const FrameInfo& _frameInfo, const CameraComponent& _cameraComponent);
+	void UpdateScene(const FrameInfo& _frameInfo, const CameraComponent& _cameraComponen, const CameraTransformComponent& _cameraTransform);
 	// Call this after the UpdateScene, but before every other Render from every other system, this is the global descriptor binding point
 	void BindGlobalDescriptor(const FrameInfo& _frameInfo);
 	// Call at the end or at destruction time, anyway after the game loop is done.

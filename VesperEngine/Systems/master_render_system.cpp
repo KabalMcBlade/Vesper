@@ -157,7 +157,7 @@ void MasterRenderSystem::Initialize(TextureSystem& _textureSystem, MaterialSyste
 	}
 }
 
-void MasterRenderSystem::UpdateScene(const FrameInfo& _frameInfo, const CameraComponent& _cameraComponent)
+void MasterRenderSystem::UpdateScene(const FrameInfo& _frameInfo, const CameraComponent& _cameraComponent, const CameraTransformComponent& _cameraTransform)
 {
 	// check if is better in terms of performance to store them as class members and reusing it, or create per frame as here.
 	SceneUBO sceneUBO;
@@ -165,6 +165,7 @@ void MasterRenderSystem::UpdateScene(const FrameInfo& _frameInfo, const CameraCo
 
 	sceneUBO.ProjectionMatrix = _cameraComponent.ProjectionMatrix;
 	sceneUBO.ViewMatrix = _cameraComponent.ViewMatrix;
+	sceneUBO.CameraPosition = glm::vec4(_cameraTransform.Position, 1.0f);
 
 	m_globalSceneUboBuffers[_frameInfo.FrameIndex].MappedMemory = &sceneUBO;
 	m_buffer->WriteToBuffer(m_globalSceneUboBuffers[_frameInfo.FrameIndex]);

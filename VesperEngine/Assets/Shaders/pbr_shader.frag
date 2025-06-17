@@ -15,6 +15,7 @@ layout(std140, set = 0, binding = 0) uniform SceneUBO
 {
     mat4 ProjectionMatrix;
     mat4 ViewMatrix;
+    vec4 CameraPosition;
     vec4 AmbientColor; // xyz color, w intensity
 } sceneUBO;
 
@@ -217,7 +218,7 @@ void main()
     vec3 specularEnvironmentR0 = specularColor;
     vec3 specularEnvironmentR90 = vec3(1.0) * reflectance90;
 
-    vec3 v = normalize(vec3(inverse(sceneUBO.ViewMatrix)[3]) - fragPositionWorld);
+    vec3 v = normalize(sceneUBO.CameraPosition.xyz - fragPositionWorld);
     vec3 l = normalize(lightUBO.LightPos.xyz - fragPositionWorld);
     vec3 h = normalize(l + v);
     vec3 reflection = normalize(reflect(-v, n));

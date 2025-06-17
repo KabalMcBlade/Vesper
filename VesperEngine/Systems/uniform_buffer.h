@@ -15,6 +15,7 @@ struct VESPERENGINE_ALIGN16 SceneUBO
 {
 	glm::mat4 ProjectionMatrix{ 1.0f };
 	glm::mat4 ViewMatrix{ 1.0f };
+	glm::vec4 CameraPosition{ 0.0f, 0.0f, 0.0f, 1.0f };
 	glm::vec4 AmbientColor{ 1.0f, 1.0f, 1.0f, 0.3f };	// w is intensity
 };
 
