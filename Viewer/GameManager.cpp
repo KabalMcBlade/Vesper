@@ -400,7 +400,7 @@ void GameManager::LoadGameEntities()
 			TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(damagedHelmet);
 			transformComponent.Position = { 0.0f, 0.0f, 1.0f };
 			transformComponent.Scale = { 1.0f, 1.0f, 1.0f };
-			transformComponent.Rotation = glm::angleAxis(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+			transformComponent.Rotation = glm::angleAxis(glm::radians(-180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
 			m_entityHandlerSystem.RegisterRenderableEntity(damagedHelmet);
 
