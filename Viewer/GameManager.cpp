@@ -5,6 +5,7 @@
 #include "GameManager.h"
 
 #include "Components/PushConstants.h"
+#include <random>
 
 VESPERENGINE_USING_NAMESPACE
 
@@ -63,6 +64,27 @@ void GameManager::Update(const FrameInfo& _frameInfo)
 
 		directionalLightComponent.Direction = glm::rotate(directionalLightComponent.Direction, rotateComponent.RadiantPerFrame, glm::normalize(rotateComponent.RotationAxis));
 		directionalLightComponent.Direction = glm::normalize(directionalLightComponent.Direction);
+	}
+
+	// PointLightComponent
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<PointLightComponent, RotationComponent>(entityManager, componentManager))
+	{
+		PointLightComponent& pointLightComponent = componentManager.GetComponent<PointLightComponent>(gameEntity);
+		RotationComponent& rotateComponent = componentManager.GetComponent<RotationComponent>(gameEntity);
+
+		glm::quat rot = glm::angleAxis(rotateComponent.RadiantPerFrame, glm::normalize(rotateComponent.RotationAxis));
+		pointLightComponent.Position = glm::rotate(rot, pointLightComponent.Position);
+	}
+
+	// SpotLightComponent
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<SpotLightComponent, RotationComponent>(entityManager, componentManager))
+	{
+		SpotLightComponent& spotLightComponent = componentManager.GetComponent<SpotLightComponent>(gameEntity);
+		RotationComponent& rotateComponent = componentManager.GetComponent<RotationComponent>(gameEntity);
+
+		glm::quat rot = glm::angleAxis(rotateComponent.RadiantPerFrame, glm::normalize(rotateComponent.RotationAxis));
+		spotLightComponent.Position = glm::rotate(rot, spotLightComponent.Position);
+		spotLightComponent.Direction = glm::rotate(rot, spotLightComponent.Direction);
 	}
 }
 
@@ -385,14 +407,49 @@ void GameManager::LoadLights()
 	// Create a simple directional light pointing right to left, downwards
 	ecs::Entity sceneLight = m_lightSystem.CreateDirectionalLight({ 0.7071f, -0.7071f, 0.0f }, { 1.0f, 1.0f, 1.0f }, 1.0f);
 
-	/*
-	m_app.GetComponentManager().AddComponent<RotationComponent>(sceneLight);
-	
-	static const float radPerFrame = 0.00174533f;     // 0.1 deg
-	RotationComponent& rotateComponent = m_app.GetComponentManager().GetComponent<RotationComponent>(sceneLight);
-	rotateComponent.RotationAxis = glm::vec3(0.7071f, -0.7071f, 1.0f);
-	rotateComponent.RadiantPerFrame = radPerFrame;
-	*/
+	std::mt19937 rng(std::random_device{}());
+	std::uniform_int_distribution<int> countDist(2, 5);
+	std::uniform_real_distribution<float> posDist(-3.0f, 3.0f);
+	std::uniform_real_distribution<float> colorDist(0.2f, 1.0f);
+	std::uniform_real_distribution<float> intensityDist(0.5f, 3.0f);
+	std::uniform_real_distribution<float> attenuationDist(0.0f, 1.0f);
+	std::uniform_real_distribution<float> cutoffDist(0.7f, 0.95f);
+
+	const float radPerFrame = 0.00174533f; // 0.1 deg
+
+	int pointCount = countDist(rng);
+	for (int i = 0; i < pointCount; ++i)
+	{
+		glm::vec3 position{ posDist(rng), posDist(rng), posDist(rng) };
+		glm::vec3 color{ colorDist(rng), colorDist(rng), colorDist(rng) };
+		float intensity = intensityDist(rng);
+		glm::vec3 attenuation{ 1.0f, attenuationDist(rng), attenuationDist(rng) };
+
+		ecs::Entity pointLight = m_lightSystem.CreatePointLight(position, color, intensity, attenuation);
+
+		m_app.GetComponentManager().AddComponent<RotationComponent>(pointLight);
+		RotationComponent& rotComp = m_app.GetComponentManager().GetComponent<RotationComponent>(pointLight);
+		rotComp.RotationAxis = glm::vec3(0.0f, 1.0f, 0.0f);
+		rotComp.RadiantPerFrame = radPerFrame;
+	}
+
+	int spotCount = countDist(rng);
+	for (int i = 0; i < spotCount; ++i)
+	{
+		glm::vec3 position{ posDist(rng), posDist(rng), posDist(rng) };
+		glm::vec3 dir = glm::normalize(-position);
+		glm::vec3 color{ colorDist(rng), colorDist(rng), colorDist(rng) };
+		float intensity = intensityDist(rng);
+		float inner = cutoffDist(rng);
+		float outer = glm::min(0.99f, inner + 0.05f);
+
+		ecs::Entity spotLight = m_lightSystem.CreateSpotLight(position, dir, color, intensity, inner, outer);
+
+		m_app.GetComponentManager().AddComponent<RotationComponent>(spotLight);
+		RotationComponent& rotComp = m_app.GetComponentManager().GetComponent<RotationComponent>(spotLight);
+		rotComp.RotationAxis = glm::vec3(0.0f, 1.0f, 0.0f);
+		rotComp.RadiantPerFrame = radPerFrame;
+	}
 }
 
 void GameManager::UnloadGameEntities()
