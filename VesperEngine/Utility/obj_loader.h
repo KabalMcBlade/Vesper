@@ -28,7 +28,7 @@ public:
 	ObjLoader& operator=(const ObjLoader&) = delete;
 
 public:
-	std::vector<std::unique_ptr<ModelData>> LoadModel(const std::string& _fileName, bool _isStatic = true);
+        std::vector<std::unique_ptr<ModelData>> LoadModel(const std::string& _fileName, bool _isStatic = true);
 
 private:
 	VesperApp& m_app;

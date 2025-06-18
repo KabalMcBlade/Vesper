@@ -16,6 +16,7 @@
 
 #include "Components/graphics_components.h"
 #include "Components/object_components.h"
+#include "Utility/transform.h"
 #include "Components/pipeline_components.h"
 
 #include "Systems/uniform_buffer.h"
@@ -160,17 +161,13 @@ void PhongOpaqueRenderSystem::Update(const FrameInfo& _frameInfo)
 	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<UpdateComponent, TransformComponent, PipelineOpaqueComponent>(entityManager, componentManager))
-	{
-		TransformComponent& transformComponent = componentManager.GetComponent<TransformComponent>(gameEntity);
-		UpdateComponent& updateComponent = componentManager.GetComponent<UpdateComponent>(gameEntity);
+        for (auto gameEntity : ecs::IterateEntitiesWithAll<UpdateComponent, TransformComponent, PipelineOpaqueComponent>(entityManager, componentManager))
+        {
+                UpdateComponent& updateComponent = componentManager.GetComponent<UpdateComponent>(gameEntity);
+                updateComponent.ModelMatrix = GetWorldMatrix(gameEntity, componentManager);
 
-		updateComponent.ModelMatrix = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
-		updateComponent.ModelMatrix = updateComponent.ModelMatrix * glm::toMat4(transformComponent.Rotation);
-		updateComponent.ModelMatrix = glm::scale(updateComponent.ModelMatrix, transformComponent.Scale);
-
-		PerEntityUpdate(_frameInfo, componentManager, gameEntity);
-	}
+                PerEntityUpdate(_frameInfo, componentManager, gameEntity);
+        }
 }
 
 void PhongOpaqueRenderSystem::Render(const FrameInfo& _frameInfo)

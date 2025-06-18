@@ -282,25 +282,29 @@ std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& 
 			}
 		}
 
-		for (auto& [matID, model] : modelsPerMaterial)
-		{
-			model->IsStatic = _isStatic;
+                for (auto& [matID, model] : modelsPerMaterial)
+                {
+                        model->IsStatic = _isStatic;
+                        model->Parent = -1;
+                        model->Translation = {0.0f, 0.0f, 0.0f};
+                        model->Rotation = glm::quat{1.0f, 0.0f, 0.0f, 0.0f};
+                        model->Scale = {1.0f, 1.0f, 1.0f};
 
-			LOG(Logger::INFO, "Shape: ", shape.name);
-			LOG(Logger::INFO, "Material: ", model->Material->Name);
-			LOG(Logger::INFO, "Vertices count: ", model->Vertices.size());
-			LOG(Logger::INFO, "Indices count: ", model->Indices.size());
-			LOG_NL();
+                        LOG(Logger::INFO, "Shape: ", shape.name);
+                        LOG(Logger::INFO, "Material: ", model->Material->Name);
+                        LOG(Logger::INFO, "Vertices count: ", model->Vertices.size());
+                        LOG(Logger::INFO, "Indices count: ", model->Indices.size());
+                        LOG_NL();
 
-			models.push_back(std::move(model));
-		}
+                        models.push_back(std::move(model));
+                }
 	}
 
 	LOG(Logger::INFO, "Total shapes processed: ", models.size());
 	LOG_NL();
 	LOG_NL();
 
-	return models;
+        return models;
 }
 
 VESPERENGINE_NAMESPACE_END

@@ -80,6 +80,7 @@
     <ClInclude Include="Utility\hash.h" />
     <ClInclude Include="Utility\logger.h" />
     <ClInclude Include="Utility\obj_loader.h" />
+    <ClInclude Include="Utility\transform.h" />
     <ClInclude Include="Systems\model_system.h" />
     <ClInclude Include="Utility\primitive_factory.h" />
     <ClInclude Include="Systems\camera_system.h" />

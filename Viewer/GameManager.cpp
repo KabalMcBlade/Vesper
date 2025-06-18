@@ -208,6 +208,46 @@ void GameManager::LoadGameEntities()
         m_entityHandlerSystem.RegisterRenderableEntity(skybox);
     }
 
+    auto createEntities = [&](std::vector<std::unique_ptr<ModelData>>& dataList,
+                              const glm::vec3& basePos,
+                              const glm::quat& baseRot,
+                              const glm::vec3& baseScale)
+    {
+        std::vector<ecs::Entity> entities(dataList.size());
+        for (size_t i = 0; i < dataList.size(); ++i)
+        {
+            entities[i] = m_gameEntitySystem.CreateGameEntity(EntityType::Renderable);
+            m_modelSystem.LoadModel(entities[i], std::move(dataList[i]));
+        }
+
+        for (size_t i = 0; i < entities.size(); ++i)
+        {
+            TransformComponent& tr = m_app.GetComponentManager().GetComponent<TransformComponent>(entities[i]);
+            tr.Position = basePos + dataList[i]->Translation;
+            tr.Scale = baseScale * dataList[i]->Scale;
+            tr.Rotation = baseRot * dataList[i]->Rotation;
+
+            int parentIdx = dataList[i]->Parent;
+            if (parentIdx >= 0 && parentIdx < static_cast<int>(entities.size()))
+            {
+                tr.Parent = entities[parentIdx];
+                TransformComponent& parentTr = m_app.GetComponentManager().GetComponent<TransformComponent>(entities[parentIdx]);
+                parentTr.Children.push_back(entities[i]);
+            }
+
+            if (!dataList[i]->Vertices.empty())
+            {
+                m_entityHandlerSystem.RegisterRenderableEntity(entities[i]);
+            }
+
+            if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
+            {
+                m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(entities[i]);
+            }
+        }
+        return entities;
+    };
+
 	//////////////////////////////////////////////////////////////////////////
 	// Cube no Indices
 	{
@@ -247,181 +287,54 @@ void GameManager::LoadGameEntities()
 
 	//////////////////////////////////////////////////////////////////////////
 	// Cube
-	{
-		std::vector<std::unique_ptr<ModelData>> coloredCubeDataList = m_objLoader.LoadModel("colored_cube.obj");
-		for (auto& coloredCubeData : coloredCubeDataList)
-		{
-			ecs::Entity coloredCube = m_gameEntitySystem.CreateGameEntity(EntityType::Renderable);
+        {
+                std::vector<std::unique_ptr<ModelData>> coloredCubeDataList = m_objLoader.LoadModel("colored_cube.obj");
+                auto coloredEntities = createEntities(coloredCubeDataList, { 1.5f, -1.5f, 1.0f }, glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f }, { 0.5f, 0.5f, 0.5f });
 
-			m_modelSystem.LoadModel(coloredCube, std::move(coloredCubeData));
-
-			TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(coloredCube);
-			transformComponent.Position = { 1.5f, -1.5f, 1.0f };
-			transformComponent.Scale = { 0.5f, 0.5f, 0.5f };
-			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
-
-			m_entityHandlerSystem.RegisterRenderableEntity(coloredCube);
-
-			// test for custom render systems: 
-			// if PhongCustomTransparentRenderSystem and/or PhongCustomOpaqueRenderSystem are used, they will push constant
-			// to change the tint of the entities having this component registered, otherwise nothing.
-			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
-			{
-				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(coloredCube);
-			}
-
-			m_app.GetComponentManager().AddComponent<RotationComponent>(coloredCube);
-
-			static const float radPerFrame = 0.00174533f;     // 0.1 deg
-			RotationComponent& rotateComponent = m_app.GetComponentManager().GetComponent<RotationComponent>(coloredCube);
-			rotateComponent.RotationAxis = glm::vec3(0.0f, 0.0f, 1.0f);
-			rotateComponent.RadiantPerFrame = radPerFrame;
-		}
-	}
+                static const float radPerFrame = 0.00174533f;     // 0.1 deg
+                for (ecs::Entity ent : coloredEntities)
+                {
+                        m_app.GetComponentManager().AddComponent<RotationComponent>(ent);
+                        RotationComponent& rotateComponent = m_app.GetComponentManager().GetComponent<RotationComponent>(ent);
+                        rotateComponent.RotationAxis = glm::vec3(0.0f, 0.0f, 1.0f);
+                        rotateComponent.RadiantPerFrame = radPerFrame;
+                }
+        }
 
 	//////////////////////////////////////////////////////////////////////////
 	// Flat Vase
-	{
-		std::vector<std::unique_ptr<ModelData>> flatVaseDataList = m_objLoader.LoadModel("flat_vase.obj");
-		for (auto& flatVaseData : flatVaseDataList)
-		{
-			ecs::Entity flatVase = m_gameEntitySystem.CreateGameEntity(EntityType::Renderable);
-
-			m_modelSystem.LoadModel(flatVase, std::move(flatVaseData));
-
-			TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(flatVase);
-			transformComponent.Position = { -1.5f, 0.5f, 1.0f };
-			transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
-			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
-
-			m_entityHandlerSystem.RegisterRenderableEntity(flatVase);
-
-			// test for custom render systems: 
-			// if PhongCustomTransparentRenderSystem and/or PhongCustomOpaqueRenderSystem are used, they will push constant
-			// to change the tint of the entities having this component registered, otherwise nothing.
-			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
-			{
-				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(flatVase);
-			}
-		}
-	}
+        {
+                std::vector<std::unique_ptr<ModelData>> flatVaseDataList = m_objLoader.LoadModel("flat_vase.obj");
+                createEntities(flatVaseDataList, { -1.5f, 0.5f, 1.0f }, glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f }, { 3.0f, 3.0f, 3.0f });
+        }
 
 	//////////////////////////////////////////////////////////////////////////
 	// Smooth Vase
-	{
-		std::vector<std::unique_ptr<ModelData>> smoothVaseDataList = m_objLoader.LoadModel("smooth_vase.obj");
-		for (auto& smoothVaseData : smoothVaseDataList)
-		{
-			ecs::Entity smoothVase = m_gameEntitySystem.CreateGameEntity(EntityType::Renderable);
-
-			m_modelSystem.LoadModel(smoothVase, std::move(smoothVaseData));
-
-			TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(smoothVase);
-			transformComponent.Position = { 1.5f, 0.5f, 1.0f };
-			transformComponent.Scale = { 3.0f, 3.0f, 3.0f };
-			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
-
-			m_entityHandlerSystem.RegisterRenderableEntity(smoothVase);
-
-			// test for custom render systems: 
-			// if PhongCustomTransparentRenderSystem and/or PhongCustomOpaqueRenderSystem are used, they will push constant
-			// to change the tint of the entities having this component registered, otherwise nothing.
-			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
-			{
-				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(smoothVase);
-			}
-		}
-	}
+        {
+                std::vector<std::unique_ptr<ModelData>> smoothVaseDataList = m_objLoader.LoadModel("smooth_vase.obj");
+                createEntities(smoothVaseDataList, { 1.5f, 0.5f, 1.0f }, glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f }, { 3.0f, 3.0f, 3.0f });
+        }
 
 	//////////////////////////////////////////////////////////////////////////
 	// Plane / Quad
-	{
-		std::vector<std::unique_ptr<ModelData>> quadDataList = m_objLoader.LoadModel("quad.obj");
-		for (auto& quadData : quadDataList)
-		{
-			ecs::Entity quad = m_gameEntitySystem.CreateGameEntity(EntityType::Renderable);
-
-			m_modelSystem.LoadModel(quad, std::move(quadData));
-
-			TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(quad);
-			transformComponent.Position = { 0.0f, 1.0f, 0.0f };
-			transformComponent.Scale = { 5.0f, 1.0f, 5.0f };
-			transformComponent.Rotation = glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f };
-
-			m_entityHandlerSystem.RegisterRenderableEntity(quad);
-
-			// test for custom render systems: 
-			// if PhongCustomTransparentRenderSystem and/or PhongCustomOpaqueRenderSystem are used, they will push constant
-			// to change the tint of the entities having this component registered, otherwise nothing.
-			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
-			{
-				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(quad);
-			}
-		}
-	}
+        {
+                std::vector<std::unique_ptr<ModelData>> quadDataList = m_objLoader.LoadModel("quad.obj");
+                createEntities(quadDataList, { 0.0f, 1.0f, 0.0f }, glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f }, { 5.0f, 1.0f, 5.0f });
+        }
 
 	//////////////////////////////////////////////////////////////////////////
 	// A_blonde_twintailed_g_1228205950_texture or Laboratory_cabinet_NakedSingularity
-	{
-		std::vector<std::unique_ptr<ModelData>> characterDataList = m_objLoader.LoadModel("Laboratory_cabinet_NakedSingularity.obj");
-		for (auto& characterData : characterDataList)
-		{
-			ecs::Entity character = m_gameEntitySystem.CreateGameEntity(EntityType::Renderable);
-
-			m_modelSystem.LoadModel(character, std::move(characterData));
-
-			TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(character);
-			transformComponent.Position = { 0.0f, 0.0f, 3.0f };
-			transformComponent.Scale = { 1.0f, 1.0f, 1.0f };
-			transformComponent.Rotation = glm::angleAxis(glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-
-			m_entityHandlerSystem.RegisterRenderableEntity(character);
-
-			// test for custom render systems: 
-			// if PhongCustomTransparentRenderSystem and/or PhongCustomOpaqueRenderSystem are used, they will push constant
-			// to change the tint of the entities having this component registered, otherwise nothing.
-			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
-			{
-				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(character);
-			}
-		}
-	}
+        {
+                std::vector<std::unique_ptr<ModelData>> characterDataList = m_objLoader.LoadModel("Laboratory_cabinet_NakedSingularity.obj");
+                createEntities(characterDataList, { 0.0f, 0.0f, 3.0f }, glm::angleAxis(glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)), { 1.0f, 1.0f, 1.0f });
+        }
 
 	//////////////////////////////////////////////////////////////////////////
 	// GLTF: DamagedHelmet
-	{
-		std::vector<std::unique_ptr<ModelData>> damagedHelmetDataList = m_gltfLoader.LoadModel("DamagedHelmet.gltf");
-		for (auto& damagedHelmetData : damagedHelmetDataList)
-		{
-			ecs::Entity damagedHelmet = m_gameEntitySystem.CreateGameEntity(EntityType::Renderable);
-
-			m_modelSystem.LoadModel(damagedHelmet, std::move(damagedHelmetData));
-
-			TransformComponent& transformComponent = m_app.GetComponentManager().GetComponent<TransformComponent>(damagedHelmet);
-			transformComponent.Position = { 0.0f, 0.0f, 1.0f };
-			transformComponent.Scale = { 1.0f, 1.0f, 1.0f };
-			transformComponent.Rotation = glm::angleAxis(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-
-			m_entityHandlerSystem.RegisterRenderableEntity(damagedHelmet);
-
-			// test for custom render systems: 
-			// if PhongCustomTransparentRenderSystem and/or PhongCustomOpaqueRenderSystem are used, they will push constant
-			// to change the tint of the entities having this component registered, otherwise nothing.
-			if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
-			{
-				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(damagedHelmet);
-			}
-
-			/*
-			m_app.GetComponentManager().AddComponent<RotationComponent>(damagedHelmet);
-
-			static const float radPerFrame = 0.00174533f;     // 0.1 deg
-			RotationComponent& rotateComponent = m_app.GetComponentManager().GetComponent<RotationComponent>(damagedHelmet);
-			rotateComponent.RotationAxis = glm::vec3(0.0f, 0.0f, 1.0f);
-			rotateComponent.RadiantPerFrame = radPerFrame;
-			*/
-		}
-	}
+        {
+                std::vector<std::unique_ptr<ModelData>> damagedHelmetDataList = m_gltfLoader.LoadModel("DamagedHelmet.gltf");
+                createEntities(damagedHelmetDataList, { 0.0f, 0.0f, 1.0f }, glm::angleAxis(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), { 1.0f, 1.0f, 1.0f });
+        }
 }
 
 void GameManager::LoadLights()

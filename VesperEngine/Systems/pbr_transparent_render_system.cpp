@@ -15,6 +15,7 @@
 
 #include "Components/graphics_components.h"
 #include "Components/object_components.h"
+#include "Utility/transform.h"
 #include "Components/pipeline_components.h"
 
 #include "Systems/uniform_buffer.h"
@@ -147,12 +148,8 @@ void PBRTransparentRenderSystem::Update(const FrameInfo& _frameInfo)
 
     for (auto gameEntity : ecs::IterateEntitiesWithAll<PipelineTransparentComponent, UpdateComponent, TransformComponent>(entityManager, componentManager))
     {
-        TransformComponent& transformComponent = componentManager.GetComponent<TransformComponent>(gameEntity);
         UpdateComponent& updateComponent = componentManager.GetComponent<UpdateComponent>(gameEntity);
-
-        updateComponent.ModelMatrix = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
-        updateComponent.ModelMatrix = updateComponent.ModelMatrix * glm::toMat4(transformComponent.Rotation);
-        updateComponent.ModelMatrix = glm::scale(updateComponent.ModelMatrix, transformComponent.Scale);
+        updateComponent.ModelMatrix = GetWorldMatrix(gameEntity, componentManager);
 
         PerEntityUpdate(_frameInfo, componentManager, gameEntity);
     }

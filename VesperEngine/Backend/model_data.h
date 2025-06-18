@@ -62,10 +62,14 @@ struct MaterialData
 
 struct ModelData
 {
-	std::vector<Vertex> Vertices{};
-	std::vector<uint32> Indices{};
-	std::shared_ptr<MaterialData> Material;
-	bool IsStatic{ false };
+        std::vector<Vertex> Vertices{};
+        std::vector<uint32> Indices{};
+        std::shared_ptr<MaterialData> Material;
+        bool IsStatic{ false };
+        glm::vec3 Translation{0.0f, 0.0f, 0.0f};
+        glm::quat Rotation{1.0f, 0.0f, 0.0f, 0.0f};
+        glm::vec3 Scale{1.0f, 1.0f, 1.0f};
+        int Parent{-1};
 };
 
 VESPERENGINE_NAMESPACE_END
