@@ -252,22 +252,133 @@ void main()
     vec3 specularEnvironmentR90 = vec3(1.0) * reflectance90;
 
     vec3 v = normalize(sceneUBO.CameraPosition.xyz - fragPositionWorld);
-    vec3 l = normalize(-lightsUBO.DirectionalLights[0].Direction.xyz);
-    vec3 h = normalize(l + v);
     vec3 reflection = normalize(reflect(-v, n));
 
-    float NdotL = clamp(dot(n, l), 0.001, 1.0);
-    float NdotV = clamp(abs(dot(n, v)), 0.001, 1.0);
-    float NdotH = clamp(dot(n, h), 0.0, 1.0);
-    float LdotH = clamp(dot(l, h), 0.0, 1.0);
-    float VdotH = clamp(dot(v, h), 0.0, 1.0);
+     vec3 color = vec3(0.0);
 
-    PBRInfo pbrInputs = PBRInfo(
-        NdotL,
-        NdotV,
-        NdotH,
-        LdotH,
-        VdotH,
+    for (int i = 0; i < lightsUBO.DirectionalCount; ++i)
+    {
+        vec3 l = normalize(-lightsUBO.DirectionalLights[i].Direction.xyz);
+        vec3 h = normalize(l + v);
+
+        float NdotL = clamp(dot(n, l), 0.001, 1.0);
+        float NdotV = clamp(abs(dot(n, v)), 0.001, 1.0);
+        float NdotH = clamp(dot(n, h), 0.0, 1.0);
+        float LdotH = clamp(dot(l, h), 0.0, 1.0);
+        float VdotH = clamp(dot(v, h), 0.0, 1.0);
+
+        PBRInfo pbrInputs = PBRInfo(
+            NdotL,
+            NdotV,
+            NdotH,
+            LdotH,
+            VdotH,
+            roughness,
+            metallic,
+            specularEnvironmentR0,
+            specularEnvironmentR90,
+            alphaRoughness,
+            diffuseColor,
+            specularColor
+        );
+
+        vec3 F = specularReflection(pbrInputs);
+        float G = geometricOcclusion(pbrInputs);
+        float D = microfacetDistribution(pbrInputs);
+
+        vec3 lightColor = lightsUBO.DirectionalLights[i].Color.rgb * lightsUBO.DirectionalLights[i].Color.a * c_LightBoost;
+        vec3 diffuseContrib = (1.0 - F) * diffuse(pbrInputs);
+        vec3 specContrib = F * G * D / (4.0 * NdotL * NdotV);
+        color += NdotL * lightColor * (diffuseContrib + specContrib);
+    }
+
+    for (int i = 0; i < lightsUBO.PointCount; ++i)
+    {
+        vec3 L = lightsUBO.PointLights[i].Position.xyz - fragPositionWorld;
+        float dist = length(L);
+        vec3 l = normalize(L);
+        vec3 h = normalize(l + v);
+        float att = 1.0 / (lightsUBO.PointLights[i].Attenuation.x + lightsUBO.PointLights[i].Attenuation.y * dist + lightsUBO.PointLights[i].Attenuation.z * dist * dist);
+
+        float NdotL = clamp(dot(n, l), 0.001, 1.0);
+        float NdotV = clamp(abs(dot(n, v)), 0.001, 1.0);
+        float NdotH = clamp(dot(n, h), 0.0, 1.0);
+        float LdotH = clamp(dot(l, h), 0.0, 1.0);
+        float VdotH = clamp(dot(v, h), 0.0, 1.0);
+
+        PBRInfo pbrInputs = PBRInfo(
+            NdotL,
+            NdotV,
+            NdotH,
+            LdotH,
+            VdotH,
+            roughness,
+            metallic,
+            specularEnvironmentR0,
+            specularEnvironmentR90,
+            alphaRoughness,
+            diffuseColor,
+            specularColor
+        );
+
+        vec3 F = specularReflection(pbrInputs);
+        float G = geometricOcclusion(pbrInputs);
+        float D = microfacetDistribution(pbrInputs);
+
+        vec3 lightColor = lightsUBO.PointLights[i].Color.rgb * lightsUBO.PointLights[i].Color.a * att * c_LightBoost;
+        vec3 diffuseContrib = (1.0 - F) * diffuse(pbrInputs);
+        vec3 specContrib = F * G * D / (4.0 * NdotL * NdotV);
+        color += NdotL * lightColor * (diffuseContrib + specContrib);
+    }
+
+    for (int i = 0; i < lightsUBO.SpotCount; ++i)
+    {
+        vec3 L = lightsUBO.SpotLights[i].Position.xyz - fragPositionWorld;
+        float dist = length(L);
+        vec3 l = normalize(L);
+        vec3 h = normalize(l + v);
+        float theta = dot(l, normalize(-lightsUBO.SpotLights[i].Direction.xyz));
+        float epsilon = lightsUBO.SpotLights[i].Params.x - lightsUBO.SpotLights[i].Params.y;
+        float intensity = clamp((theta - lightsUBO.SpotLights[i].Params.y) / epsilon, 0.0, 1.0);
+        float att = intensity / (dist * dist);
+
+        float NdotL = clamp(dot(n, l), 0.001, 1.0);
+        float NdotV = clamp(abs(dot(n, v)), 0.001, 1.0);
+        float NdotH = clamp(dot(n, h), 0.0, 1.0);
+        float LdotH = clamp(dot(l, h), 0.0, 1.0);
+        float VdotH = clamp(dot(v, h), 0.0, 1.0);
+
+        PBRInfo pbrInputs = PBRInfo(
+            NdotL,
+            NdotV,
+            NdotH,
+            LdotH,
+            VdotH,
+            roughness,
+            metallic,
+            specularEnvironmentR0,
+            specularEnvironmentR90,
+            alphaRoughness,
+            diffuseColor,
+            specularColor
+        );
+
+        vec3 F = specularReflection(pbrInputs);
+        float G = geometricOcclusion(pbrInputs);
+        float D = microfacetDistribution(pbrInputs);
+
+        vec3 lightColor = lightsUBO.SpotLights[i].Color.rgb * lightsUBO.SpotLights[i].Color.a * att * c_LightBoost;
+        vec3 diffuseContrib = (1.0 - F) * diffuse(pbrInputs);
+        vec3 specContrib = F * G * D / (4.0 * NdotL * NdotV);
+        color += NdotL * lightColor * (diffuseContrib + specContrib);
+    }
+
+    PBRInfo iblInputs = PBRInfo(
+        1.0,
+        clamp(abs(dot(n, v)), 0.001, 1.0),
+        1.0,
+        1.0,
+        1.0,
         roughness,
         metallic,
         specularEnvironmentR0,
@@ -277,16 +388,8 @@ void main()
         specularColor
     );
 
-    vec3 F = specularReflection(pbrInputs);
-    float G = geometricOcclusion(pbrInputs);
-    float D = microfacetDistribution(pbrInputs);
 
-    vec3 lightColor = lightsUBO.DirectionalLights[0].Color.rgb * lightsUBO.DirectionalLights[0].Color.a * c_LightBoost;
-    vec3 diffuseContrib = (1.0 - F) * diffuse(pbrInputs);
-    vec3 specContrib = F * G * D / (4.0 * NdotL * NdotV);
-    vec3 color = NdotL * lightColor * (diffuseContrib + specContrib);
-
-    color += getIBLContribution(pbrInputs, n, reflection);
+    color += getIBLContribution(iblInputs, n, reflection);
     color = mix(color, color * ao, 1.0);
 
 #if BINDLESS == 1

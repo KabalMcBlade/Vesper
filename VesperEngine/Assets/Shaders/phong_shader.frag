@@ -142,7 +142,6 @@ void main()
 
     vec3 cameraPosition = sceneUBO.CameraPosition.xyz;
     vec3 viewDir = normalize(cameraPosition - fragPositionWorld);
-    vec3 lightDir = normalize(lightsUBO.DirectionalLights[0].Direction.xyz);
 
     vec4 combinedLighting = vec4(0.0);
 
@@ -170,8 +169,38 @@ void main()
 
         vec4 finalDiffuseColor = diffuseTextureColor * diffuseColor;
 
-        float diffIntensity = max(dot(normal, lightDir), 0.0);
-        combinedLighting += finalDiffuseColor * vec4(lightsUBO.DirectionalLights[0].Color.rgb * diffIntensity * lightsUBO.DirectionalLights[0].Color.a, 1.0);
+        for (int i = 0; i < lightsUBO.DirectionalCount; ++i)
+        {
+            vec3 lDir = normalize(lightsUBO.DirectionalLights[i].Direction.xyz);
+            float diffIntensity = max(dot(normal, lDir), 0.0);
+            vec3 lightCol = lightsUBO.DirectionalLights[i].Color.rgb * lightsUBO.DirectionalLights[i].Color.a;
+            combinedLighting += finalDiffuseColor * vec4(lightCol * diffIntensity, 1.0);
+        }
+
+        for (int i = 0; i < lightsUBO.PointCount; ++i)
+        {
+            vec3 L = lightsUBO.PointLights[i].Position.xyz - fragPositionWorld;
+            float dist = length(L);
+            vec3 lDir = normalize(L);
+            float att = 1.0 / (lightsUBO.PointLights[i].Attenuation.x + lightsUBO.PointLights[i].Attenuation.y * dist + lightsUBO.PointLights[i].Attenuation.z * dist * dist);
+            float diffIntensity = max(dot(normal, lDir), 0.0);
+            vec3 lightCol = lightsUBO.PointLights[i].Color.rgb * lightsUBO.PointLights[i].Color.a * att;
+            combinedLighting += finalDiffuseColor * vec4(lightCol * diffIntensity, 1.0);
+        }
+
+        for (int i = 0; i < lightsUBO.SpotCount; ++i)
+        {
+            vec3 L = lightsUBO.SpotLights[i].Position.xyz - fragPositionWorld;
+            float dist = length(L);
+            vec3 lDir = normalize(L);
+            float theta = dot(lDir, normalize(-lightsUBO.SpotLights[i].Direction.xyz));
+            float epsilon = lightsUBO.SpotLights[i].Params.x - lightsUBO.SpotLights[i].Params.y;
+            float intensity = clamp((theta - lightsUBO.SpotLights[i].Params.y) / epsilon, 0.0, 1.0);
+            float att = intensity / (dist * dist);
+            float diffIntensity = max(dot(normal, lDir), 0.0);
+            vec3 lightCol = lightsUBO.SpotLights[i].Color.rgb * lightsUBO.SpotLights[i].Color.a * att;
+            combinedLighting += finalDiffuseColor * vec4(lightCol * diffIntensity, 1.0);
+        }
     }
 
     // Specular Contribution
@@ -185,19 +214,80 @@ void main()
         
         vec4 finalSpecularColor = specularTextureColor * specularColor;
 
-        vec3 reflectDir = reflect(-lightDir, normal);
-        float specIntensity = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-        combinedLighting += finalSpecularColor * lightsUBO.DirectionalLights[0].Color * clamp(specIntensity, 0.0, 1.0);
+        for (int i = 0; i < lightsUBO.DirectionalCount; ++i)
+        {
+            vec3 lDir = normalize(lightsUBO.DirectionalLights[i].Direction.xyz);
+            vec3 reflectDir = reflect(-lDir, normal);
+            float specIntensity = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+            vec3 lightCol = lightsUBO.DirectionalLights[i].Color.rgb * lightsUBO.DirectionalLights[i].Color.a;
+            combinedLighting += finalSpecularColor * vec4(lightCol * clamp(specIntensity, 0.0, 1.0), 1.0);
+        }
+
+        for (int i = 0; i < lightsUBO.PointCount; ++i)
+        {
+            vec3 L = lightsUBO.PointLights[i].Position.xyz - fragPositionWorld;
+            float dist = length(L);
+            vec3 lDir = normalize(L);
+            float att = 1.0 / (lightsUBO.PointLights[i].Attenuation.x + lightsUBO.PointLights[i].Attenuation.y * dist + lightsUBO.PointLights[i].Attenuation.z * dist * dist);
+            vec3 reflectDir = reflect(-lDir, normal);
+            float specIntensity = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+            vec3 lightCol = lightsUBO.PointLights[i].Color.rgb * lightsUBO.PointLights[i].Color.a * att;
+            combinedLighting += finalSpecularColor * vec4(lightCol * clamp(specIntensity, 0.0, 1.0), 1.0);
+        }
+
+        for (int i = 0; i < lightsUBO.SpotCount; ++i)
+        {
+            vec3 L = lightsUBO.SpotLights[i].Position.xyz - fragPositionWorld;
+            float dist = length(L);
+            vec3 lDir = normalize(L);
+            float theta = dot(lDir, normalize(-lightsUBO.SpotLights[i].Direction.xyz));
+            float epsilon = lightsUBO.SpotLights[i].Params.x - lightsUBO.SpotLights[i].Params.y;
+            float intensity = clamp((theta - lightsUBO.SpotLights[i].Params.y) / epsilon, 0.0, 1.0);
+            float att = intensity / (dist * dist);
+            vec3 reflectDir = reflect(-lDir, normal);
+            float specIntensity = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+            vec3 lightCol = lightsUBO.SpotLights[i].Color.rgb * lightsUBO.SpotLights[i].Color.a * att;
+            combinedLighting += finalSpecularColor * vec4(lightCol * clamp(specIntensity, 0.0, 1.0), 1.0);
+        }
     }
 
     // fallback vertex color
     if (!bHasAmbientTexture && !bHasDiffuseTexture && !bHasSpecularTexture) 
     {
-        float attenuation = 1.0 / dot(lightDir, lightDir); // distance squared
-        vec3 lightColor = lightsUBO.DirectionalLights[0].Color.rgb * lightsUBO.DirectionalLights[0].Color.a * attenuation;
         vec3 ambientLight = sceneUBO.AmbientColor.rgb * sceneUBO.AmbientColor.a;
-        vec3 diffuseLight = lightColor * max(dot(fragNormalWorld, normalize(lightDir)), 0);
-        combinedLighting = vec4((diffuseLight + ambientLight) * fragColor, 1.0);
+        vec3 diffuseAccum = vec3(0.0);
+                
+        for (int i = 0; i < lightsUBO.DirectionalCount; ++i)
+        {
+            vec3 lDir = normalize(lightsUBO.DirectionalLights[i].Direction.xyz);
+            vec3 lightColor = lightsUBO.DirectionalLights[i].Color.rgb * lightsUBO.DirectionalLights[i].Color.a;
+            diffuseAccum += lightColor * max(dot(fragNormalWorld, lDir), 0.0);
+        }
+
+        for (int i = 0; i < lightsUBO.PointCount; ++i)
+        {
+            vec3 L = lightsUBO.PointLights[i].Position.xyz - fragPositionWorld;
+            float dist = length(L);
+            vec3 lDir = normalize(L);
+            float att = 1.0 / (lightsUBO.PointLights[i].Attenuation.x + lightsUBO.PointLights[i].Attenuation.y * dist + lightsUBO.PointLights[i].Attenuation.z * dist * dist);
+            vec3 lightColor = lightsUBO.PointLights[i].Color.rgb * lightsUBO.PointLights[i].Color.a * att;
+            diffuseAccum += lightColor * max(dot(fragNormalWorld, lDir), 0.0);
+        }
+
+        for (int i = 0; i < lightsUBO.SpotCount; ++i)
+        {
+            vec3 L = lightsUBO.SpotLights[i].Position.xyz - fragPositionWorld;
+            float dist = length(L);
+            vec3 lDir = normalize(L);
+            float theta = dot(lDir, normalize(-lightsUBO.SpotLights[i].Direction.xyz));
+            float epsilon = lightsUBO.SpotLights[i].Params.x - lightsUBO.SpotLights[i].Params.y;
+            float intensity = clamp((theta - lightsUBO.SpotLights[i].Params.y) / epsilon, 0.0, 1.0);
+            float att = intensity / (dist * dist);
+            vec3 lightColor = lightsUBO.SpotLights[i].Color.rgb * lightsUBO.SpotLights[i].Color.a * att;
+            diffuseAccum += lightColor * max(dot(fragNormalWorld, lDir), 0.0);
+        }
+
+        combinedLighting = vec4((diffuseAccum + ambientLight) * fragColor, 1.0);
     }
 
     // Emission Contribution (Always Added)

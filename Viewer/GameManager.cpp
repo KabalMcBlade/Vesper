@@ -385,12 +385,14 @@ void GameManager::LoadLights()
 	// Create a simple directional light pointing right to left, downwards
 	ecs::Entity sceneLight = m_lightSystem.CreateDirectionalLight({ 0.7071f, -0.7071f, 0.0f }, { 1.0f, 1.0f, 1.0f }, 1.0f);
 
+	/*
 	m_app.GetComponentManager().AddComponent<RotationComponent>(sceneLight);
 	
 	static const float radPerFrame = 0.00174533f;     // 0.1 deg
 	RotationComponent& rotateComponent = m_app.GetComponentManager().GetComponent<RotationComponent>(sceneLight);
 	rotateComponent.RotationAxis = glm::vec3(0.7071f, -0.7071f, 1.0f);
 	rotateComponent.RadiantPerFrame = radPerFrame;
+	*/
 }
 
 void GameManager::UnloadGameEntities()
