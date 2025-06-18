@@ -117,7 +117,7 @@ void SkyboxRenderSystem::Render(const FrameInfo& _frameInfo)
     SkyboxPushConstant push{};
     push.ViewProjection = camera.ProjectionMatrix * view;
 
-    for (auto entity : ecs::IterateEntitiesWithAll<PipelineSkyboxComponent, RenderComponent, VertexBufferComponent, SkyboxMaterialComponent>(entityManager, componentManager))
+    for (auto entity : ecs::IterateEntitiesWithAll<PipelineSkyboxComponent, VertexBufferComponent, SkyboxMaterialComponent, VisibilityComponent>(entityManager, componentManager))
     {
         const VertexBufferComponent& vertex = componentManager.GetComponent<VertexBufferComponent>(entity);
         const IndexBufferComponent& index = componentManager.GetComponent<IndexBufferComponent>(entity);

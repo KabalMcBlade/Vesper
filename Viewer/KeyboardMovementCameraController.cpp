@@ -14,8 +14,40 @@ KeyboardMovementCameraController::KeyboardMovementCameraController(VesperApp& _a
 
 void KeyboardMovementCameraController::MoveInPlaneXZ(GLFWwindow* _window, float _dt)
 {
-	ecs::EntityManager& entityManager = m_app.GetEntityManager();
-	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
+    ecs::EntityManager& entityManager = m_app.GetEntityManager();
+    ecs::ComponentManager& componentManager = m_app.GetComponentManager();
+
+    bool toggle = glfwGetKey(_window, m_keys.ToggleLights) == GLFW_PRESS;
+    if (toggle && !m_togglePressed)
+    {
+        m_togglePressed = true;
+        m_showLights = !m_showLights;
+
+        if (m_showLights)
+        {
+            for (auto entity : ecs::IterateEntitiesWithAny<DirectionalLightComponent, PointLightComponent, SpotLightComponent>(entityManager, componentManager))
+            {
+                if (!componentManager.HasComponents<VisibilityComponent>(entity))
+                {
+                    componentManager.AddComponent<VisibilityComponent>(entity);
+                }
+            }
+        }
+        else
+        {
+            for (auto entity : ecs::IterateEntitiesWithAny<DirectionalLightComponent, PointLightComponent, SpotLightComponent>(entityManager, componentManager))
+            {
+                if (componentManager.HasComponents<VisibilityComponent>(entity))
+                {
+                    componentManager.RemoveComponent<VisibilityComponent>(entity);
+                }
+            }
+        }
+    }
+    else if (!toggle)
+    {
+        m_togglePressed = false;
+    }
 
 	for (auto camera : ecs::IterateEntitiesWithAll<CameraActive, CameraTransformComponent>(entityManager, componentManager))
 	{

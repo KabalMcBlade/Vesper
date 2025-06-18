@@ -173,6 +173,7 @@ void MasterRenderSystem::UpdateScene(const FrameInfo& _frameInfo, const CameraCo
 	m_buffer->WriteToBuffer(m_globalSceneUboBuffers[_frameInfo.FrameIndex]);
 
 	m_lightSystem.FillLightsUBO(lightsUBO);
+
 	m_globalLightsUboBuffers[_frameInfo.FrameIndex].MappedMemory = &lightsUBO;
 	m_buffer->WriteToBuffer(m_globalLightsUboBuffers[_frameInfo.FrameIndex]);
 }

@@ -69,12 +69,12 @@ void EntityHandlerSystem::UpdateEntities(const FrameInfo& _frameInfo)
 	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, RenderComponent>(entityManager, componentManager))
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<DynamicOffsetComponent, UpdateComponent>(entityManager, componentManager))
 	{
 		const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(gameEntity);
-		const RenderComponent& renderComponent = componentManager.GetComponent<RenderComponent>(gameEntity);
+		const UpdateComponent& updateComponent = componentManager.GetComponent<UpdateComponent>(gameEntity);
 
-		EntityUBO entityUBO{ renderComponent.ModelMatrix };
+		EntityUBO entityUBO{ updateComponent.ModelMatrix };
 
 		m_entityUboBuffers[_frameInfo.FrameIndex].MappedMemory = &entityUBO;
 		m_buffer->WriteToIndex(m_entityUboBuffers[_frameInfo.FrameIndex], dynamicOffsetComponent.DynamicOffsetIndex);

@@ -33,6 +33,7 @@ public:
 		int32 LookDown = GLFW_KEY_DOWN;
 		int32 LookRollRight = GLFW_KEY_PAGE_UP;
 		int32 LookRollLeft = GLFW_KEY_PAGE_DOWN;
+		int32 ToggleLights = GLFW_KEY_L;
 	};
 
 	void MoveInPlaneXZ(GLFWwindow* _window, float _dt);
@@ -45,5 +46,7 @@ private:
 	float m_lookSpeed{3.0f};
 
 	bool m_limitLook{true};
+	bool m_showLights{ false };
+	bool m_togglePressed{ false };
 };
 

@@ -389,7 +389,15 @@ void main()
     );
 
 
-    color += getIBLContribution(iblInputs, n, reflection);
+    //color += getIBLContribution(iblInputs, n, reflection);
+    
+    vec3 ibl = getIBLContribution(iblInputs, n, reflection);
+    //vec3 ambientColor = sceneUBO.AmbientColor.rgb * sceneUBO.AmbientColor.a;
+    
+    vec3 ambientColor = tonemap(vec4(sceneUBO.AmbientColor.rgb, 1.0)).rgb * sceneUBO.AmbientColor.a;
+    
+    color += ibl + ambientColor * (diffuseColor + specularColor);
+    
     color = mix(color, color * ao, 1.0);
 
 #if BINDLESS == 1

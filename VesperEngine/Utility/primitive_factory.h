@@ -29,6 +29,12 @@ public:
 	static std::unique_ptr<ModelData> GenerateCube(MaterialSystem& _materialSystem, glm::vec3 _offset, glm::vec3 _facesColor, bool _isStatic = true);
 	static std::unique_ptr<ModelData> GenerateCube(MaterialSystem& _materialSystem, glm::vec3 _offset, std::array<glm::vec3, 6> _facesColor, bool _isStatic = true);
 
+	static std::unique_ptr<ModelData> GenerateSphere(MaterialSystem& _materialSystem, glm::vec3 _offset, glm::vec3 _color, uint32 _segments = 16, uint32 _rings = 16, bool _isStatic = true);
+	static std::unique_ptr<ModelData> GenerateCone(MaterialSystem& _materialSystem, glm::vec3 _offset, glm::vec3 _color, uint32 _segments = 16, bool _isStatic = true);
+	
+	static std::unique_ptr<ModelData> GenerateParallelepiped(MaterialSystem& _materialSystem, glm::vec3 _offset, float bottomSize, float topSize, float height, glm::vec3 _facesColor, bool _isStatic = true);
+	static std::unique_ptr<ModelData> GenerateParallelepiped(MaterialSystem& _materialSystem, glm::vec3 _offset, float bottomSize, float topSize, float height, std::array<glm::vec3, 6> _facesColor, bool _isStatic = true);
+
 private:
 	PrimitiveFactory() = delete;
 	~PrimitiveFactory() = delete;

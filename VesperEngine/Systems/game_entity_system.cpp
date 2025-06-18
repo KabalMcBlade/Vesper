@@ -37,19 +37,18 @@ ecs::Entity GameEntitySystem::CreateGameEntity(EntityType _type) const
 		break;
 	case EntityType::Renderable:
 		m_app.GetComponentManager().AddComponent<TransformComponent>(entity);
-		m_app.GetComponentManager().AddComponent<RenderComponent>(entity);
+		m_app.GetComponentManager().AddComponent<UpdateComponent>(entity);
 		m_app.GetComponentManager().AddComponent<DynamicOffsetComponent>(entity);
+		m_app.GetComponentManager().AddComponent<VisibilityComponent>(entity);
 		break;
 	case EntityType::DirectionalLight:
 		m_app.GetComponentManager().AddComponent<DirectionalLightComponent>(entity);
 		break;
 	case EntityType::PointLight:
 		m_app.GetComponentManager().AddComponent<PointLightComponent>(entity);
-		m_app.GetComponentManager().AddComponent<TransformComponent>(entity);
 		break;
 	case EntityType::SpotLight:
 		m_app.GetComponentManager().AddComponent<SpotLightComponent>(entity);
-		m_app.GetComponentManager().AddComponent<TransformComponent>(entity);
 		break;
 	default:
 		// Pure
@@ -76,11 +75,16 @@ void GameEntitySystem::DestroyGameEntity(const ecs::Entity _entity) const
 		m_app.GetComponentManager().RemoveComponent<TransformComponent>(_entity);
 	}
 
-	if (m_app.GetComponentManager().HasComponents<RenderComponent>(_entity))
+	if (m_app.GetComponentManager().HasComponents<UpdateComponent>(_entity))
 	{
-		m_app.GetComponentManager().RemoveComponent<RenderComponent>(_entity);
+		m_app.GetComponentManager().RemoveComponent<UpdateComponent>(_entity);
 	}
 
+	if (m_app.GetComponentManager().HasComponents<VisibilityComponent>(_entity))
+	{
+		m_app.GetComponentManager().RemoveComponent<VisibilityComponent>(_entity);
+	}
+	
 	if (m_app.GetComponentManager().HasComponents<DynamicOffsetComponent>(_entity))
 	{
 		m_app.GetComponentManager().RemoveComponent<DynamicOffsetComponent>(_entity);

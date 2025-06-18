@@ -23,12 +23,13 @@ class MaterialSystem;
 class DescriptorSetLayout;
 class Buffer;
 class Renderer;
+class LightSystem;
 
 struct TextureData;
 struct CameraTransformComponent;
 struct CameraComponent;
 struct FrameInfo;
-class LightSystem;
+struct LightsUBO;
 struct BufferComponent;
 
 /**

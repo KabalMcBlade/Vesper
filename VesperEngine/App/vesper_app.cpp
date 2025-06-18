@@ -74,9 +74,11 @@ void VesperApp::RegisterDefaultComponents()
 	m_componentManager.RegisterComponent<NotVertexBufferComponent>();
 	m_componentManager.RegisterComponent<NotIndexBufferComponent>();
 
-	// RENDER
-	m_componentManager.RegisterComponent<RenderComponent>();
+	// RENDER/UPDATE
+	m_componentManager.RegisterComponent<UpdateComponent>();
 	m_componentManager.RegisterComponent<DynamicOffsetComponent>();
+	m_componentManager.RegisterComponent<VisibilityComponent>();
+	
 
 	// PIPELINES
 	m_componentManager.RegisterComponent<PipelineOpaqueComponent>();
@@ -120,9 +122,10 @@ void VesperApp::UnregisterDefaultComponent()
 	m_componentManager.UnregisterComponent<NotVertexBufferComponent>();
 	m_componentManager.UnregisterComponent<NotIndexBufferComponent>();
 
-	// RENDER
-	m_componentManager.UnregisterComponent<RenderComponent>();
+	// RENDER/UPDATE
+	m_componentManager.UnregisterComponent<UpdateComponent>();
 	m_componentManager.UnregisterComponent<DynamicOffsetComponent>();
+	m_componentManager.UnregisterComponent<VisibilityComponent>();
 
 	// PIPELINES
 	m_componentManager.UnregisterComponent<PipelineOpaqueComponent>();

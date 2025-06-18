@@ -29,10 +29,15 @@ struct StaticComponent
 
 };
 
-// define the struct which each instance has at least to have, if needs to be visible/rendered
-struct RenderComponent
+// define the struct which each instance has at least to have, if needs to be updated
+struct UpdateComponent
 {
 	glm::mat4 ModelMatrix{ 1 };
+};
+
+// define the struct which each instance has at least to have, if needs to be visible
+struct VisibilityComponent
+{
 };
 
 VESPERENGINE_NAMESPACE_END

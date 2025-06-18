@@ -146,14 +146,14 @@ void PhongTransparentRenderSystem::Update(const FrameInfo& _frameInfo)
     ecs::EntityManager& entityManager = m_app.GetEntityManager();
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-    for (auto gameEntity : ecs::IterateEntitiesWithAll<PipelineTransparentComponent, RenderComponent, TransformComponent>(entityManager, componentManager))
+    for (auto gameEntity : ecs::IterateEntitiesWithAll<PipelineTransparentComponent, UpdateComponent, TransformComponent>(entityManager, componentManager))
     {
         TransformComponent& transformComponent = componentManager.GetComponent<TransformComponent>(gameEntity);
-        RenderComponent& renderComponent = componentManager.GetComponent<RenderComponent>(gameEntity);
+        UpdateComponent& updateComponent = componentManager.GetComponent<UpdateComponent>(gameEntity);
 
-        renderComponent.ModelMatrix = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
-        renderComponent.ModelMatrix = renderComponent.ModelMatrix * glm::toMat4(transformComponent.Rotation);
-        renderComponent.ModelMatrix = glm::scale(renderComponent.ModelMatrix, transformComponent.Scale);
+        updateComponent.ModelMatrix = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
+        updateComponent.ModelMatrix = updateComponent.ModelMatrix * glm::toMat4(transformComponent.Rotation);
+        updateComponent.ModelMatrix = glm::scale(updateComponent.ModelMatrix, transformComponent.Scale);
 
         PerEntityUpdate(_frameInfo, componentManager, gameEntity);
     }
@@ -166,7 +166,7 @@ void PhongTransparentRenderSystem::Render(const FrameInfo& _frameInfo)
     ecs::EntityManager& entityManager = m_app.GetEntityManager();
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-    auto entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineTransparentComponent, DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent>(entityManager, componentManager, &PhongMaterialComponent::Index);
+    auto entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineTransparentComponent, DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent, VisibilityComponent>(entityManager, componentManager, &PhongMaterialComponent::Index);
 
     for (const auto& [key, entities] : entitiesGroupedAndCollected)
     {
@@ -209,7 +209,7 @@ void PhongTransparentRenderSystem::Render(const FrameInfo& _frameInfo)
 
     entitiesGroupedAndCollected.clear();
 
-    entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineTransparentComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent>(entityManager, componentManager, &PhongMaterialComponent::Index);
+    entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineTransparentComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent, VisibilityComponent>(entityManager, componentManager, &PhongMaterialComponent::Index);
 
     for (const auto& [key, entities] : entitiesGroupedAndCollected)
     {

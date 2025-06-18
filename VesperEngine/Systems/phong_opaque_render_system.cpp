@@ -160,14 +160,14 @@ void PhongOpaqueRenderSystem::Update(const FrameInfo& _frameInfo)
 	ecs::EntityManager& entityManager = m_app.GetEntityManager();
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-	for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent, TransformComponent, PipelineOpaqueComponent>(entityManager, componentManager))
+	for (auto gameEntity : ecs::IterateEntitiesWithAll<UpdateComponent, TransformComponent, PipelineOpaqueComponent>(entityManager, componentManager))
 	{
 		TransformComponent& transformComponent = componentManager.GetComponent<TransformComponent>(gameEntity);
-		RenderComponent& renderComponent = componentManager.GetComponent<RenderComponent>(gameEntity);
+		UpdateComponent& updateComponent = componentManager.GetComponent<UpdateComponent>(gameEntity);
 
-		renderComponent.ModelMatrix = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
-		renderComponent.ModelMatrix = renderComponent.ModelMatrix * glm::toMat4(transformComponent.Rotation);
-		renderComponent.ModelMatrix = glm::scale(renderComponent.ModelMatrix, transformComponent.Scale);
+		updateComponent.ModelMatrix = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
+		updateComponent.ModelMatrix = updateComponent.ModelMatrix * glm::toMat4(transformComponent.Rotation);
+		updateComponent.ModelMatrix = glm::scale(updateComponent.ModelMatrix, transformComponent.Scale);
 
 		PerEntityUpdate(_frameInfo, componentManager, gameEntity);
 	}
@@ -182,7 +182,7 @@ void PhongOpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
 	// 1. Render whatever has vertex buffers and index buffer
-    auto entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineOpaqueComponent, DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent>(entityManager, componentManager, &PhongMaterialComponent::Index);
+    auto entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineOpaqueComponent, DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent, VisibilityComponent>(entityManager, componentManager, &PhongMaterialComponent::Index);
 
 	for (const auto& [key, entities] : entitiesGroupedAndCollected)
 	{
@@ -229,7 +229,7 @@ void PhongOpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 
 
 	// 2. Render only entities having Vertex buffers only
-    entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineOpaqueComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent>(entityManager, componentManager, &PhongMaterialComponent::Index);
+    entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineOpaqueComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent, VisibilityComponent>(entityManager, componentManager, &PhongMaterialComponent::Index);
 
 	for (const auto& [key, entities] : entitiesGroupedAndCollected)
 	{

@@ -148,14 +148,14 @@ void PBROpaqueRenderSystem::Update(const FrameInfo& _frameInfo)
     ecs::EntityManager& entityManager = m_app.GetEntityManager();
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-    for (auto gameEntity : ecs::IterateEntitiesWithAll<RenderComponent, TransformComponent, PipelineOpaqueComponent>(entityManager, componentManager))
+    for (auto gameEntity : ecs::IterateEntitiesWithAll<UpdateComponent, TransformComponent, PipelineOpaqueComponent>(entityManager, componentManager))
     {
         TransformComponent& transformComponent = componentManager.GetComponent<TransformComponent>(gameEntity);
-        RenderComponent& renderComponent = componentManager.GetComponent<RenderComponent>(gameEntity);
+        UpdateComponent& updateComponent = componentManager.GetComponent<UpdateComponent>(gameEntity);
 
-        renderComponent.ModelMatrix = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
-        renderComponent.ModelMatrix = renderComponent.ModelMatrix * glm::toMat4(transformComponent.Rotation);
-        renderComponent.ModelMatrix = glm::scale(renderComponent.ModelMatrix, transformComponent.Scale);
+        updateComponent.ModelMatrix = glm::translate(glm::mat4{ 1.0f }, transformComponent.Position);
+        updateComponent.ModelMatrix = updateComponent.ModelMatrix * glm::toMat4(transformComponent.Rotation);
+        updateComponent.ModelMatrix = glm::scale(updateComponent.ModelMatrix, transformComponent.Scale);
 
         PerEntityUpdate(_frameInfo, componentManager, gameEntity);
     }
@@ -168,7 +168,7 @@ void PBROpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
     ecs::EntityManager& entityManager = m_app.GetEntityManager();
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-    auto entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PBRMaterialComponent, PipelineOpaqueComponent, DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent>(entityManager, componentManager, &PBRMaterialComponent::Index);
+    auto entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PBRMaterialComponent, PipelineOpaqueComponent, DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent, VisibilityComponent>(entityManager, componentManager, &PBRMaterialComponent::Index);
 
     for (const auto& [key, entities] : entitiesGroupedAndCollected)
     {
@@ -211,7 +211,7 @@ void PBROpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 
     entitiesGroupedAndCollected.clear();
 
-    entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PBRMaterialComponent, PipelineOpaqueComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent>(entityManager, componentManager, &PBRMaterialComponent::Index);
+    entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PBRMaterialComponent, PipelineOpaqueComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent, VisibilityComponent>(entityManager, componentManager, &PBRMaterialComponent::Index);
 
     for (const auto& [key, entities] : entitiesGroupedAndCollected)
     {
