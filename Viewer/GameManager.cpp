@@ -213,31 +213,40 @@ void GameManager::LoadGameEntities()
                               const glm::quat& baseRot,
                               const glm::vec3& baseScale)
     {
-        std::vector<ecs::Entity> entities(dataList.size());
+		std::vector<ecs::Entity> entities;
+		std::vector<TransformComponent> trs;
+		std::vector<int> pIdx;
         for (size_t i = 0; i < dataList.size(); ++i)
         {
-            entities[i] = m_gameEntitySystem.CreateGameEntity(EntityType::Renderable);
+            entities.push_back(m_gameEntitySystem.CreateGameEntity(EntityType::Renderable));
+
+			TransformComponent tr;
+			tr.Position = basePos + dataList[i]->Translation;
+			tr.Scale = baseScale * dataList[i]->Scale;
+			tr.Rotation = baseRot * dataList[i]->Rotation;
+			
+			pIdx.push_back(dataList[i]->Parent);
+
+			trs.push_back(tr);
+
             m_modelSystem.LoadModel(entities[i], std::move(dataList[i]));
+
+			m_entityHandlerSystem.RegisterRenderableEntity(entities[i]);
         }
 
         for (size_t i = 0; i < entities.size(); ++i)
         {
             TransformComponent& tr = m_app.GetComponentManager().GetComponent<TransformComponent>(entities[i]);
-            tr.Position = basePos + dataList[i]->Translation;
-            tr.Scale = baseScale * dataList[i]->Scale;
-            tr.Rotation = baseRot * dataList[i]->Rotation;
+            tr.Position = basePos + trs[i].Position;
+            tr.Scale = baseScale * trs[i].Scale;
+            tr.Rotation = baseRot * trs[i].Rotation;
 
-            int parentIdx = dataList[i]->Parent;
+            int parentIdx = pIdx[i];
             if (parentIdx >= 0 && parentIdx < static_cast<int>(entities.size()))
             {
                 tr.Parent = entities[parentIdx];
                 TransformComponent& parentTr = m_app.GetComponentManager().GetComponent<TransformComponent>(entities[parentIdx]);
                 parentTr.Children.push_back(entities[i]);
-            }
-
-            if (!dataList[i]->Vertices.empty())
-            {
-                m_entityHandlerSystem.RegisterRenderableEntity(entities[i]);
             }
 
             if (m_app.GetComponentManager().IsComponentRegistered<ColorTintPushConstantData>())
@@ -287,54 +296,54 @@ void GameManager::LoadGameEntities()
 
 	//////////////////////////////////////////////////////////////////////////
 	// Cube
-        {
-                std::vector<std::unique_ptr<ModelData>> coloredCubeDataList = m_objLoader.LoadModel("colored_cube.obj");
-                auto coloredEntities = createEntities(coloredCubeDataList, { 1.5f, -1.5f, 1.0f }, glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f }, { 0.5f, 0.5f, 0.5f });
+	{
+		std::vector<std::unique_ptr<ModelData>> coloredCubeDataList = m_objLoader.LoadModel("colored_cube.obj");
+		auto coloredEntities = createEntities(coloredCubeDataList, { 1.5f, -1.5f, 1.0f }, glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f }, { 0.5f, 0.5f, 0.5f });
 
-                static const float radPerFrame = 0.00174533f;     // 0.1 deg
-                for (ecs::Entity ent : coloredEntities)
-                {
-                        m_app.GetComponentManager().AddComponent<RotationComponent>(ent);
-                        RotationComponent& rotateComponent = m_app.GetComponentManager().GetComponent<RotationComponent>(ent);
-                        rotateComponent.RotationAxis = glm::vec3(0.0f, 0.0f, 1.0f);
-                        rotateComponent.RadiantPerFrame = radPerFrame;
-                }
-        }
+		static const float radPerFrame = 0.00174533f;     // 0.1 deg
+		for (ecs::Entity ent : coloredEntities)
+		{
+			m_app.GetComponentManager().AddComponent<RotationComponent>(ent);
+			RotationComponent& rotateComponent = m_app.GetComponentManager().GetComponent<RotationComponent>(ent);
+			rotateComponent.RotationAxis = glm::vec3(0.0f, 0.0f, 1.0f);
+			rotateComponent.RadiantPerFrame = radPerFrame;
+		}
+	}
 
 	//////////////////////////////////////////////////////////////////////////
 	// Flat Vase
-        {
-                std::vector<std::unique_ptr<ModelData>> flatVaseDataList = m_objLoader.LoadModel("flat_vase.obj");
-                createEntities(flatVaseDataList, { -1.5f, 0.5f, 1.0f }, glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f }, { 3.0f, 3.0f, 3.0f });
-        }
+	{
+		std::vector<std::unique_ptr<ModelData>> flatVaseDataList = m_objLoader.LoadModel("flat_vase.obj");
+		createEntities(flatVaseDataList, { -1.5f, 0.5f, 1.0f }, glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f }, { 3.0f, 3.0f, 3.0f });
+	}
 
 	//////////////////////////////////////////////////////////////////////////
 	// Smooth Vase
-        {
-                std::vector<std::unique_ptr<ModelData>> smoothVaseDataList = m_objLoader.LoadModel("smooth_vase.obj");
-                createEntities(smoothVaseDataList, { 1.5f, 0.5f, 1.0f }, glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f }, { 3.0f, 3.0f, 3.0f });
-        }
+	{
+		std::vector<std::unique_ptr<ModelData>> smoothVaseDataList = m_objLoader.LoadModel("smooth_vase.obj");
+		createEntities(smoothVaseDataList, { 1.5f, 0.5f, 1.0f }, glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f }, { 3.0f, 3.0f, 3.0f });
+	}
 
 	//////////////////////////////////////////////////////////////////////////
 	// Plane / Quad
-        {
-                std::vector<std::unique_ptr<ModelData>> quadDataList = m_objLoader.LoadModel("quad.obj");
-                createEntities(quadDataList, { 0.0f, 1.0f, 0.0f }, glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f }, { 5.0f, 1.0f, 5.0f });
-        }
+	{
+		std::vector<std::unique_ptr<ModelData>> quadDataList = m_objLoader.LoadModel("quad.obj");
+		createEntities(quadDataList, { 0.0f, 1.0f, 0.0f }, glm::quat{ 1.0f, 0.0f, 0.0f, 0.0f }, { 5.0f, 1.0f, 5.0f });
+	}
 
 	//////////////////////////////////////////////////////////////////////////
 	// A_blonde_twintailed_g_1228205950_texture or Laboratory_cabinet_NakedSingularity
-        {
-                std::vector<std::unique_ptr<ModelData>> characterDataList = m_objLoader.LoadModel("Laboratory_cabinet_NakedSingularity.obj");
-                createEntities(characterDataList, { 0.0f, 0.0f, 3.0f }, glm::angleAxis(glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)), { 1.0f, 1.0f, 1.0f });
-        }
+	{
+		std::vector<std::unique_ptr<ModelData>> characterDataList = m_objLoader.LoadModel("Laboratory_cabinet_NakedSingularity.obj");
+		createEntities(characterDataList, { 0.0f, 0.0f, 3.0f }, glm::angleAxis(glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)), { 1.0f, 1.0f, 1.0f });
+	}
 
 	//////////////////////////////////////////////////////////////////////////
 	// GLTF: DamagedHelmet
-        {
-                std::vector<std::unique_ptr<ModelData>> damagedHelmetDataList = m_gltfLoader.LoadModel("DamagedHelmet.gltf");
-                createEntities(damagedHelmetDataList, { 0.0f, 0.0f, 1.0f }, glm::angleAxis(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), { 1.0f, 1.0f, 1.0f });
-        }
+	{
+		std::vector<std::unique_ptr<ModelData>> damagedHelmetDataList = m_gltfLoader.LoadModel("DamagedHelmet.gltf");
+		createEntities(damagedHelmetDataList, { 0.0f, 0.0f, 1.0f }, glm::angleAxis(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), { 1.0f, 1.0f, 1.0f });
+	}
 }
 
 void GameManager::LoadLights()
