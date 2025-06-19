@@ -59,7 +59,12 @@ namespace
             }
             else if constexpr (std::is_same_v<T, uint32>)
             {
-                if (_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
+                if (_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
+                {
+                    const uint8* val = reinterpret_cast<const uint8*>(src);
+                    _out[i] = static_cast<uint32>(*val);
+                }
+                else if (_accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
                 {
                     const uint16* val = reinterpret_cast<const uint16*>(src);
                     _out[i] = static_cast<uint32>(*val);
@@ -243,11 +248,6 @@ namespace
             auto roughTex = GetTexture(_gltfModel, pbr.metallicRoughnessTexture.index, _basePath, _texturePath, _materialSystem);
             auto metallicTex = roughTex;
             bool isTransparent = gltfMaterial.alphaMode == "BLEND";
-            if (isTransparent && pbr.baseColorFactor.size() >= 4 && pbr.baseColorFactor[3] >= 1.0)
-            {
-                isTransparent = false;
-            }
-
             auto albedoTex = GetTexture(_gltfModel, pbr.baseColorTexture.index, _basePath, _texturePath, _materialSystem, !isTransparent);
             auto occlusionTex = GetTexture(_gltfModel, gltfMaterial.occlusionTexture.index, _basePath, _texturePath, _materialSystem);
             auto emissiveTex = GetTexture(_gltfModel, gltfMaterial.emissiveTexture.index, _basePath, _texturePath, _materialSystem);

@@ -146,7 +146,7 @@ void PhongTransparentRenderSystem::Update(const FrameInfo& _frameInfo)
     ecs::EntityManager& entityManager = m_app.GetEntityManager();
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-    for (auto gameEntity : ecs::IterateEntitiesWithAll<PipelineTransparentComponent, UpdateComponent, TransformComponent>(entityManager, componentManager))
+    for (auto gameEntity : ecs::IterateEntitiesWithAll<PhongMaterialComponent, PipelineTransparentComponent, UpdateComponent, TransformComponent>(entityManager, componentManager))
     {
         TransformComponent& transformComponent = componentManager.GetComponent<TransformComponent>(gameEntity);
         UpdateComponent& updateComponent = componentManager.GetComponent<UpdateComponent>(gameEntity);
