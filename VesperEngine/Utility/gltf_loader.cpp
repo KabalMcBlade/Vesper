@@ -108,7 +108,7 @@ namespace
         }
     }
 
-    std::shared_ptr<TextureData> GetTexture(const tinygltf::Model& _model, int _texIndex, const std::string& _modelPath, const std::string& _texturePath, MaterialSystem& _materialSystem, bool _forceOpaqueAlpha = false)
+    std::shared_ptr<TextureData> GetTexture(const tinygltf::Model& _model, int _texIndex, const std::string& _modelPath, const std::string& _texturePath, MaterialSystem& _materialSystem)
     {
         if (_texIndex < 0 || _texIndex >= static_cast<int>(_model.textures.size()))
         {
@@ -133,10 +133,6 @@ namespace
                 textureFullPath = _texturePath + image.uri;
             }
 
-            if (!_forceOpaqueAlpha)
-            {
-                return textureSystem.LoadTexture(textureFullPath);
-            }
             int w, h, c;
             stbi_uc* img = stbi_load(textureFullPath.c_str(), &w, &h, &c, STBI_rgb_alpha);
             if (!img)
@@ -144,10 +140,6 @@ namespace
                 LOG(Logger::WARNING, "Failed to load texture: ", image.uri);
                 return nullptr;
             }
-
-            size_t pixelCount = static_cast<size_t>(w) * h;
-            for (size_t i = 0; i < pixelCount; ++i)
-                img[i * 4 + 3] = 255;
 
             auto tex = textureSystem.LoadTexture(image.uri, VK_FORMAT_R8G8B8A8_SRGB, img, w, h);
             stbi_image_free(img);
@@ -164,12 +156,6 @@ namespace
                 if (image.component == 4) 
                 {
                     data.assign(image.image.begin(), image.image.end());
-                    if (_forceOpaqueAlpha)
-                    {
-                        size_t pixelCount = static_cast<size_t>(image.width) * image.height;
-                        for (size_t i = 0; i < pixelCount; ++i)
-                            data[i * 4 + 3] = 255;
-                    }
                 }
                 else if (image.component == 3) 
                 {
@@ -240,6 +226,11 @@ namespace
     {
         auto modelData = std::make_unique<ModelData>();
 
+        glm::vec3 baseColorFactorRGB(1.0f);
+        float baseAlphaFactor = 1.0f;
+        float alphaCutoff = -1.0f;
+        bool isTransparent = false;
+
         if (_primitive.material >= 0 && _primitive.material < static_cast<int>(_gltfModel.materials.size()))
         {
             const tinygltf::Material& gltfMaterial = _gltfModel.materials[_primitive.material];
@@ -247,8 +238,19 @@ namespace
 
             auto roughTex = GetTexture(_gltfModel, pbr.metallicRoughnessTexture.index, _basePath, _texturePath, _materialSystem);
             auto metallicTex = roughTex;
-            bool isTransparent = gltfMaterial.alphaMode == "BLEND";
-            auto albedoTex = GetTexture(_gltfModel, pbr.baseColorTexture.index, _basePath, _texturePath, _materialSystem, !isTransparent);
+            isTransparent = gltfMaterial.alphaMode == "BLEND";
+            alphaCutoff = gltfMaterial.alphaMode == "MASK" ? static_cast<float>(gltfMaterial.alphaCutoff) : -1.0f;
+
+            std::array<float, 4> baseColorDefault = { 1.0f, 1.0f, 1.0f, 1.0f };
+            for (size_t i = 0; i < pbr.baseColorFactor.size() && i < 4; ++i)
+            {
+                baseColorDefault[i] = static_cast<float>(pbr.baseColorFactor[i]);
+            }
+
+            glm::vec3 baseColorFactorRGB = glm::vec3(baseColorDefault[0], baseColorDefault[1], baseColorDefault[2]);
+            baseAlphaFactor = baseColorDefault[3];
+
+            auto albedoTex = GetTexture(_gltfModel, pbr.baseColorTexture.index, _basePath, _texturePath, _materialSystem);
             auto occlusionTex = GetTexture(_gltfModel, gltfMaterial.occlusionTexture.index, _basePath, _texturePath, _materialSystem);
             auto emissiveTex = GetTexture(_gltfModel, gltfMaterial.emissiveTexture.index, _basePath, _texturePath, _materialSystem);
             auto normalTex = GetTexture(_gltfModel, gltfMaterial.normalTexture.index, _basePath, _texturePath, _materialSystem);
@@ -258,13 +260,13 @@ namespace
                 { roughTex, metallicTex, nullptr, emissiveTex, normalTex, albedoTex, occlusionTex },
                 { static_cast<float>(pbr.roughnessFactor),
                   static_cast<float>(pbr.metallicFactor), 0.0f, 0.0f, 0.0f, 0.0f,
-                  0.0f },
+                  0.0f, alphaCutoff, baseAlphaFactor },
                 isTransparent, MaterialType::PBR);
         }
         else
         {
             std::vector<std::shared_ptr<vesper::TextureData>> emptyTextures = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
-            std::vector<std::any> emptyMetadata = { 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+            std::vector<std::any> emptyMetadata = { 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f };
 
             modelData->Material = _materialSystem.CreateMaterial(
                 "_DefaultGltfPBR_", emptyTextures, emptyMetadata, false,
@@ -338,11 +340,11 @@ namespace
             }
             if (vIndex < colors.size())
             {
-                vertex.Color = colors[vIndex];
+                vertex.Color = colors[vIndex] * baseColorFactorRGB;;
             }
             else
             {
-                vertex.Color = { 1.0f, 1.0f, 1.0f };
+                vertex.Color = baseColorFactorRGB;
             }
 
             modelData->Vertices[i] = vertex;

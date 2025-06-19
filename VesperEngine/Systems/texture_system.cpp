@@ -220,7 +220,8 @@ std::shared_ptr<TextureData> TextureSystem::LoadTexture(const std::string& _path
 
 	// Step 1: Load texture data
 	int32 width, height, channels;
-	uint8* data = LoadTextureData(_path, width, height, channels, STBI_rgb_alpha);
+	//uint8* data = LoadTextureData(_path, width, height, channels, STBI_rgb_alpha);
+	uint8* data = stbi_load(_path.c_str(), &width, &height, &channels, 0);
 	if (!data)
 	{
 		throw std::runtime_error("Failed to load texture: " + _path);
@@ -236,6 +237,18 @@ std::shared_ptr<TextureData> TextureSystem::LoadTexture(const std::string& _path
 		}
 		else if (channels == 3)
 		{
+			uint8* rgbaData = new uint8[width * height * 4];
+			for (int32 i = 0; i < width * height; ++i) {
+				rgbaData[i * 4 + 0] = data[i * 3 + 0];
+				rgbaData[i * 4 + 1] = data[i * 3 + 1];
+				rgbaData[i * 4 + 2] = data[i * 3 + 2];
+				rgbaData[i * 4 + 3] = 255;
+			}
+
+			FreeTextureData(data); // original RGB
+			data = rgbaData;
+			channels = 4;
+
 			format = VK_FORMAT_R8G8B8A8_SRGB; // Convert RGB to RGBA
 		}
 	}

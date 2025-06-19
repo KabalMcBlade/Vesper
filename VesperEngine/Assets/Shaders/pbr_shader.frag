@@ -59,6 +59,8 @@ layout(std140, set = 1, binding = 1) uniform MaterialData
     float ClearcoatRoughness;
     float Anisotropy;
     float AnisotropyRotation;
+    float AlphaCutoff;
+    float BaseColorAlpha;
     int TextureIndices[7];
 } materials[];
 layout(std140, set = 3, binding = 0) uniform MaterialIndexUBO
@@ -82,6 +84,8 @@ layout(std140, set = 2, binding = 7) uniform MaterialData
     float ClearcoatRoughness;
     float Anisotropy;
     float AnisotropyRotation;
+    float AlphaCutoff;
+    float BaseColorAlpha;
     int TextureIndices[7];
 } material;
 #endif
@@ -216,15 +220,38 @@ void main()
 
     vec3 n = getNormal(hasNormal);
 
-    vec4 baseColor = vec4(fragColor, 1.0);
+vec4 baseColor;
+
 #if BINDLESS == 1
-    if (hasBaseColor)
-        baseColor *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[5])], fragUV);
-    float ao = hasAO ? texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[6])], fragUV).r : 1.0;
+    vec4 texColor = hasBaseColor 
+        ? texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[5])], fragUV)
+        : vec4(1.0); // fallback if no texture
+
+    // Combine fragment color only with RGB — preserve texture alpha
+    baseColor.rgb = fragColor * texColor.rgb;
+    baseColor.a = texColor.a * materials[matIdx].BaseColorAlpha;
+
+    float ao = hasAO 
+        ? texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[6])], fragUV).r
+        : 1.0;
+
+    if (baseColor.a < materials[matIdx].AlphaCutoff)
+        discard;
+
 #else
-    if (hasBaseColor)
-        baseColor *= texture(baseColorTexture, fragUV);
-    float ao = hasAO ? texture(aoTexture, fragUV).r : 1.0;
+    vec4 texColor = hasBaseColor 
+        ? texture(baseColorTexture, fragUV)
+        : vec4(1.0);
+
+    baseColor.rgb = fragColor * texColor.rgb;
+    baseColor.a = texColor.a * material.BaseColorAlpha;
+
+    float ao = hasAO 
+        ? texture(aoTexture, fragUV).r 
+        : 1.0;
+
+    if (baseColor.a < material.AlphaCutoff)
+        discard;
 #endif
 
 
@@ -412,6 +439,7 @@ void main()
     //outColor = vec4(normalize(lightsUBO.DirectionalLights[0].Direction.xyz) * 0.5 + 0.5, 1.0);
     //outColor = vec4(reflection * 0.5 + 0.5, 1.0); // see how it changes as camera moves
     //outColor = vec4(vec3(metallic), 1.0); // roughness or metallic
+    //outColor = vec4(vec3(baseColor.a), 1.0);
 
     outColor = vec4(color, baseColor.a);
 }

@@ -87,6 +87,8 @@ struct VESPERENGINE_ALIGN16 PBRMaterialUBO
 	float ClearcoatRoughness{ 0.0f };
 	float Anisotropy{ 0.0f };
 	float AnisotropyRotation{ 0.0f };
+	float AlphaCutoff{ -1.0f };        // < 0 means disabled
+	float BaseColorAlpha{ 1.0f };
 
 	// Indices for [Roughness, Metallic, Sheen, Emissive, Normal, BaseColor, AmbientOcclusion]
 	alignInt32 TextureIndices[7] = { -1, -1, -1, -1, -1, -1, -1 }; 

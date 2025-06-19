@@ -74,7 +74,7 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
     case vesper::MaterialType::PBR: 
     {
         const int32 texCount = 7;
-        const int32 valCount = 7;
+        const int32 valCount = 9;
         material->Textures.resize(texCount);
         assert(_texturePaths.size() == texCount &&"Texture array passed has not the amount of texture expected for material type!");
         assert(_values.size() == valCount && "Values array passed has not the amount of values expected for material type!");
@@ -117,6 +117,8 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
         pbrUBO.ClearcoatRoughness = std::any_cast<float>(_values[4]);
         pbrUBO.Anisotropy = std::any_cast<float>(_values[5]);
         pbrUBO.AnisotropyRotation = std::any_cast<float>(_values[6]);
+        pbrUBO.AlphaCutoff = std::any_cast<float>(_values[7]);
+        pbrUBO.BaseColorAlpha = std::any_cast<float>(_values[8]);
 
         material->UniformBuffer.MappedMemory = &pbrUBO;
         m_buffer->WriteToBuffer(material->UniformBuffer);
@@ -214,7 +216,7 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
     case vesper::MaterialType::PBR: 
     {
         const int32 texCount = 7;
-        const int32 valCount = 7;
+        const int32 valCount = 9;
         material->Textures.resize(texCount);
         assert(_textures.size() == texCount && "Texture array passed has not the amount of texture expected for material type!");
         assert(_values.size() == valCount && "Values array passed has not the amount of values expected for material type!");
@@ -254,6 +256,8 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
         pbrUBO.ClearcoatRoughness = std::any_cast<float>(_values[4]);
         pbrUBO.Anisotropy = std::any_cast<float>(_values[5]);
         pbrUBO.AnisotropyRotation = std::any_cast<float>(_values[6]);
+        pbrUBO.AlphaCutoff = std::any_cast<float>(_values[7]);
+        pbrUBO.BaseColorAlpha = std::any_cast<float>(_values[8]);
 
         material->UniformBuffer.MappedMemory = &pbrUBO;
         m_buffer->WriteToBuffer(material->UniformBuffer);
