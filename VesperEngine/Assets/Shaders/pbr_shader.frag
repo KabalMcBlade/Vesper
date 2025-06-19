@@ -122,9 +122,9 @@ vec4 tonemap(vec4 color)
 }
 
 
-vec4 SRGBtoLINEAR(vec4 srgbIn)
+vec3 SRGBtoLINEAR(vec3 srgbIn)
 {
-    return pow(srgbIn, vec4(2.2));
+    return pow(srgbIn, vec3(2.2));
 }
 
 vec3 diffuse(PBRInfo pbrInputs)
@@ -175,8 +175,8 @@ vec3 getIBLContribution(PBRInfo pbrInputs, vec3 n, vec3 reflection)
     float lod = pbrInputs.perceptualRoughness * (mipCount - 1.0);
 
     vec3 brdf = texture(brdfLUT, vec2(pbrInputs.NdotV, 1.0 - pbrInputs.perceptualRoughness)).rgb;
-    vec3 diffuseLight = SRGBtoLINEAR(tonemap(texture(irradianceMap, n))).rgb;
-    vec3 specularLight = SRGBtoLINEAR(tonemap(textureLod(prefilteredEnvMap, reflection, lod))).rgb;
+    vec3 diffuseLight = SRGBtoLINEAR(tonemap(texture(irradianceMap, n)).rgb);
+    vec3 specularLight = SRGBtoLINEAR(tonemap(textureLod(prefilteredEnvMap, reflection, lod)).rgb);
 
     vec3 diffuse = diffuseLight * pbrInputs.diffuseColor;
     vec3 specular = specularLight * (pbrInputs.specularColor * brdf.x + brdf.y);
@@ -219,11 +219,11 @@ void main()
     vec4 baseColor = vec4(fragColor, 1.0);
 #if BINDLESS == 1
     if (hasBaseColor)
-        baseColor *= SRGBtoLINEAR(texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[5])], fragUV));
+        baseColor *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[5])], fragUV);
     float ao = hasAO ? texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[6])], fragUV).r : 1.0;
 #else
     if (hasBaseColor)
-        baseColor *= SRGBtoLINEAR(texture(baseColorTexture, fragUV));
+        baseColor *= texture(baseColorTexture, fragUV);
     float ao = hasAO ? texture(aoTexture, fragUV).r : 1.0;
 #endif
 

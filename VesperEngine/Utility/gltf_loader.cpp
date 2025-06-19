@@ -19,6 +19,8 @@
 #include "Systems/material_system.h"
 #include "Systems/texture_system.h"
 
+#include "stb/stb_image.h"
+
 #define __STDC_LIB_EXT1__					// for using sprintf_s
 #define TINYGLTF_IMPLEMENTATION
 //#define STB_IMAGE_IMPLEMENTATION
@@ -101,7 +103,7 @@ namespace
         }
     }
 
-    std::shared_ptr<TextureData> GetTexture(const tinygltf::Model& _model, int _texIndex, const std::string& _modelPath, MaterialSystem& _materialSystem)
+    std::shared_ptr<TextureData> GetTexture(const tinygltf::Model& _model, int _texIndex, const std::string& _modelPath, MaterialSystem& _materialSystem, bool _forceOpaqueAlpha = false) 
     {
         if (_texIndex < 0 || _texIndex >= static_cast<int>(_model.textures.size()))
         {
@@ -120,7 +122,25 @@ namespace
 
         if (!image.uri.empty() && image.uri.find("data:") != 0) 
         {
-            return textureSystem.LoadTexture(_modelPath + image.uri);
+            if (!_forceOpaqueAlpha)
+            {
+                return textureSystem.LoadTexture(_modelPath + image.uri);
+            }
+            int w, h, c;
+            stbi_uc* img = stbi_load((_modelPath + image.uri).c_str(), &w, &h, &c, STBI_rgb_alpha);
+            if (!img)
+            {
+                LOG(Logger::WARNING, "Failed to load texture: ", image.uri);
+                return nullptr;
+            }
+
+            size_t pixelCount = static_cast<size_t>(w) * h;
+            for (size_t i = 0; i < pixelCount; ++i)
+                img[i * 4 + 3] = 255;
+
+            auto tex = textureSystem.LoadTexture(image.uri, VK_FORMAT_R8G8B8A8_SRGB, img, w, h);
+            stbi_image_free(img);
+            return tex;
         }
 
         if (!image.image.empty()) 
@@ -133,6 +153,12 @@ namespace
                 if (image.component == 4) 
                 {
                     data.assign(image.image.begin(), image.image.end());
+                    if (_forceOpaqueAlpha)
+                    {
+                        size_t pixelCount = static_cast<size_t>(image.width) * image.height;
+                        for (size_t i = 0; i < pixelCount; ++i)
+                            data[i * 4 + 3] = 255;
+                    }
                 }
                 else if (image.component == 3) 
                 {
@@ -183,7 +209,7 @@ namespace
 
             if (_node.rotation.size() == 4)
             {
-                glm::quat rot(_node.rotation[3], _node.rotation[0], _node.rotation[1], _node.rotation[2]);
+                glm::quat rot(static_cast<float>(_node.rotation[3]), static_cast<float>(_node.rotation[0]), static_cast<float>(_node.rotation[1]), static_cast<float>(_node.rotation[2]));
                 transform *= glm::mat4_cast(rot);
             }
 
@@ -210,7 +236,13 @@ namespace
 
             auto roughTex = GetTexture(_gltfModel, pbr.metallicRoughnessTexture.index, _basePath, _materialSystem);
             auto metallicTex = roughTex;
-            auto albedoTex = GetTexture(_gltfModel, pbr.baseColorTexture.index, _basePath, _materialSystem);
+            bool isTransparent = gltfMaterial.alphaMode == "BLEND";
+            if (isTransparent && pbr.baseColorFactor.size() >= 4 && pbr.baseColorFactor[3] >= 1.0)
+            {
+                isTransparent = false;
+            }
+
+            auto albedoTex = GetTexture(_gltfModel, pbr.baseColorTexture.index, _basePath, _materialSystem, !isTransparent);
             auto occlusionTex = GetTexture(_gltfModel, gltfMaterial.occlusionTexture.index, _basePath, _materialSystem);
             auto emissiveTex = GetTexture(_gltfModel, gltfMaterial.emissiveTexture.index, _basePath, _materialSystem);
             auto normalTex = GetTexture(_gltfModel, gltfMaterial.normalTexture.index, _basePath, _materialSystem);
@@ -221,7 +253,7 @@ namespace
                 { static_cast<float>(pbr.roughnessFactor),
                   static_cast<float>(pbr.metallicFactor), 0.0f, 0.0f, 0.0f, 0.0f,
                   0.0f },
-                gltfMaterial.alphaMode == "BLEND", MaterialType::PBR);
+                isTransparent, MaterialType::PBR);
         }
         else
         {
