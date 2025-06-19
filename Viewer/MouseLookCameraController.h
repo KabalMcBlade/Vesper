@@ -12,6 +12,8 @@
 
 VESPERENGINE_USING_NAMESPACE
 
+class KeyboardMovementCameraController;
+
 class MouseLookCameraController
 {
 public:
@@ -22,6 +24,9 @@ public:
 	static MouseLookCameraController& GetInstance();
 	static void MouseMoveCallback(GLFWwindow* _window, double _xPos, double _yPos);
 	static void MouseButtonCallback(GLFWwindow* _window, int32 _button, int32 _action, int32 _mods);
+	static void MouseScrollCallback(GLFWwindow* _window, double _xOffset, double _yOffset);
+
+	static void SetKeyboardController(KeyboardMovementCameraController* controller);
 
 public:
 	void SetMouseCallback(VesperApp* _app, GLFWwindow* _window);
@@ -31,10 +36,12 @@ public:
 private:
 	void MouseMoveCallbackImpl(GLFWwindow* _window, double _xPos, double _yPos);
 	void MouseButtonCallbackImpl(GLFWwindow* _window, int32 _button, int32 _action, int32 _mods);
+	void MouseScrollCallbackImpl(GLFWwindow* _window, double _xOffset, double _yOffset);
 
 private:
 	//VesperApp* m_app;
 	static VesperApp* m_staticApp;
+	static KeyboardMovementCameraController* m_keyboardController;
 
 	float m_lastX{ 0.0f };
 	float m_lastY{ 0.0f };

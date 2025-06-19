@@ -42,6 +42,7 @@ private:
 	VesperApp& m_app;
 	KeyMappings m_keys{};
 
+	friend class MouseLookCameraController;
 	float m_moveSpeed{3.0f};
 	float m_lookSpeed{3.0f};
 

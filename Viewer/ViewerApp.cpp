@@ -121,6 +121,7 @@ ViewerApp::ViewerApp(Config& _config) :
 
 	m_mouseController = std::make_unique<MouseLookCameraController>();
 	m_mouseController->SetMouseCallback(this, m_window->GetWindow());
+	MouseLookCameraController::SetKeyboardController(m_keyboardController.get());
 
 	m_gameManager = std::make_unique<GameManager>(
 		*this, 

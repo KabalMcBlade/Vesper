@@ -3,11 +3,13 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 
 #include "MouseLookCameraController.h"
+#include "KeyboardMovementCameraController.h"
 
 
 VESPERENGINE_USING_NAMESPACE
 
 VesperApp* MouseLookCameraController::m_staticApp = nullptr;
+KeyboardMovementCameraController* MouseLookCameraController::m_keyboardController = nullptr;
 
 MouseLookCameraController& MouseLookCameraController::GetInstance()
 {
@@ -25,11 +27,22 @@ void MouseLookCameraController::MouseButtonCallback(GLFWwindow* _window, int32 _
 	GetInstance().MouseButtonCallbackImpl(_window,  _button, _action, _mods);
 }
 
+void MouseLookCameraController::MouseScrollCallback(GLFWwindow* _window, double _xOffset, double _yOffset)
+{
+	GetInstance().MouseScrollCallbackImpl(_window, _xOffset, _yOffset);
+}
+
 void MouseLookCameraController::SetMouseCallback(VesperApp* _app, GLFWwindow* _window)
 {
 	m_staticApp = _app;
 	glfwSetCursorPosCallback(_window, &MouseLookCameraController::MouseMoveCallback);
 	glfwSetMouseButtonCallback(_window, &MouseLookCameraController::MouseButtonCallback);
+	glfwSetScrollCallback(_window, &MouseLookCameraController::MouseScrollCallback);
+}
+
+void MouseLookCameraController::SetKeyboardController(KeyboardMovementCameraController* controller)
+{
+	m_keyboardController = controller;
 }
 
 void MouseLookCameraController::Update(float _dt)
@@ -91,4 +104,31 @@ void MouseLookCameraController::MouseButtonCallbackImpl(GLFWwindow* _window, int
 			m_lastY = ypos;
 		}
 	}
+}
+
+void MouseLookCameraController::MouseScrollCallbackImpl(GLFWwindow* _window, double _xOffset, double _yOffset)
+{
+	if (!m_keyboardController)
+	{
+		return;
+	}
+
+	const float speedStep = 0.2f;
+	const float minSpeed = 0.2f;
+	const float maxSpeed = 200.0f;
+
+	if (_yOffset > 0.0)
+	{
+		m_keyboardController->m_moveSpeed += speedStep;
+		m_keyboardController->m_lookSpeed += speedStep * 0.2f;
+	}
+	else if (_yOffset < 0.0)
+	{
+		m_keyboardController->m_moveSpeed -= speedStep;
+		m_keyboardController->m_lookSpeed -= speedStep * 0.2f;
+	}
+
+	m_keyboardController->m_moveSpeed = std::clamp(m_keyboardController->m_moveSpeed, minSpeed, maxSpeed);
+	m_keyboardController->m_lookSpeed = std::clamp(m_keyboardController->m_lookSpeed, minSpeed * 0.2f, maxSpeed * 0.2f);
+
 }

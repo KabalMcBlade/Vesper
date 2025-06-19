@@ -103,7 +103,7 @@ namespace
         }
     }
 
-    std::shared_ptr<TextureData> GetTexture(const tinygltf::Model& _model, int _texIndex, const std::string& _modelPath, MaterialSystem& _materialSystem, bool _forceOpaqueAlpha = false) 
+    std::shared_ptr<TextureData> GetTexture(const tinygltf::Model& _model, int _texIndex, const std::string& _modelPath, const std::string& _texturePath, MaterialSystem& _materialSystem, bool _forceOpaqueAlpha = false)
     {
         if (_texIndex < 0 || _texIndex >= static_cast<int>(_model.textures.size()))
         {
@@ -122,12 +122,18 @@ namespace
 
         if (!image.uri.empty() && image.uri.find("data:") != 0) 
         {
+            std::string textureFullPath = _modelPath + image.uri;
+            if (!FileSystem::IsFileExists(textureFullPath))
+            {
+                textureFullPath = _texturePath + image.uri;
+            }
+
             if (!_forceOpaqueAlpha)
             {
-                return textureSystem.LoadTexture(_modelPath + image.uri);
+                return textureSystem.LoadTexture(textureFullPath);
             }
             int w, h, c;
-            stbi_uc* img = stbi_load((_modelPath + image.uri).c_str(), &w, &h, &c, STBI_rgb_alpha);
+            stbi_uc* img = stbi_load(textureFullPath.c_str(), &w, &h, &c, STBI_rgb_alpha);
             if (!img)
             {
                 LOG(Logger::WARNING, "Failed to load texture: ", image.uri);
@@ -225,7 +231,7 @@ namespace
 
     std::unique_ptr<ModelData> LoadPrimitiveModel(const tinygltf::Model& _gltfModel,
         const tinygltf::Primitive& _primitive, const glm::mat4& _transform,
-        const std::string& _basePath, MaterialSystem& _materialSystem, bool _isStatic)
+        const std::string& _basePath, const std::string& _texturePath, MaterialSystem& _materialSystem, bool _isStatic)
     {
         auto modelData = std::make_unique<ModelData>();
 
@@ -234,7 +240,7 @@ namespace
             const tinygltf::Material& gltfMaterial = _gltfModel.materials[_primitive.material];
             const tinygltf::PbrMetallicRoughness& pbr = gltfMaterial.pbrMetallicRoughness;
 
-            auto roughTex = GetTexture(_gltfModel, pbr.metallicRoughnessTexture.index, _basePath, _materialSystem);
+            auto roughTex = GetTexture(_gltfModel, pbr.metallicRoughnessTexture.index, _basePath, _texturePath, _materialSystem);
             auto metallicTex = roughTex;
             bool isTransparent = gltfMaterial.alphaMode == "BLEND";
             if (isTransparent && pbr.baseColorFactor.size() >= 4 && pbr.baseColorFactor[3] >= 1.0)
@@ -242,10 +248,10 @@ namespace
                 isTransparent = false;
             }
 
-            auto albedoTex = GetTexture(_gltfModel, pbr.baseColorTexture.index, _basePath, _materialSystem, !isTransparent);
-            auto occlusionTex = GetTexture(_gltfModel, gltfMaterial.occlusionTexture.index, _basePath, _materialSystem);
-            auto emissiveTex = GetTexture(_gltfModel, gltfMaterial.emissiveTexture.index, _basePath, _materialSystem);
-            auto normalTex = GetTexture(_gltfModel, gltfMaterial.normalTexture.index, _basePath, _materialSystem);
+            auto albedoTex = GetTexture(_gltfModel, pbr.baseColorTexture.index, _basePath, _texturePath, _materialSystem, !isTransparent);
+            auto occlusionTex = GetTexture(_gltfModel, gltfMaterial.occlusionTexture.index, _basePath, _texturePath, _materialSystem);
+            auto emissiveTex = GetTexture(_gltfModel, gltfMaterial.emissiveTexture.index, _basePath, _texturePath, _materialSystem);
+            auto normalTex = GetTexture(_gltfModel, gltfMaterial.normalTexture.index, _basePath, _texturePath, _materialSystem);
 
             modelData->Material = _materialSystem.CreateMaterial(
                 gltfMaterial.name,
@@ -349,7 +355,7 @@ namespace
 
     void ProcessNode(const tinygltf::Model& _gltfModel, int _nodeIdx, const glm::mat4& _parent,
         std::vector<std::unique_ptr<ModelData>>& _models, bool _isStatic,
-        const std::string& _basePath, MaterialSystem& _materialSystem)
+        const std::string& _basePath, const std::string& _texturePath, MaterialSystem& _materialSystem)
     {
         const tinygltf::Node& node = _gltfModel.nodes[_nodeIdx];
         glm::mat4 transform = _parent * ComposeTransform(node);
@@ -359,7 +365,7 @@ namespace
             const tinygltf::Mesh& mesh = _gltfModel.meshes[node.mesh];
             for (const auto& primitive : mesh.primitives)
             {
-                auto model = LoadPrimitiveModel(_gltfModel, primitive, transform, _basePath, _materialSystem, _isStatic);
+                auto model = LoadPrimitiveModel(_gltfModel, primitive, transform, _basePath, _texturePath, _materialSystem, _isStatic);
                 LOG(Logger::INFO, "Mesh: ", mesh.name, ", Primitive vertices: ", model->Vertices.size());
                 _models.push_back(std::move(model));
             }
@@ -369,7 +375,7 @@ namespace
         {
             if (child >= 0 && child < static_cast<int>(_gltfModel.nodes.size()))
             {
-                ProcessNode(_gltfModel, child, transform, _models, _isStatic, _basePath, _materialSystem);
+                ProcessNode(_gltfModel, child, transform, _models, _isStatic, _basePath, _texturePath, _materialSystem);
             }
         }
     }
@@ -385,6 +391,7 @@ std::vector<std::unique_ptr<ModelData>> GltfLoader::LoadModel(const std::string&
     const bool bIsFilepath = FileSystem::IsFilePath(_fileName);
 
     const std::string basePath = bIsFilepath ? FileSystem::GetDirectoryPath(_fileName) : m_app.GetConfig().ModelsPath;
+    const std::string texturePath = bIsFilepath ? FileSystem::GetDirectoryPath(_fileName, true) + m_app.GetConfig().TexturesFolderName : m_app.GetConfig().TexturesPath;
     const std::string actualFilename = bIsFilepath ? FileSystem::GetFileName(_fileName) : _fileName;
 
     std::vector<std::unique_ptr<ModelData>> models;
@@ -421,7 +428,7 @@ std::vector<std::unique_ptr<ModelData>> GltfLoader::LoadModel(const std::string&
         {
             if (nodeIdx >= 0 && nodeIdx < static_cast<int>(gltfModel.nodes.size())) 
             {
-                ProcessNode(gltfModel, nodeIdx, glm::mat4(1.0f), models, _isStatic, basePath, m_materialSystem);
+                ProcessNode(gltfModel, nodeIdx, glm::mat4(1.0f), models, _isStatic, basePath, texturePath, m_materialSystem);
             }
         }
     }
