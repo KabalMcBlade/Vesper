@@ -62,6 +62,8 @@ struct VESPERENGINE_ALIGN16 LightsUBO
 struct VESPERENGINE_ALIGN16 EntityUBO
 {
 	glm::mat4 ModelMatrix{ 1.0f };
+	glm::vec4 MorphWeights{ 0.0f };
+	int32 MorphTargetCount{ 0 };
 };
 
 

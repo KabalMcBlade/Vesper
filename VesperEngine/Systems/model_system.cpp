@@ -158,6 +158,14 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 	{
 		m_app.GetComponentManager().AddComponent<NotIndexBufferComponent>(_entity);
 	}
+
+	if (_data->MorphTargetCount > 0)
+	{
+		m_app.GetComponentManager().AddComponent<MorphWeightsComponent>(_entity);
+		MorphWeightsComponent& morphComp = m_app.GetComponentManager().GetComponent<MorphWeightsComponent>(_entity);
+		morphComp.Weights = _data->MorphWeights;
+		morphComp.Count = _data->MorphTargetCount;
+	}
 }
 
 void ModelSystem::LoadSkyboxModel(ecs::Entity _entity, std::shared_ptr<ModelData> _modelData, std::shared_ptr<TextureData> _textureData) const
@@ -285,6 +293,11 @@ void ModelSystem::UnloadModel(ecs::Entity _entity) const
 	if (m_app.GetComponentManager().HasComponents<SkyboxMaterialComponent>(_entity))
 	{
 		m_app.GetComponentManager().RemoveComponent<SkyboxMaterialComponent>(_entity);
+	}
+
+	if (m_app.GetComponentManager().HasComponents<MorphWeightsComponent>(_entity))
+	{
+		m_app.GetComponentManager().RemoveComponent<MorphWeightsComponent>(_entity);
 	}
 }
 
