@@ -397,7 +397,7 @@ namespace
         glm::vec4 weights(0.0f);
         if (!node.weights.empty())
         {
-            for (glm::vec<4, float, glm::aligned_highp>::length_type i = 0; i < node.weights.size() && i < 4; ++i)
+            for (size_t i = 0; i < node.weights.size() && i < 4; ++i)
             {
                 weights[i] = static_cast<float>(node.weights[i]);
             }
@@ -409,7 +409,7 @@ namespace
 
             if (weights == glm::vec4(0.0f) && !mesh.weights.empty())
             {
-                for (glm::vec<4, float, glm::aligned_highp>::length_type i = 0; i < mesh.weights.size() && i < 4; ++i)
+                for (size_t i = 0; i < mesh.weights.size() && i < 4; ++i)
                 {
                     weights[i] = static_cast<float>(mesh.weights[i]);
                 }

@@ -23,8 +23,8 @@ struct Vertex
 	glm::vec3 Color{};
 	glm::vec3 Normal{};
 	glm::vec2 UV{};
-	glm::vec3 MorphPos[8]{};
-	glm::vec3 MorphNorm[8]{};
+	glm::vec3 MorphPos[4]{};
+	glm::vec3 MorphNorm[4]{};
 
 	static std::vector<VkVertexInputBindingDescription> GetBindingDescriptions();
 	static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();
@@ -32,7 +32,7 @@ struct Vertex
 	bool operator==(const Vertex& _other) const
 	{
 		bool equal = Position == _other.Position && Color == _other.Color && Normal == _other.Normal && UV == _other.UV;
-		for (int i = 0;i < 8 && equal;++i)
+		for (int i = 0;i < 4 && equal;++i)
 		{
 			equal = equal && MorphPos[i] == _other.MorphPos[i] && MorphNorm[i] == _other.MorphNorm[i];
 		}

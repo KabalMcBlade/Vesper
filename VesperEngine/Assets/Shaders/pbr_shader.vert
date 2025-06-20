@@ -16,14 +16,6 @@ layout(location = 8) in vec3 inMorphPos2;
 layout(location = 9) in vec3 inMorphNorm2;
 layout(location = 10) in vec3 inMorphPos3;
 layout(location = 11) in vec3 inMorphNorm3;
-layout(location = 12) in vec3 inMorphPos4;
-layout(location = 13) in vec3 inMorphNorm4;
-layout(location = 14) in vec3 inMorphPos5;
-layout(location = 15) in vec3 inMorphNorm5;
-layout(location = 16) in vec3 inMorphPos6;
-layout(location = 17) in vec3 inMorphNorm6;
-layout(location = 18) in vec3 inMorphPos7;
-layout(location = 19) in vec3 inMorphNorm7;
 
 layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec3 fragPositionWorld;
@@ -56,12 +48,12 @@ layout(std140, set = 1, binding = 0) uniform EntityUBO
 
 void main()
 {
-    vec3 morphPos[8] = vec3[](inMorphPos0, inMorphPos1, inMorphPos2, inMorphPos3, inMorphPos4, inMorphPos5, inMorphPos6, inMorphPos7);
-    vec3 morphNorm[8] = vec3[](inMorphNorm0, inMorphNorm1, inMorphNorm2, inMorphNorm3, inMorphNorm4, inMorphNorm5, inMorphNorm6, inMorphNorm7);
+    vec3 morphPos[4] = vec3[](inMorphPos0, inMorphPos1, inMorphPos2, inMorphPos3);
+    vec3 morphNorm[4] = vec3[](inMorphNorm0, inMorphNorm1, inMorphNorm2, inMorphNorm3);
 
     vec3 finalPos = inPosition;
     vec3 finalNorm = inNormal;
-    int morphCount = clamp(entityUBO.MorphTargetCount, 0, 8);
+    int morphCount = clamp(entityUBO.MorphTargetCount, 0, 4);
     for (int i = 0; i < morphCount; ++i)
     {
         finalPos += morphPos[i] * entityUBO.MorphWeights[i];

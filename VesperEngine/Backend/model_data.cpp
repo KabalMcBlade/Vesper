@@ -33,14 +33,6 @@ std::vector<VkVertexInputAttributeDescription> Vertex::GetAttributeDescriptions(
     attributeDescriptions.push_back({ 9, 0, VK_FORMAT_R32G32B32_SFLOAT , offsetof(Vertex, MorphNorm[2]) });
     attributeDescriptions.push_back({ 10, 0, VK_FORMAT_R32G32B32_SFLOAT , offsetof(Vertex, MorphPos[3]) });
     attributeDescriptions.push_back({ 11, 0, VK_FORMAT_R32G32B32_SFLOAT , offsetof(Vertex, MorphNorm[3]) });
-    attributeDescriptions.push_back({ 12, 0, VK_FORMAT_R32G32B32_SFLOAT , offsetof(Vertex, MorphPos[4]) });
-    attributeDescriptions.push_back({ 13, 0, VK_FORMAT_R32G32B32_SFLOAT , offsetof(Vertex, MorphNorm[4]) });
-    attributeDescriptions.push_back({ 14, 0, VK_FORMAT_R32G32B32_SFLOAT , offsetof(Vertex, MorphPos[5]) });
-    attributeDescriptions.push_back({ 15, 0, VK_FORMAT_R32G32B32_SFLOAT , offsetof(Vertex, MorphNorm[5]) });
-    attributeDescriptions.push_back({ 16, 0, VK_FORMAT_R32G32B32_SFLOAT , offsetof(Vertex, MorphPos[6]) });
-    attributeDescriptions.push_back({ 17, 0, VK_FORMAT_R32G32B32_SFLOAT , offsetof(Vertex, MorphNorm[6]) });
-    attributeDescriptions.push_back({ 18, 0, VK_FORMAT_R32G32B32_SFLOAT , offsetof(Vertex, MorphPos[7]) });
-    attributeDescriptions.push_back({ 19, 0, VK_FORMAT_R32G32B32_SFLOAT , offsetof(Vertex, MorphNorm[7]) });
 
 
 	return attributeDescriptions;
