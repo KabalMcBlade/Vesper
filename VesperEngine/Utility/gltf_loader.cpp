@@ -29,6 +29,7 @@
 
 #include <stdexcept>
 #include <unordered_map>
+#include <array>
 
 VESPERENGINE_NAMESPACE_BEGIN
 
@@ -221,7 +222,7 @@ namespace
     }
 
     std::unique_ptr<ModelData> LoadPrimitiveModel(const tinygltf::Model& _gltfModel,
-        const tinygltf::Primitive& _primitive, const glm::mat4& _transform, const glm::vec4& _weights,
+        const tinygltf::Primitive& _primitive, const glm::mat4& _transform, const std::array<glm::vec4, 2>& _weights,
         const std::string& _basePath, const std::string& _texturePath, MaterialSystem& _materialSystem, bool _isStatic)
     {
         auto modelData = std::make_unique<ModelData>();
@@ -302,7 +303,7 @@ namespace
             ReadColorAccessor(_gltfModel, _gltfModel.accessors[itColor->second], colors);
         }
 
-        size_t morphCount = std::min<size_t>(_primitive.targets.size(), 4);
+        size_t morphCount = std::min<size_t>(_primitive.targets.size(), kMaxMorphTargets);
         std::vector<std::vector<glm::vec3>> morphPositions(morphCount);
         std::vector<std::vector<glm::vec3>> morphNormals(morphCount);
         for (size_t t = 0; t < morphCount; ++t)
@@ -337,7 +338,8 @@ namespace
         modelData->Vertices.resize(indices.size());
         modelData->Indices.resize(indices.size());
         modelData->MorphTargetCount = static_cast<uint32>(morphCount);
-        modelData->MorphWeights = _weights;
+        modelData->MorphWeights[0] = _weights[0];
+        modelData->MorphWeights[1] = _weights[1];
 
         glm::mat3 normalMatrix = glm::mat3(_transform);
 
@@ -394,12 +396,15 @@ namespace
         const tinygltf::Node& node = _gltfModel.nodes[_nodeIdx];
         glm::mat4 transform = _parent * ComposeTransform(node);
 
-        glm::vec4 weights(0.0f);
+        std::array<glm::vec4, 2> weights{ glm::vec4(0.0f), glm::vec4(0.0f) };
+        bool hasNodeWeights = false;
+
         if (!node.weights.empty())
         {
-            for (size_t i = 0; i < node.weights.size() && i < 4; ++i)
+            for (size_t i = 0; i < node.weights.size() && i < kMaxMorphTargets; ++i)
             {
-                weights[i] = static_cast<float>(node.weights[i]);
+                weights[i / 4][i % 4] = static_cast<float>(node.weights[i]);
+                hasNodeWeights = true;
             }
         }
 
@@ -407,11 +412,11 @@ namespace
         {
             const tinygltf::Mesh& mesh = _gltfModel.meshes[node.mesh];
 
-            if (weights == glm::vec4(0.0f) && !mesh.weights.empty())
+            if (!hasNodeWeights && !mesh.weights.empty())
             {
-                for (size_t i = 0; i < mesh.weights.size() && i < 4; ++i)
+                for (size_t i = 0; i < mesh.weights.size() && i < kMaxMorphTargets; ++i)
                 {
-                    weights[i] = static_cast<float>(mesh.weights[i]);
+                    weights[i / 4][i % 4] = static_cast<float>(mesh.weights[i]);
                 }
             }
 

@@ -42,7 +42,7 @@ struct VisibilityComponent
 
 struct MorphWeightsComponent
 {
-	glm::vec4 Weights{ 0.0f };
+	glm::vec4 Weights[2]{ glm::vec4(0.0f), glm::vec4(0.0f) };
 	uint32 Count{ 0 };
 };
 

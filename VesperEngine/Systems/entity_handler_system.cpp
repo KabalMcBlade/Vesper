@@ -75,18 +75,21 @@ void EntityHandlerSystem::UpdateEntities(const FrameInfo& _frameInfo)
 		const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(gameEntity);
 		const UpdateComponent& updateComponent = componentManager.GetComponent<UpdateComponent>(gameEntity);
 
-		glm::vec4 morphWeights(0.0f);
+		glm::vec4 morphWeights0(0.0f);
+		glm::vec4 morphWeights1(0.0f);
 		int32 morphCount = 0;
 		if (componentManager.HasComponents<MorphWeightsComponent>(gameEntity))
 		{
 			const MorphWeightsComponent& comp = componentManager.GetComponent<MorphWeightsComponent>(gameEntity);
-			morphWeights = comp.Weights;
+			morphWeights0 = comp.Weights[0];
+			morphWeights1 = comp.Weights[1];
 			morphCount = static_cast<int32>(comp.Count);
 		}
 
 		EntityUBO entityUBO{};
 		entityUBO.ModelMatrix = updateComponent.ModelMatrix;
-		entityUBO.MorphWeights = morphWeights;
+		entityUBO.MorphWeights0 = morphWeights0;
+		entityUBO.MorphWeights1 = morphWeights1;
 		entityUBO.MorphTargetCount = morphCount;
 
 		m_entityUboBuffers[_frameInfo.FrameIndex].MappedMemory = &entityUBO;

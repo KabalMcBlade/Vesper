@@ -46,6 +46,7 @@ struct VESPERENGINE_ALIGN16 SpotLight
 static constexpr uint32 kMaxDirectionalLights = 16;
 static constexpr uint32 kMaxPointLights = 256;
 static constexpr uint32 kMaxSpotLights = 256;
+static constexpr uint32 kMaxMorphTargets = 8;
 
 struct VESPERENGINE_ALIGN16 LightsUBO
 {
@@ -62,7 +63,8 @@ struct VESPERENGINE_ALIGN16 LightsUBO
 struct VESPERENGINE_ALIGN16 EntityUBO
 {
 	glm::mat4 ModelMatrix{ 1.0f };
-	glm::vec4 MorphWeights{ 0.0f };
+	glm::vec4 MorphWeights0{ 0.0f };
+	glm::vec4 MorphWeights1{ 0.0f };
 	int32 MorphTargetCount{ 0 };
 };
 

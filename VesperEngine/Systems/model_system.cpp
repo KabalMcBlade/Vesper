@@ -163,7 +163,8 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 	{
 		m_app.GetComponentManager().AddComponent<MorphWeightsComponent>(_entity);
 		MorphWeightsComponent& morphComp = m_app.GetComponentManager().GetComponent<MorphWeightsComponent>(_entity);
-		morphComp.Weights = _data->MorphWeights;
+		morphComp.Weights[0] = _data->MorphWeights[0];
+		morphComp.Weights[1] = _data->MorphWeights[1];
 		morphComp.Count = _data->MorphTargetCount;
 	}
 }
