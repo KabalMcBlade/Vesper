@@ -304,7 +304,7 @@ void PhongOpaqueRenderSystem::CreatePipeline(VkRenderPass _renderPass)
 		ShaderType::Fragment
 	);
 
-	fragmentShader.AddSpecializationConstant(0, 2.0f);
+	//fragmentShader.AddSpecializationConstant(0, 2.0f);
 
 
 	m_opaquePipeline = std::make_unique<Pipeline>(

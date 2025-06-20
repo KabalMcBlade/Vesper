@@ -36,12 +36,14 @@ layout(std140, set = 2, binding = 0) uniform EntityUBO
 {
     mat4 ModelMatrix;
     vec4 MorphWeights;
+    int MorphTargetCount;
 } entityUBO;
 #else
 layout(std140, set = 1, binding = 0) uniform EntityUBO 
 {
     mat4 ModelMatrix;
     vec4 MorphWeights;
+    int MorphTargetCount;
 } entityUBO;
 #endif
 
@@ -53,7 +55,8 @@ void main()
 
     vec3 finalPos = inPosition;
     vec3 finalNorm = inNormal;
-    for (int i = 0; i < 4; ++i)
+    int morphCount = clamp(entityUBO.MorphTargetCount, 0, 4);
+    for (int i = 0; i < morphCount; ++i)
     {
         finalPos += morphPos[i] * entityUBO.MorphWeights[i];
         finalNorm += morphNorm[i] * entityUBO.MorphWeights[i];

@@ -280,7 +280,7 @@ void PBRTransparentRenderSystem::CreatePipeline(VkRenderPass _renderPass)
         ShaderType::Fragment
     );
 
-    fragmentShader.AddSpecializationConstant(0, 2.0f);
+    //fragmentShader.AddSpecializationConstant(0, 2.0f);
 
     m_pipeline = std::make_unique<Pipeline>(
         m_device,

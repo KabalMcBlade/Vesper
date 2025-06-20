@@ -43,6 +43,7 @@ struct VisibilityComponent
 struct MorphWeightsComponent
 {
 	glm::vec4 Weights{ 0.0f };
+	uint32 Count{ 0 };
 };
 
 VESPERENGINE_NAMESPACE_END

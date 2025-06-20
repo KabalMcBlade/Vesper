@@ -41,6 +41,7 @@ void EntityHandlerSystem::Initialize()
 	m_entityUboBuffers.resize(SwapChain::kMaxFramesInFlight);
 	m_entityDescriptorSets.resize(SwapChain::kMaxFramesInFlight);
 
+	const uint32 minUboAlignment = static_cast<uint32>(m_device.GetLimits().minUniformBufferOffsetAlignment);
 	for (int32 i = 0; i < SwapChain::kMaxFramesInFlight; ++i)
 	{
 		m_entityUboBuffers[i] = m_buffer->Create<BufferComponent>(
@@ -49,7 +50,7 @@ void EntityHandlerSystem::Initialize()
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, //| VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 			VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, //VMA_MEMORY_USAGE_AUTO_PREFER_HOST, //VMA_MEMORY_USAGE_AUTO,
 			VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,//VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
-			/*GetAlignedSizeUBO()*/1,
+			minUboAlignment,
 			true
 		);
 	}
@@ -75,12 +76,18 @@ void EntityHandlerSystem::UpdateEntities(const FrameInfo& _frameInfo)
 		const UpdateComponent& updateComponent = componentManager.GetComponent<UpdateComponent>(gameEntity);
 
 		glm::vec4 morphWeights(0.0f);
+		int32 morphCount = 0;
 		if (componentManager.HasComponents<MorphWeightsComponent>(gameEntity))
 		{
-			morphWeights = componentManager.GetComponent<MorphWeightsComponent>(gameEntity).Weights;
+			const MorphWeightsComponent& comp = componentManager.GetComponent<MorphWeightsComponent>(gameEntity);
+			morphWeights = comp.Weights;
+			morphCount = static_cast<int32>(comp.Count);
 		}
 
-		EntityUBO entityUBO{ updateComponent.ModelMatrix, morphWeights };
+		EntityUBO entityUBO{};
+		entityUBO.ModelMatrix = updateComponent.ModelMatrix;
+		entityUBO.MorphWeights = morphWeights;
+		entityUBO.MorphTargetCount = morphCount;
 
 		m_entityUboBuffers[_frameInfo.FrameIndex].MappedMemory = &entityUBO;
 		m_buffer->WriteToIndex(m_entityUboBuffers[_frameInfo.FrameIndex], dynamicOffsetComponent.DynamicOffsetIndex);
