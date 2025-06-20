@@ -221,7 +221,7 @@ namespace
     }
 
     std::unique_ptr<ModelData> LoadPrimitiveModel(const tinygltf::Model& _gltfModel,
-        const tinygltf::Primitive& _primitive, const glm::mat4& _transform,
+        const tinygltf::Primitive& _primitive, const glm::mat4& _transform, const glm::vec4& _weights,
         const std::string& _basePath, const std::string& _texturePath, MaterialSystem& _materialSystem, bool _isStatic)
     {
         auto modelData = std::make_unique<ModelData>();
@@ -302,6 +302,24 @@ namespace
             ReadColorAccessor(_gltfModel, _gltfModel.accessors[itColor->second], colors);
         }
 
+        size_t morphCount = std::min<size_t>(_primitive.targets.size(), 4);
+        std::vector<std::vector<glm::vec3>> morphPositions(morphCount);
+        std::vector<std::vector<glm::vec3>> morphNormals(morphCount);
+        for (size_t t = 0; t < morphCount; ++t)
+        {
+            auto mp = _primitive.targets[t].find("POSITION");
+            if (mp != _primitive.targets[t].end())
+            {
+                ReadAccessor(_gltfModel, _gltfModel.accessors[mp->second], morphPositions[t]);
+            }
+
+            auto mn = _primitive.targets[t].find("NORMAL");
+            if (mn != _primitive.targets[t].end())
+            {
+                ReadAccessor(_gltfModel, _gltfModel.accessors[mn->second], morphNormals[t]);
+            }
+        }
+
         std::vector<uint32> indices;
         if (_primitive.indices >= 0)
         {
@@ -318,6 +336,8 @@ namespace
 
         modelData->Vertices.resize(indices.size());
         modelData->Indices.resize(indices.size());
+        modelData->MorphTargetCount = static_cast<uint32>(morphCount);
+        modelData->MorphWeights = _weights;
 
         glm::mat3 normalMatrix = glm::mat3(_transform);
 
@@ -347,6 +367,18 @@ namespace
                 vertex.Color = baseColorFactorRGB;
             }
 
+            for (size_t t = 0; t < morphCount; ++t)
+            {
+                if (vIndex < morphPositions[t].size())
+                {
+                    vertex.MorphPos[t] = glm::mat3(_transform) * morphPositions[t][vIndex];
+                }
+                if (vIndex < morphNormals[t].size())
+                {
+                    vertex.MorphNorm[t] = normalMatrix * morphNormals[t][vIndex];
+                }
+            }
+
             modelData->Vertices[i] = vertex;
             modelData->Indices[i] = static_cast<uint32>(i);
         }
@@ -362,12 +394,30 @@ namespace
         const tinygltf::Node& node = _gltfModel.nodes[_nodeIdx];
         glm::mat4 transform = _parent * ComposeTransform(node);
 
+        glm::vec4 weights(0.0f);
+        if (!node.weights.empty())
+        {
+            for (size_t i = 0; i < node.weights.size() && i < 4; ++i)
+            {
+                weights[i] = static_cast<float>(node.weights[i]);
+            }
+        }
+
         if (node.mesh >= 0 && node.mesh < static_cast<int>(_gltfModel.meshes.size()))
         {
             const tinygltf::Mesh& mesh = _gltfModel.meshes[node.mesh];
+
+            if (weights == glm::vec4(0.0f) && !mesh.weights.empty())
+            {
+                for (size_t i = 0; i < mesh.weights.size() && i < 4; ++i)
+                {
+                    weights[i] = static_cast<float>(mesh.weights[i]);
+                }
+            }
+
             for (const auto& primitive : mesh.primitives)
             {
-                auto model = LoadPrimitiveModel(_gltfModel, primitive, transform, _basePath, _texturePath, _materialSystem, _isStatic);
+                auto model = LoadPrimitiveModel(_gltfModel, primitive, transform, weights, _basePath, _texturePath, _materialSystem, _isStatic);
                 LOG(Logger::INFO, "Mesh: ", mesh.name, ", Primitive vertices: ", model->Vertices.size());
                 _models.push_back(std::move(model));
             }

@@ -74,7 +74,13 @@ void EntityHandlerSystem::UpdateEntities(const FrameInfo& _frameInfo)
 		const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(gameEntity);
 		const UpdateComponent& updateComponent = componentManager.GetComponent<UpdateComponent>(gameEntity);
 
-		EntityUBO entityUBO{ updateComponent.ModelMatrix };
+		glm::vec4 morphWeights(0.0f);
+		if (componentManager.HasComponents<MorphWeightsComponent>(gameEntity))
+		{
+			morphWeights = componentManager.GetComponent<MorphWeightsComponent>(gameEntity).Weights;
+		}
+
+		EntityUBO entityUBO{ updateComponent.ModelMatrix, morphWeights };
 
 		m_entityUboBuffers[_frameInfo.FrameIndex].MappedMemory = &entityUBO;
 		m_buffer->WriteToIndex(m_entityUboBuffers[_frameInfo.FrameIndex], dynamicOffsetComponent.DynamicOffsetIndex);

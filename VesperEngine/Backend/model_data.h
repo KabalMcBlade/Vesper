@@ -23,13 +23,20 @@ struct Vertex
 	glm::vec3 Color{};
 	glm::vec3 Normal{};
 	glm::vec2 UV{};
+	glm::vec3 MorphPos[4]{};
+	glm::vec3 MorphNorm[4]{};
 
 	static std::vector<VkVertexInputBindingDescription> GetBindingDescriptions();
 	static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();
 
-	bool operator==(const Vertex& _other) const 
+	bool operator==(const Vertex& _other) const
 	{
-		return Position == _other.Position && Color == _other.Color && Normal == _other.Normal && UV == _other.UV;
+		bool equal = Position == _other.Position && Color == _other.Color && Normal == _other.Normal && UV == _other.UV;
+		for (int i = 0;i < 4 && equal;++i)
+		{
+			equal = equal && MorphPos[i] == _other.MorphPos[i] && MorphNorm[i] == _other.MorphNorm[i];
+		}
+		return equal;
 	}
 };
 
@@ -66,6 +73,8 @@ struct ModelData
 	std::vector<uint32> Indices{};
 	std::shared_ptr<MaterialData> Material;
 	bool IsStatic{ false };
+	glm::vec4 MorphWeights{ 0.0f };
+	uint32 MorphTargetCount{ 0 };
 };
 
 VESPERENGINE_NAMESPACE_END

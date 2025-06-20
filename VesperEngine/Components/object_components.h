@@ -40,4 +40,9 @@ struct VisibilityComponent
 {
 };
 
+struct MorphWeightsComponent
+{
+	glm::vec4 Weights{ 0.0f };
+};
+
 VESPERENGINE_NAMESPACE_END
