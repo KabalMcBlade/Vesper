@@ -19,7 +19,8 @@ GameManager::GameManager(
 	ObjLoader& _objLoader,
 	GltfLoader& _gltfLoader,
 	TextureSystem& _textureSystem,
-	LightSystem& _lightSystem)
+	LightSystem& _lightSystem,
+	BlendShapeAnimationSystem& _blendShapeAnimationSystem)
 	: m_app(_app)
 	, m_entityHandlerSystem(_entityHandlerSystem)
 	, m_gameEntitySystem(_gameEntitySystem)
@@ -30,6 +31,7 @@ GameManager::GameManager(
 	, m_gltfLoader(_gltfLoader)
 	, m_textureSystem(_textureSystem)
 	, m_lightSystem(_lightSystem)
+	, m_blendShapeAnimationSystem(_blendShapeAnimationSystem)
 {
 	m_app.GetComponentManager().RegisterComponent<RotationComponent>();
 }
@@ -390,7 +392,8 @@ void GameManager::LoadGameEntities()
 	//////////////////////////////////////////////////////////////////////////
 	// GLTF: DamagedHelmet
 	{
-		std::vector<std::unique_ptr<ModelData>> damagedHelmetDataList = m_gltfLoader.LoadModel("DamagedHelmet.gltf");
+		const std::string gltfModelName = "DamagedHelmet.gltf";
+		std::vector<std::unique_ptr<ModelData>> damagedHelmetDataList = m_gltfLoader.LoadModel(gltfModelName);
 		for (auto& damagedHelmetData : damagedHelmetDataList)
 		{
 			ecs::Entity damagedHelmet = m_gameEntitySystem.CreateGameEntity(EntityType::Renderable);
@@ -411,6 +414,14 @@ void GameManager::LoadGameEntities()
 			{
 				m_app.GetComponentManager().AddComponent<ColorTintPushConstantData>(damagedHelmet);
 			}
+
+			int32 animationCount = m_blendShapeAnimationSystem.GetAnimationCount(damagedHelmet);
+
+			LOG(Logger::INFO, "Animation count for ", gltfModelName, " is ", animationCount);
+
+			LOG_NL();
+
+			//m_blendShapeAnimationSystem.SetAnimation(damagedHelmet, 0);
 
 			/*
 			m_app.GetComponentManager().AddComponent<RotationComponent>(damagedHelmet);

@@ -51,6 +51,7 @@ ViewerApp::ViewerApp(Config& _config) :
 	m_materialSystem = std::make_unique<MaterialSystem>(*m_device, *m_textureSystem);
 	m_modelSystem = std::make_unique<ModelSystem>(*this, *m_device, *m_materialSystem);
 	m_lightSystem = std::make_unique<LightSystem>(*this, *m_gameEntitySystem);
+	m_blendShapeAnimationSystem = std::make_unique<BlendShapeAnimationSystem>(*this);
 
     m_masterRenderSystem = std::make_unique<MasterRenderSystem>(*m_device, *m_renderer, *m_lightSystem);
 	
@@ -133,7 +134,8 @@ ViewerApp::ViewerApp(Config& _config) :
 		*m_objLoader,
 		*m_gltfLoader,
 		*m_textureSystem,
-		*m_lightSystem);
+		*m_lightSystem,
+		*m_blendShapeAnimationSystem);
 
     m_gameManager->LoadCameraEntities();
     m_gameManager->LoadGameEntities();
@@ -183,6 +185,7 @@ void ViewerApp::Run()
 		// We could clamp frameTime to use a min between it and a max frame value, to avoid big "hiccups" if the renderer stop (i.e. resizing window while moving the camera)
 
 		m_keyboardController->MoveInPlaneXZ(m_window->GetWindow(), frameTime);
+		m_keyboardController->SetNextAnimation(m_blendShapeAnimationSystem.get());
 		m_mouseController->Update(frameTime);
 
 		auto commandBuffer = m_renderer->BeginFrame();
@@ -204,6 +207,8 @@ void ViewerApp::Run()
 			m_pbrTransparentRenderSystem->Update(frameInfo);
 
             m_skyboxRenderSystem->Update(frameInfo);
+
+			m_blendShapeAnimationSystem->Update(frameInfo);
 
 			const float aspectRatio = m_renderer->GetAspectRatio();
 			m_cameraSystem->Update(aspectRatio);

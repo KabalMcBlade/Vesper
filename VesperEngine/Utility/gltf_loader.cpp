@@ -76,6 +76,11 @@ namespace
                     _out[i] = *val;
                 }
             }
+            else if constexpr (std::is_same_v<T, float>)
+            {
+                const float* val = reinterpret_cast<const float*>(src);
+                _out[i] = *val;
+            }
         }
     }
 
@@ -219,6 +224,58 @@ namespace
         }
 
         return transform;
+    }
+
+    void LoadAnimations(const tinygltf::Model& _model, std::vector<MorphAnimation>& _animations)
+    {
+        for (const auto& anim : _model.animations)
+        {
+            MorphAnimation animation{};
+            animation.Name = anim.name;
+
+            for (const auto& channel : anim.channels)
+            {
+                if (channel.target_path != "weights")
+                    continue;
+
+                if (channel.sampler < 0 || channel.sampler >= static_cast<int>(anim.samplers.size()))
+                    continue;
+
+                const auto& sampler = anim.samplers[channel.sampler];
+                std::vector<float> times;
+                std::vector<float> values;
+                ReadAccessor(_model, _model.accessors[sampler.input], times);
+                ReadAccessor(_model, _model.accessors[sampler.output], values);
+
+                size_t keyCount = times.size();
+                if (keyCount == 0)
+                    continue;
+
+                size_t morphCount = values.size() / keyCount;
+                animation.Keyframes.resize(keyCount);
+                for (size_t i = 0; i < keyCount; ++i)
+                {
+                    animation.Keyframes[i].Time = times[i];
+                    for (glm::vec<4, float, glm::aligned_highp>::length_type m = 0; m < morphCount && m < kMaxMorphTargets; ++m)
+                    {
+                        float v = values[i * morphCount + m];
+                        if (m < 4)
+                        {
+                            animation.Keyframes[i].Weights[0][m] = v;
+                        }
+                        else
+                        {
+                            animation.Keyframes[i].Weights[1][m - 4] = v;
+                        }
+                    }
+                }
+            }
+
+            if (!animation.Keyframes.empty())
+            {
+                _animations.push_back(std::move(animation));
+            }
+        }
     }
 
     std::unique_ptr<ModelData> LoadPrimitiveModel(const tinygltf::Model& _gltfModel,
@@ -478,6 +535,9 @@ std::vector<std::unique_ptr<ModelData>> GltfLoader::LoadModel(const std::string&
         throw std::runtime_error(err);
     }
 
+    std::vector<MorphAnimation> animations;
+    LoadAnimations(gltfModel, animations);
+
     int sceneIndex = gltfModel.defaultScene >= 0 ? gltfModel.defaultScene : 0;
     if (sceneIndex < static_cast<int>(gltfModel.scenes.size())) {
         const tinygltf::Scene& scene = gltfModel.scenes[sceneIndex];
@@ -488,6 +548,11 @@ std::vector<std::unique_ptr<ModelData>> GltfLoader::LoadModel(const std::string&
                 ProcessNode(gltfModel, nodeIdx, glm::mat4(1.0f), models, _isStatic, basePath, texturePath, m_materialSystem);
             }
         }
+    }
+
+    for (auto& model : models)
+    {
+        model->Animations = animations;
     }
 
     LOG(Logger::INFO, "Total primitives processed: ", models.size());

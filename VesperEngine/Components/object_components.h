@@ -7,10 +7,15 @@
 #include "Core/core_defines.h"
 #include "Core/glm_config.h"
 
+#include "Backend/model_data.h"
+
 #include "ECS/ECS/entity.h"
+
+#include <vector>
 
 
 VESPERENGINE_NAMESPACE_BEGIN
+
 
 struct TransformComponent
 {
@@ -18,8 +23,8 @@ struct TransformComponent
 	glm::vec3 Scale{ 1.f, 1.f, 1.f };
 	glm::quat Rotation{ 1.0f, 0.0f, 0.0f, 0.0f };
 
-	ecs::Entity Parent = ecs::UnknowEntity;
-	std::vector<ecs::Entity> Children;
+	//ecs::Entity Parent = ecs::UnknowEntity;
+	//std::vector<ecs::Entity> Children;
 };
 
 // define an object which never change
@@ -40,10 +45,20 @@ struct VisibilityComponent
 {
 };
 
+
 struct MorphWeightsComponent
 {
 	glm::vec4 Weights[2]{ glm::vec4(0.0f), glm::vec4(0.0f) };
 	uint32 Count{ 0 };
+};
+
+struct MorphAnimationComponent
+{
+	std::vector<MorphAnimation> Animations{};
+	int CurrentAnimation{ 0 };
+	float CurrentTime{ 0.0f };
+	bool Loop{ true };
+	bool Playing{ false };
 };
 
 VESPERENGINE_NAMESPACE_END

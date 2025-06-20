@@ -34,9 +34,12 @@ public:
 		int32 LookRollRight = GLFW_KEY_PAGE_UP;
 		int32 LookRollLeft = GLFW_KEY_PAGE_DOWN;
 		int32 ToggleLights = GLFW_KEY_L;
+		int32 NextAnimation = GLFW_KEY_N;
 	};
 
 	void MoveInPlaneXZ(GLFWwindow* _window, float _dt);
+
+	void SetNextAnimation(BlendShapeAnimationSystem* _blendShapeAnimationSystem);
 
 private:
 	VesperApp& m_app;
@@ -49,5 +52,8 @@ private:
 	bool m_limitLook{true};
 	bool m_showLights{ false };
 	bool m_togglePressed{ false };
+	bool m_nextAnimationPressed{ false };
+
+	std::vector<int32> m_currentAnimForAllEntities;
 };
 

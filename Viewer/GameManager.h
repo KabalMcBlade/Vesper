@@ -24,7 +24,8 @@ public:
 		ObjLoader& _objLoader,
 		GltfLoader& _gltfLoader,
 		TextureSystem& _textureSystem,
-		LightSystem& _lightSystem);
+		LightSystem& _lightSystem,
+		BlendShapeAnimationSystem& _blendShapeAnimationSystem);
 	~GameManager();
 
 public:
@@ -40,6 +41,7 @@ public:
 	VESPERENGINE_INLINE std::shared_ptr<TextureData> GetBrdfLut() const { return m_brdfLut; }
 
 private:
+	friend class ViewerApp;
 	VesperApp& m_app;
 	EntityHandlerSystem& m_entityHandlerSystem;
 	GameEntitySystem& m_gameEntitySystem;
@@ -50,6 +52,7 @@ private:
 	GltfLoader& m_gltfLoader;
 	TextureSystem& m_textureSystem;
 	LightSystem& m_lightSystem;
+	BlendShapeAnimationSystem& m_blendShapeAnimationSystem;
 
 	std::shared_ptr<TextureData> m_brdfLut{};
 	std::shared_ptr<TextureData> m_irradianceMap{};

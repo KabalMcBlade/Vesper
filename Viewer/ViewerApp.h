@@ -44,6 +44,7 @@ private:
 	std::unique_ptr<MaterialSystem> m_materialSystem;
     std::unique_ptr<MasterRenderSystem> m_masterRenderSystem;
 	std::unique_ptr<LightSystem> m_lightSystem;
+	std::unique_ptr<BlendShapeAnimationSystem> m_blendShapeAnimationSystem;
     
 	// IN-ENGINE SYSTEMS
 	std::unique_ptr<PhongOpaqueRenderSystem> m_phongOpaqueRenderSystem;

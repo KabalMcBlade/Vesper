@@ -42,6 +42,7 @@
 #include "Systems/irradiance_convolution_generation_system.h"
 #include "Systems/pre_filtered_environment_generation_system.h"
 #include "Systems/light_system.h"
+#include "Systems/blend_shape_animation_system.h"
 
 #include "Utility/hash.h"
 #include "Utility/logger.h"

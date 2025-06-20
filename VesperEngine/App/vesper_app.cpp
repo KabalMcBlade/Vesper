@@ -79,7 +79,7 @@ void VesperApp::RegisterDefaultComponents()
 	m_componentManager.RegisterComponent<DynamicOffsetComponent>();
 	m_componentManager.RegisterComponent<VisibilityComponent>();
 	m_componentManager.RegisterComponent<MorphWeightsComponent>();
-	
+	m_componentManager.RegisterComponent<MorphAnimationComponent>();
 
 	// PIPELINES
 	m_componentManager.RegisterComponent<PipelineOpaqueComponent>();
@@ -128,6 +128,7 @@ void VesperApp::UnregisterDefaultComponent()
 	m_componentManager.UnregisterComponent<DynamicOffsetComponent>();
 	m_componentManager.UnregisterComponent<VisibilityComponent>();
 	m_componentManager.UnregisterComponent<MorphWeightsComponent>();
+	m_componentManager.UnregisterComponent<MorphAnimationComponent>();
 
 	// PIPELINES
 	m_componentManager.UnregisterComponent<PipelineOpaqueComponent>();

@@ -17,8 +17,15 @@ void KeyboardMovementCameraController::MoveInPlaneXZ(GLFWwindow* _window, float 
     ecs::EntityManager& entityManager = m_app.GetEntityManager();
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-    bool toggle = glfwGetKey(_window, m_keys.ToggleLights) == GLFW_PRESS;
-    if (toggle && !m_togglePressed)
+	
+	bool nextAnim = glfwGetKey(_window, m_keys.NextAnimation) == GLFW_PRESS;
+	if (nextAnim && !m_nextAnimationPressed)
+	{
+		m_nextAnimationPressed = true;
+	}
+
+    bool toggleLight = glfwGetKey(_window, m_keys.ToggleLights) == GLFW_PRESS;
+    if (toggleLight && !m_togglePressed)
     {
         m_togglePressed = true;
         m_showLights = !m_showLights;
@@ -44,7 +51,7 @@ void KeyboardMovementCameraController::MoveInPlaneXZ(GLFWwindow* _window, float 
             }
         }
     }
-    else if (!toggle)
+    else if (!toggleLight)
     {
         m_togglePressed = false;
     }
@@ -90,5 +97,16 @@ void KeyboardMovementCameraController::MoveInPlaneXZ(GLFWwindow* _window, float 
 		{
 			transformComponent.Position += m_moveSpeed * _dt * glm::normalize(moveDir);
 		}
+	}
+}
+
+
+void KeyboardMovementCameraController::SetNextAnimation(BlendShapeAnimationSystem* _blendShapeAnimationSystem)
+{
+	if (m_nextAnimationPressed)
+	{
+		_blendShapeAnimationSystem->SetAnimationForAllEntities(m_currentAnimForAllEntities);
+
+		m_nextAnimationPressed = false;
 	}
 }

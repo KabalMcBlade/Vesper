@@ -70,6 +70,18 @@ struct MaterialData
 	MaterialType Type;
 };
 
+struct MorphKeyframe
+{
+	float Time{ 0.0f };
+	glm::vec4 Weights[2]{ glm::vec4(0.0f), glm::vec4(0.0f) };
+};
+
+struct MorphAnimation
+{
+	std::string Name{};
+	std::vector<MorphKeyframe> Keyframes{};
+};
+
 struct ModelData
 {
 	std::vector<Vertex> Vertices{};
@@ -78,6 +90,7 @@ struct ModelData
 	bool IsStatic{ false };
 	glm::vec4 MorphWeights[2]{ glm::vec4(0.0f), glm::vec4(0.0f) };
 	uint32 MorphTargetCount{ 0 };
+	std::vector<MorphAnimation> Animations{};
 };
 
 VESPERENGINE_NAMESPACE_END

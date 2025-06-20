@@ -166,6 +166,14 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 		morphComp.Weights[0] = _data->MorphWeights[0];
 		morphComp.Weights[1] = _data->MorphWeights[1];
 		morphComp.Count = _data->MorphTargetCount;
+
+		if (!_data->Animations.empty())
+		{
+			m_app.GetComponentManager().AddComponent<MorphAnimationComponent>(_entity);
+			MorphAnimationComponent& animComp = m_app.GetComponentManager().GetComponent<MorphAnimationComponent>(_entity);
+			animComp.Animations = _data->Animations;
+			animComp.Playing = true;
+		}
 	}
 }
 
@@ -299,6 +307,10 @@ void ModelSystem::UnloadModel(ecs::Entity _entity) const
 	if (m_app.GetComponentManager().HasComponents<MorphWeightsComponent>(_entity))
 	{
 		m_app.GetComponentManager().RemoveComponent<MorphWeightsComponent>(_entity);
+	}
+	if (m_app.GetComponentManager().HasComponents<MorphAnimationComponent>(_entity))
+	{
+		m_app.GetComponentManager().RemoveComponent<MorphAnimationComponent>(_entity);
 	}
 }
 
