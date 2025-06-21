@@ -76,7 +76,7 @@ void BlendShapeAnimationSystem::Update(const FrameInfo& _frameInfo) const
     }
 }
 
-void BlendShapeAnimationSystem::SetAnimation(ecs::Entity _entity, int _animationIndex) const
+void BlendShapeAnimationSystem::SetAnimation(ecs::Entity _entity, int32 _animationIndex) const
 {
     if (m_app.GetComponentManager().HasComponents<MorphAnimationComponent>(_entity))
     {
@@ -86,6 +86,32 @@ void BlendShapeAnimationSystem::SetAnimation(ecs::Entity _entity, int _animation
             animComp.CurrentAnimation = _animationIndex;
             animComp.CurrentTime = 0.0f;
         }
+    }
+}
+
+void BlendShapeAnimationSystem::SetNextAnimation(ecs::Entity _entity) const
+{
+    if (m_app.GetComponentManager().HasComponents<MorphAnimationComponent>(_entity))
+    {
+        MorphAnimationComponent& animComp = m_app.GetComponentManager().GetComponent<MorphAnimationComponent>(_entity);
+        int32 numAnimations = static_cast<int32>(animComp.Animations.size());
+        if (numAnimations > 0)
+        {
+            animComp.CurrentAnimation = (animComp.CurrentAnimation + 1) % numAnimations;
+            animComp.CurrentTime = 0.0f;
+        }
+    }
+}
+
+
+void BlendShapeAnimationSystem::SetNextAnimationForAllEntities() const
+{
+    ecs::EntityManager& entityManager = m_app.GetEntityManager();
+    ecs::ComponentManager& componentManager = m_app.GetComponentManager();
+
+    for (auto entity : ecs::IterateEntitiesWithAll<MorphAnimationComponent>(entityManager, componentManager))
+    {
+        SetNextAnimation(entity);
     }
 }
 
@@ -99,43 +125,5 @@ int32 BlendShapeAnimationSystem::GetAnimationCount(ecs::Entity _entity) const
 
     return -1;
 }
-
-void BlendShapeAnimationSystem::SetAnimationForAllEntities(std::vector<int32>& _inOutAnimationIndex) const
-{
-    ecs::EntityManager& entityManager = m_app.GetEntityManager();
-    ecs::ComponentManager& componentManager = m_app.GetComponentManager();
-
-    int32 index = 0;
-    for (auto entity : ecs::IterateEntitiesWithAll<MorphAnimationComponent>(entityManager, componentManager))
-    {
-        MorphAnimationComponent& animComp = componentManager.GetComponent<MorphAnimationComponent>(entity);
-
-        int32 numAnimations = static_cast<int32>(animComp.Animations.size());
-        if (numAnimations > 0)
-        {
-            // Ensure vector is large enough
-            if (index >= static_cast<int32>(_inOutAnimationIndex.size()))
-            {
-                _inOutAnimationIndex.resize(index + 1, 0);
-            }
-
-            // Apply current animation index
-            int32 animIndex = _inOutAnimationIndex[index] % numAnimations;
-            animComp.CurrentAnimation = animIndex;
-            animComp.CurrentTime = 0.0f;
-
-            // Increment for next time
-            _inOutAnimationIndex[index] = (animIndex + 1) % numAnimations;
-        }
-        else
-        {
-            animComp.CurrentAnimation = 0;
-            animComp.CurrentTime = 0.0f;
-        }
-
-        ++index;
-    }
-}
-
 
 VESPERENGINE_NAMESPACE_END

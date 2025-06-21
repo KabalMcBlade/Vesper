@@ -15,7 +15,8 @@ VESPERENGINE_USING_NAMESPACE
 class KeyboardMovementCameraController
 {
 public:
-	KeyboardMovementCameraController(VesperApp& _app);
+	KeyboardMovementCameraController(VesperApp& _app,
+		BlendShapeAnimationSystem& _blendShapeAnimationSystem);
 	~KeyboardMovementCameraController() = default;
 
 public:
@@ -37,13 +38,17 @@ public:
 		int32 NextAnimation = GLFW_KEY_N;
 	};
 
-	void MoveInPlaneXZ(GLFWwindow* _window, float _dt);
+	void Update(GLFWwindow* _window, float _dt);
 
-	void SetNextAnimation(BlendShapeAnimationSystem* _blendShapeAnimationSystem);
+private:
+	bool IsKeyJustPressed(int32 _key, GLFWwindow* _window);
 
 private:
 	VesperApp& m_app;
+	BlendShapeAnimationSystem& m_blendShapeAnimationSystem;
+
 	KeyMappings m_keys{};
+	std::unordered_map<int32, bool> m_previousKeyState;
 
 	friend class MouseLookCameraController;
 	float m_moveSpeed{3.0f};
@@ -51,9 +56,5 @@ private:
 
 	bool m_limitLook{true};
 	bool m_showLights{ false };
-	bool m_togglePressed{ false };
-	bool m_nextAnimationPressed{ false };
-
-	std::vector<int32> m_currentAnimForAllEntities;
 };
 

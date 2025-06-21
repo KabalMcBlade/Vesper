@@ -118,7 +118,7 @@ ViewerApp::ViewerApp(Config& _config) :
 	//////////////////////////////////////////////////////////////////////////
 	// Game side initialization
 
-	m_keyboardController = std::make_unique<KeyboardMovementCameraController>(*this);
+	m_keyboardController = std::make_unique<KeyboardMovementCameraController>(*this, *m_blendShapeAnimationSystem);
 
 	m_mouseController = std::make_unique<MouseLookCameraController>();
 	m_mouseController->SetMouseCallback(this, m_window->GetWindow());
@@ -184,8 +184,7 @@ void ViewerApp::Run()
 
 		// We could clamp frameTime to use a min between it and a max frame value, to avoid big "hiccups" if the renderer stop (i.e. resizing window while moving the camera)
 
-		m_keyboardController->MoveInPlaneXZ(m_window->GetWindow(), frameTime);
-		m_keyboardController->SetNextAnimation(m_blendShapeAnimationSystem.get());
+		m_keyboardController->Update(m_window->GetWindow(), frameTime);
 		m_mouseController->Update(frameTime);
 
 		auto commandBuffer = m_renderer->BeginFrame();

@@ -26,13 +26,10 @@ public:
 
     void Update(const FrameInfo& _frameInfo) const;
     void SetAnimation(ecs::Entity _entity, int32 _animationIndex) const;
-
+    void SetNextAnimation(ecs::Entity _entity) const;
+    void SetNextAnimationForAllEntities() const;
     int32 GetAnimationCount(ecs::Entity _entity) const;
 
-
-    // Debug
-public:
-    void SetAnimationForAllEntities(std::vector<int32>& _inOutAnimationIndex) const;
 
 private:
     VesperApp& m_app;

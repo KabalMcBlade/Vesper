@@ -7,27 +7,36 @@
 
 VESPERENGINE_USING_NAMESPACE
 
-KeyboardMovementCameraController::KeyboardMovementCameraController(VesperApp& _app)
+
+KeyboardMovementCameraController::KeyboardMovementCameraController(VesperApp& _app,
+	BlendShapeAnimationSystem& _blendShapeAnimationSystem)
 	: m_app(_app)
+	, m_blendShapeAnimationSystem(_blendShapeAnimationSystem)
 {
 }
 
-void KeyboardMovementCameraController::MoveInPlaneXZ(GLFWwindow* _window, float _dt)
+bool KeyboardMovementCameraController::IsKeyJustPressed(int32 _key, GLFWwindow* _window)
+{
+	bool isPressedNow = glfwGetKey(_window, _key) == GLFW_PRESS;
+	bool wasPressedBefore = m_previousKeyState[_key];
+
+	m_previousKeyState[_key] = isPressedNow; // update for next frame
+
+	return isPressedNow && !wasPressedBefore; // true only on the frame the key is first pressed
+}
+
+void KeyboardMovementCameraController::Update(GLFWwindow* _window, float _dt)
 {
     ecs::EntityManager& entityManager = m_app.GetEntityManager();
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-	
-	bool nextAnim = glfwGetKey(_window, m_keys.NextAnimation) == GLFW_PRESS;
-	if (nextAnim && !m_nextAnimationPressed)
+	if (IsKeyJustPressed(m_keys.NextAnimation, _window))
 	{
-		m_nextAnimationPressed = true;
+		m_blendShapeAnimationSystem.SetNextAnimationForAllEntities();
 	}
 
-    bool toggleLight = glfwGetKey(_window, m_keys.ToggleLights) == GLFW_PRESS;
-    if (toggleLight && !m_togglePressed)
+	if (IsKeyJustPressed(m_keys.ToggleLights, _window))
     {
-        m_togglePressed = true;
         m_showLights = !m_showLights;
 
         if (m_showLights)
@@ -50,10 +59,6 @@ void KeyboardMovementCameraController::MoveInPlaneXZ(GLFWwindow* _window, float 
                 }
             }
         }
-    }
-    else if (!toggleLight)
-    {
-        m_togglePressed = false;
     }
 
 	for (auto camera : ecs::IterateEntitiesWithAll<CameraActive, CameraTransformComponent>(entityManager, componentManager))
@@ -97,16 +102,5 @@ void KeyboardMovementCameraController::MoveInPlaneXZ(GLFWwindow* _window, float 
 		{
 			transformComponent.Position += m_moveSpeed * _dt * glm::normalize(moveDir);
 		}
-	}
-}
-
-
-void KeyboardMovementCameraController::SetNextAnimation(BlendShapeAnimationSystem* _blendShapeAnimationSystem)
-{
-	if (m_nextAnimationPressed)
-	{
-		_blendShapeAnimationSystem->SetAnimationForAllEntities(m_currentAnimForAllEntities);
-
-		m_nextAnimationPressed = false;
 	}
 }
