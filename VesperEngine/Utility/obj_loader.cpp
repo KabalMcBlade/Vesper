@@ -35,7 +35,7 @@ namespace std
 		size_t operator()(vesper::Vertex const& _vertex) const
 		{
 			size_t seed = 0;
-			vesper::HashCombine(seed, _vertex.Position, _vertex.Color, _vertex.Normal, _vertex.UV);
+			vesper::HashCombine(seed, _vertex.Position, _vertex.Color, _vertex.Normal, _vertex.UV1, _vertex.UV2);
 			return seed;
 		}
 	};
@@ -235,39 +235,39 @@ std::vector<std::unique_ptr<ModelData>> ObjLoader::LoadModel(const std::string& 
 					};
 				}
 
+				// OBJ Native Format do not support multiple UV
 				if (index.texcoord_index >= 0)
 				{
 					/**
-					 * OBJ File Format: Texture coordinates in OBJ files are typically in the range [0, 1], 
+					 * OBJ File Format: Texture coordinates in OBJ files are typically in the range [0, 1],
 					 * but their origin is in the bottom-left corner of the texture.
-					 * Vulkan: The origin of Vulkan’s texture coordinate system is in the top-left corner of the texture. 
+					 * Vulkan: The origin of Vulkan’s texture coordinate system is in the top-left corner of the texture.
 					 * This discrepancy causes textures to appear flipped vertically when mapped onto your geometry.
 					 */
-					vertex.UV =
-					{
-// 						attrib.texcoords[2 * index.texcoord_index + 0],
-// 						attrib.texcoords[2 * index.texcoord_index + 1],
-						attrib.texcoords[2 * index.texcoord_index + 0],			// U-coordinate (unchanged)
-						1.0f - attrib.texcoords[2 * index.texcoord_index + 1]	// Invert V-coordinate
-					};
 
-					// Normalize UV coordinates to [0, 1]
-					vertex.UV.x = fmod(vertex.UV.x, 1.0f);
-					vertex.UV.y = fmod(vertex.UV.y, 1.0f);
+					// Read and flip V for Vulkan
+					float u = attrib.texcoords[2 * index.texcoord_index + 0];
+					float v = 1.0f - attrib.texcoords[2 * index.texcoord_index + 1];
 
-					// Ensure UVs are positive
-					if (vertex.UV.x < 0.0f) 
-					{
-						vertex.UV.x += 1.0f;
-					}
-					if (vertex.UV.y < 0.0f)
-					{
-						vertex.UV.y += 1.0f;
-					}
+					// Normalize to [0, 1]
+					u = fmod(u, 1.0f);
+					v = fmod(v, 1.0f);
+					if (u < 0.0f) u += 1.0f;
+					if (v < 0.0f) v += 1.0f;
+
+					// Set both UVs
+					vertex.UV1 = { u, v };
+
+					// Option A: Duplicate same UVs for now
+					vertex.UV2 = { u, v };
+
+					// Option B (optional): Apply a transform for UV1
+					// vertex.UV1 = { u * 2.0f, v * 2.0f }; // example for tiled textures
 				}
-				else 
+				else
 				{
-					vertex.UV = { 0.0f, 0.0f }; 
+					vertex.UV1 = { 0.0f, 0.0f };
+					vertex.UV2 = { 0.0f, 0.0f };
 				}
 
 

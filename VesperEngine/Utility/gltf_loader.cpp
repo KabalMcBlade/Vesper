@@ -333,7 +333,8 @@ namespace
 
         std::vector<glm::vec3> positions;
         std::vector<glm::vec3> normals;
-        std::vector<glm::vec2> uvs;
+        std::vector<glm::vec2> uvs1;
+        std::vector<glm::vec2> uvs2;
         std::vector<glm::vec3> colors;
 
         auto itPos = _primitive.attributes.find("POSITION");
@@ -348,10 +349,16 @@ namespace
             ReadAccessor(_gltfModel, _gltfModel.accessors[itNorm->second], normals);
         }
 
-        auto itUV = _primitive.attributes.find("TEXCOORD_0");
-        if (itUV != _primitive.attributes.end())
+        auto itUV1 = _primitive.attributes.find("TEXCOORD_0");
+        if (itUV1 != _primitive.attributes.end())
         {
-            ReadAccessor(_gltfModel, _gltfModel.accessors[itUV->second], uvs);
+            ReadAccessor(_gltfModel, _gltfModel.accessors[itUV1->second], uvs1);
+        }
+
+        auto itUV2 = _primitive.attributes.find("TEXCOORD_1");
+        if (itUV2 != _primitive.attributes.end())
+        {
+            ReadAccessor(_gltfModel, _gltfModel.accessors[itUV2->second], uvs2);
         }
 
         auto itColor = _primitive.attributes.find("COLOR_0");
@@ -413,9 +420,13 @@ namespace
             {
                 vertex.Normal = normalMatrix * normals[vIndex];
             }
-            if (vIndex < uvs.size())
+            if (vIndex < uvs1.size())
             {
-                vertex.UV = uvs[vIndex];
+                vertex.UV1 = uvs1[vIndex];
+            }
+            if (vIndex < uvs2.size())
+            {
+                vertex.UV2 = uvs2[vIndex];
             }
             if (vIndex < colors.size())
             {

@@ -7,28 +7,30 @@
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inColor;
 layout(location = 2) in vec3 inNormal;
-layout(location = 3) in vec2 inUV;
-layout(location = 4) in vec3 inMorphPos0;
-layout(location = 5) in vec3 inMorphNorm0;
-layout(location = 6) in vec3 inMorphPos1;
-layout(location = 7) in vec3 inMorphNorm1;
-layout(location = 8) in vec3 inMorphPos2;
-layout(location = 9) in vec3 inMorphNorm2;
-layout(location = 10) in vec3 inMorphPos3;
-layout(location = 11) in vec3 inMorphNorm3;
-layout(location = 12) in vec3 inMorphPos4;
-layout(location = 13) in vec3 inMorphNorm4;
-layout(location = 14) in vec3 inMorphPos5;
-layout(location = 15) in vec3 inMorphNorm5;
-layout(location = 16) in vec3 inMorphPos6;
-layout(location = 17) in vec3 inMorphNorm6;
-layout(location = 18) in vec3 inMorphPos7;
-layout(location = 19) in vec3 inMorphNorm7;
+layout(location = 3) in vec2 inUV1;
+layout(location = 4) in vec2 inUV2;
+layout(location = 5) in vec3 inMorphPos0;
+layout(location = 6) in vec3 inMorphNorm0;
+layout(location = 7) in vec3 inMorphPos1;
+layout(location = 8) in vec3 inMorphNorm1;
+layout(location = 9) in vec3 inMorphPos2;
+layout(location = 10) in vec3 inMorphNorm2;
+layout(location = 11) in vec3 inMorphPos3;
+layout(location = 12) in vec3 inMorphNorm3;
+layout(location = 13) in vec3 inMorphPos4;
+layout(location = 14) in vec3 inMorphNorm4;
+layout(location = 15) in vec3 inMorphPos5;
+layout(location = 16) in vec3 inMorphNorm5;
+layout(location = 17) in vec3 inMorphPos6;
+layout(location = 18) in vec3 inMorphNorm6;
+layout(location = 19) in vec3 inMorphPos7;
+layout(location = 20) in vec3 inMorphNorm7;
 
 layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec3 fragPositionWorld;
 layout(location = 2) out vec3 fragNormalWorld;
-layout(location = 3) out vec2 fragUV;
+layout(location = 3) out vec2 fragUV1;
+layout(location = 4) out vec2 fragUV2;
 
 layout(std140, set = 0, binding = 0) uniform SceneUBO 
 {
@@ -83,5 +85,6 @@ void main()
     fragColor = inColor;
     fragPositionWorld = positionWorld.xyz;
     fragNormalWorld = normalize(mat3(transpose(inverse(entityUBO.ModelMatrix))) * finalNorm);
-    fragUV = inUV;
+    fragUV1 = inUV1;
+    fragUV2 = inUV2;
 }
