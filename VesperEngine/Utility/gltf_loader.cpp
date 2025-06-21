@@ -305,7 +305,7 @@ namespace
                 baseColorDefault[i] = static_cast<float>(pbr.baseColorFactor[i]);
             }
 
-            glm::vec3 baseColorFactorRGB = glm::vec3(baseColorDefault[0], baseColorDefault[1], baseColorDefault[2]);
+            baseColorFactorRGB = glm::vec3(baseColorDefault[0], baseColorDefault[1], baseColorDefault[2]);
             baseAlphaFactor = baseColorDefault[3];
 
             auto albedoTex = GetTexture(_gltfModel, pbr.baseColorTexture.index, _basePath, _texturePath, _materialSystem);
