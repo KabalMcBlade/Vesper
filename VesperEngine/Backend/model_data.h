@@ -37,7 +37,7 @@ struct Vertex
 	{
 		bool equal = Position == _other.Position && Color == _other.Color && Normal == _other.Normal 
 			&& UV1 == _other.UV1 && UV2 == _other.UV2;
-		for (int i = 0; i < static_cast<int>(kMaxMorphTargets) && equal; ++i)
+		for (int32 i = 0; i < static_cast<int32>(kMaxMorphTargets) && equal; ++i)
 		{
 			equal = equal && MorphPos[i] == _other.MorphPos[i] && MorphNorm[i] == _other.MorphNorm[i];
 		}

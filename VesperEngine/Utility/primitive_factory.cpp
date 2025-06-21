@@ -219,7 +219,7 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateCube(MaterialSystem& _mater
 	// You can now color the vertices based on which face they are part of
 	// This is purely for visualization and does not affect OBJ loading
 
-	std::array<std::array<int, 6>, 6> faceTriangles = { {
+	std::array<std::array<int32, 6>, 6> faceTriangles = { {
 		{{4, 5, 6, 4, 6, 7}},  // front
 		{{0, 2, 1, 0, 3, 2}},  // back
 		{{0, 7, 3, 0, 4, 7}},  // left
@@ -230,7 +230,7 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateCube(MaterialSystem& _mater
 
 	for (size_t i = 0; i < faceTriangles.size(); ++i)
 	{
-		for (int idx : faceTriangles[i])
+		for (int32 idx : faceTriangles[i])
 		{
 			data->Vertices[idx].Color = _facesColor[i];
 		}
@@ -403,7 +403,7 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateParallelepiped(MaterialSyst
 	};
 
 	// Face index map for coloring: 6 faces, 6 triangle groups
-	std::array<std::array<int, 6>, 6> faceTriangles = { {
+	std::array<std::array<int32, 6>, 6> faceTriangles = { {
 		{{0, 2, 1, 0, 3, 2}}, // bottom
 		{{4, 5, 6, 4, 6, 7}}, // top
 		{{3, 6, 2, 3, 7, 6}}, // front
@@ -414,7 +414,7 @@ std::unique_ptr<ModelData> PrimitiveFactory::GenerateParallelepiped(MaterialSyst
 
 	for (size_t i = 0; i < faceTriangles.size(); ++i)
 	{
-		for (int idx : faceTriangles[i])
+		for (int32 idx : faceTriangles[i])
 		{
 			data->Vertices[data->Indices[idx]].Color = _facesColor[i];
 		}

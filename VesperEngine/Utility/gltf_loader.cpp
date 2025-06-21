@@ -114,15 +114,15 @@ namespace
         }
     }
 
-    std::shared_ptr<TextureData> GetTexture(const tinygltf::Model& _model, int _texIndex, const std::string& _modelPath, const std::string& _texturePath, MaterialSystem& _materialSystem)
+    std::shared_ptr<TextureData> GetTexture(const tinygltf::Model& _model, int32 _texIndex, const std::string& _modelPath, const std::string& _texturePath, MaterialSystem& _materialSystem)
     {
-        if (_texIndex < 0 || _texIndex >= static_cast<int>(_model.textures.size()))
+        if (_texIndex < 0 || _texIndex >= static_cast<int32>(_model.textures.size()))
         {
             return nullptr;
         }
 
         const tinygltf::Texture& texture = _model.textures[_texIndex];
-        if (texture.source < 0 || texture.source >= static_cast<int>(_model.images.size()))
+        if (texture.source < 0 || texture.source >= static_cast<int32>(_model.images.size()))
         {
             return nullptr;
         }
@@ -139,7 +139,7 @@ namespace
                 textureFullPath = _texturePath + image.uri;
             }
 
-            int w, h, c;
+            int32 w, h, c;
             stbi_uc* img = stbi_load(textureFullPath.c_str(), &w, &h, &c, STBI_rgb_alpha);
             if (!img)
             {
@@ -238,7 +238,7 @@ namespace
                 if (channel.target_path != "weights")
                     continue;
 
-                if (channel.sampler < 0 || channel.sampler >= static_cast<int>(anim.samplers.size()))
+                if (channel.sampler < 0 || channel.sampler >= static_cast<int32>(anim.samplers.size()))
                     continue;
 
                 const auto& sampler = anim.samplers[channel.sampler];
@@ -289,7 +289,7 @@ namespace
         float alphaCutoff = -1.0f;
         bool isTransparent = false;
 
-        if (_primitive.material >= 0 && _primitive.material < static_cast<int>(_gltfModel.materials.size()))
+        if (_primitive.material >= 0 && _primitive.material < static_cast<int32>(_gltfModel.materials.size()))
         {
             const tinygltf::Material& gltfMaterial = _gltfModel.materials[_primitive.material];
             const tinygltf::PbrMetallicRoughness& pbr = gltfMaterial.pbrMetallicRoughness;
@@ -467,7 +467,7 @@ namespace
         return modelData;
     }
 
-    void ProcessNode(const tinygltf::Model& _gltfModel, int _nodeIdx, const glm::mat4& _parent,
+    void ProcessNode(const tinygltf::Model& _gltfModel, int32 _nodeIdx, const glm::mat4& _parent,
         std::vector<std::unique_ptr<ModelData>>& _models, bool _isStatic,
         const std::string& _basePath, const std::string& _texturePath, MaterialSystem& _materialSystem)
     {
@@ -486,7 +486,7 @@ namespace
             }
         }
 
-        if (node.mesh >= 0 && node.mesh < static_cast<int>(_gltfModel.meshes.size()))
+        if (node.mesh >= 0 && node.mesh < static_cast<int32>(_gltfModel.meshes.size()))
         {
             const tinygltf::Mesh& mesh = _gltfModel.meshes[node.mesh];
 
@@ -506,9 +506,9 @@ namespace
             }
         }
 
-        for (int child : node.children)
+        for (int32 child : node.children)
         {
-            if (child >= 0 && child < static_cast<int>(_gltfModel.nodes.size()))
+            if (child >= 0 && child < static_cast<int32>(_gltfModel.nodes.size()))
             {
                 ProcessNode(_gltfModel, child, transform, _models, _isStatic, _basePath, _texturePath, _materialSystem);
             }
@@ -559,12 +559,12 @@ std::vector<std::unique_ptr<ModelData>> GltfLoader::LoadModel(const std::string&
     std::vector<MorphAnimation> animations;
     LoadAnimations(gltfModel, animations);
 
-    int sceneIndex = gltfModel.defaultScene >= 0 ? gltfModel.defaultScene : 0;
-    if (sceneIndex < static_cast<int>(gltfModel.scenes.size())) {
+    int32 sceneIndex = gltfModel.defaultScene >= 0 ? gltfModel.defaultScene : 0;
+    if (sceneIndex < static_cast<int32>(gltfModel.scenes.size())) {
         const tinygltf::Scene& scene = gltfModel.scenes[sceneIndex];
-        for (int nodeIdx : scene.nodes) 
+        for (int32 nodeIdx : scene.nodes) 
         {
-            if (nodeIdx >= 0 && nodeIdx < static_cast<int>(gltfModel.nodes.size())) 
+            if (nodeIdx >= 0 && nodeIdx < static_cast<int32>(gltfModel.nodes.size())) 
             {
                 ProcessNode(gltfModel, nodeIdx, glm::mat4(1.0f), models, _isStatic, basePath, texturePath, m_materialSystem);
             }

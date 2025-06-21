@@ -75,16 +75,16 @@ namespace
     {
         float u = uv.x * static_cast<float>(width - 1);
         float v = glm::clamp(uv.y, 0.0f, 1.0f) * static_cast<float>(height - 1);
-        int x0 = static_cast<int>(std::floor(u));
-        int y0 = static_cast<int>(std::floor(v));
-        int x1 = x0 + 1;
-        int y1 = glm::min(y0 + 1, height - 1);
+        int32 x0 = static_cast<int32>(std::floor(u));
+        int32 y0 = static_cast<int32>(std::floor(v));
+        int32 x1 = x0 + 1;
+        int32 y1 = glm::min(y0 + 1, height - 1);
 
         if (wrapU)
         {
-            auto mod = [&](int a, int b)
+            auto mod = [&](int32 a, int32 b)
                 {
-                    int r = a % b;
+                    int32 r = a % b;
                     return r < 0 ? r + b : r;
                 };
             x0 = mod(x0, width);
@@ -99,7 +99,7 @@ namespace
         float fu = u - static_cast<float>(x0);
         float fv = v - static_cast<float>(y0);
 
-        auto sample = [&](int x, int y)
+        auto sample = [&](int32 x, int32 y)
             {
                 const float* ptr = data + (y * width + x) * 4;
                 return glm::vec3(ptr[0], ptr[1], ptr[2]);

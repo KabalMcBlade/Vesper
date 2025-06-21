@@ -67,7 +67,7 @@ void LightSystem::FillLightsUBO(LightsUBO& _outLights) const
     
     for (auto entity : ecs::IterateEntitiesWithAll<DirectionalLightComponent>(entityManager, componentManager))
     {
-        if (_outLights.DirectionalCount >= static_cast<int>(kMaxDirectionalLights)) break;
+        if (_outLights.DirectionalCount >= static_cast<int32>(kMaxDirectionalLights)) break;
         const DirectionalLightComponent& comp = componentManager.GetComponent<DirectionalLightComponent>(entity);
         _outLights.DirectionalLights[_outLights.DirectionalCount].Direction = glm::vec4(comp.Direction, 0.0f);
         _outLights.DirectionalLights[_outLights.DirectionalCount].Color = glm::vec4(comp.Color, comp.Intensity);
@@ -76,7 +76,7 @@ void LightSystem::FillLightsUBO(LightsUBO& _outLights) const
 
     for (auto entity : ecs::IterateEntitiesWithAll<PointLightComponent>(entityManager, componentManager))
     {
-        if (_outLights.PointCount >= static_cast<int>(kMaxPointLights)) break;
+        if (_outLights.PointCount >= static_cast<int32>(kMaxPointLights)) break;
         const PointLightComponent& comp = componentManager.GetComponent<PointLightComponent>(entity);
         _outLights.PointLights[_outLights.PointCount].Position = glm::vec4(comp.Position, 0.0f);
         _outLights.PointLights[_outLights.PointCount].Color = glm::vec4(comp.Color, comp.Intensity);
@@ -86,7 +86,7 @@ void LightSystem::FillLightsUBO(LightsUBO& _outLights) const
 
     for (auto entity : ecs::IterateEntitiesWithAll<SpotLightComponent>(entityManager, componentManager))
     {
-        if (_outLights.SpotCount >= static_cast<int>(kMaxSpotLights)) break;
+        if (_outLights.SpotCount >= static_cast<int32>(kMaxSpotLights)) break;
         const SpotLightComponent& comp = componentManager.GetComponent<SpotLightComponent>(entity);
         _outLights.SpotLights[_outLights.SpotCount].Position = glm::vec4(comp.Position, 0.0f);
         _outLights.SpotLights[_outLights.SpotCount].Direction = glm::vec4(comp.Direction, 0.0f);

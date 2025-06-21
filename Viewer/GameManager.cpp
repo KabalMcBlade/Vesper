@@ -470,7 +470,7 @@ void GameManager::LoadLights()
 #endif
 
 	std::mt19937 rng(std::random_device{}());
-	std::uniform_int_distribution<int> countDist(2, 5);
+	std::uniform_int_distribution<int32> countDist(2, 5);
 	std::uniform_real_distribution<float> posDistXZ(-5.0f, 5.0f);
 	std::uniform_real_distribution<float> posDistY(-3.0f, -0.5f);
 	std::uniform_real_distribution<float> colorDist(0.2f, 1.0f);
@@ -478,8 +478,8 @@ void GameManager::LoadLights()
 	std::uniform_real_distribution<float> attenuationDist(0.0f, 1.0f);
 	std::uniform_real_distribution<float> cutoffDist(0.7f, 0.95f);
 
-	int pointCount = countDist(rng);
-	for (int i = 0; i < pointCount; ++i)
+	int32 pointCount = countDist(rng);
+	for (int32 i = 0; i < pointCount; ++i)
 	{
 		glm::vec3 position{ posDistXZ(rng), posDistY(rng), posDistXZ(rng) };
 		glm::vec3 color{ colorDist(rng), colorDist(rng), colorDist(rng) };
@@ -513,8 +513,8 @@ void GameManager::LoadLights()
 #endif
 	}
 
-	int spotCount = countDist(rng);
-	for (int i = 0; i < spotCount; ++i)
+	int32 spotCount = countDist(rng);
+	for (int32 i = 0; i < spotCount; ++i)
 	{
 		glm::vec3 position{ posDistXZ(rng), posDistY(rng), posDistXZ(rng) };
 		glm::vec3 dir = glm::normalize(-position);

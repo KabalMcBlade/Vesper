@@ -32,7 +32,7 @@ void BlendShapeAnimationSystem::Update(const FrameInfo& _frameInfo) const
         if (!animComp.Playing || animComp.Animations.empty())
             continue;
 
-        if (animComp.CurrentAnimation >= static_cast<int>(animComp.Animations.size()))
+        if (animComp.CurrentAnimation >= static_cast<int32>(animComp.Animations.size()))
             continue;
 
         const MorphAnimation& anim = animComp.Animations[animComp.CurrentAnimation];
@@ -81,7 +81,7 @@ void BlendShapeAnimationSystem::SetAnimation(ecs::Entity _entity, int32 _animati
     if (m_app.GetComponentManager().HasComponents<MorphAnimationComponent>(_entity))
     {
         MorphAnimationComponent& animComp = m_app.GetComponentManager().GetComponent<MorphAnimationComponent>(_entity);
-        if (_animationIndex >= 0 && _animationIndex < static_cast<int>(animComp.Animations.size()))
+        if (_animationIndex >= 0 && _animationIndex < static_cast<int32>(animComp.Animations.size()))
         {
             animComp.CurrentAnimation = _animationIndex;
             animComp.CurrentTime = 0.0f;

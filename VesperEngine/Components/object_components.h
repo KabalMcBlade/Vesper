@@ -55,7 +55,7 @@ struct MorphWeightsComponent
 struct MorphAnimationComponent
 {
 	std::vector<MorphAnimation> Animations{};
-	int CurrentAnimation{ 0 };
+	int32 CurrentAnimation{ 0 };
 	float CurrentTime{ 0.0f };
 	bool Loop{ true };
 	bool Playing{ false };
