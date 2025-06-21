@@ -66,6 +66,7 @@ struct MaterialData
 	std::string Name{ "" };
 #endif
 	std::vector<std::shared_ptr<TextureData>> Textures;
+	std::vector<int32> UVIndices;
 	BufferComponent UniformBuffer;
 	int32 Index{ -1 };
 	bool IsTransparent{ false };

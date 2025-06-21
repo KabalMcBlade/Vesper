@@ -313,13 +313,23 @@ namespace
             auto emissiveTex = GetTexture(_gltfModel, gltfMaterial.emissiveTexture.index, _basePath, _texturePath, _materialSystem);
             auto normalTex = GetTexture(_gltfModel, gltfMaterial.normalTexture.index, _basePath, _texturePath, _materialSystem);
 
+            std::vector<int32> uvIndices = {
+                pbr.metallicRoughnessTexture.texCoord,
+                pbr.metallicRoughnessTexture.texCoord,
+                0,
+                gltfMaterial.emissiveTexture.texCoord,
+                gltfMaterial.normalTexture.texCoord,
+                pbr.baseColorTexture.texCoord,
+                gltfMaterial.occlusionTexture.texCoord
+            };
+
             modelData->Material = _materialSystem.CreateMaterial(
                 gltfMaterial.name,
                 { roughTex, metallicTex, nullptr, emissiveTex, normalTex, albedoTex, occlusionTex },
                 { static_cast<float>(pbr.roughnessFactor),
                   static_cast<float>(pbr.metallicFactor), 0.0f, 0.0f, 0.0f, 0.0f,
                   0.0f, alphaCutoff, baseAlphaFactor },
-                isTransparent, MaterialType::PBR);
+                isTransparent, MaterialType::PBR, uvIndices);
         }
         else
         {
@@ -328,7 +338,7 @@ namespace
 
             modelData->Material = _materialSystem.CreateMaterial(
                 "_DefaultGltfPBR_", emptyTextures, emptyMetadata, false,
-                MaterialType::PBR);
+                MaterialType::PBR, {});
         }
 
         std::vector<glm::vec3> positions;

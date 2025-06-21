@@ -80,6 +80,8 @@ struct VESPERENGINE_ALIGN16 PhongMaterialUBO
 
 	// Indices for [Ambient, Diffuse, Specular, Normal, Alpha]
 	alignInt32 TextureIndices[5] = { -1, -1, -1, -1, -1 };
+	// UV set index for each texture above (0 = UV1, 1 = UV2)
+	alignInt32 UVIndices[5] = { 0, 0, 0, 0, 0 };
 };
 
 struct VESPERENGINE_ALIGN16 PBRMaterialUBO
@@ -96,6 +98,8 @@ struct VESPERENGINE_ALIGN16 PBRMaterialUBO
 
 	// Indices for [Roughness, Metallic, Sheen, Emissive, Normal, BaseColor, AmbientOcclusion]
 	alignInt32 TextureIndices[7] = { -1, -1, -1, -1, -1, -1, -1 }; 
+	// UV set index for each texture above (0 = UV1, 1 = UV2)
+	alignInt32 UVIndices[7] = { 0, 0, 0, 0, 0, 0, 0 };
 };
 
 

@@ -63,6 +63,7 @@ layout(std140, set = 1, binding = 1) uniform MaterialData
     float AlphaCutoff;
     float BaseColorAlpha;
     int TextureIndices[7];
+    int UVIndices[7];
 } materials[];
 layout(std140, set = 3, binding = 0) uniform MaterialIndexUBO
 {
@@ -88,6 +89,7 @@ layout(std140, set = 2, binding = 7) uniform MaterialData
     float AlphaCutoff;
     float BaseColorAlpha;
     int TextureIndices[7];
+    int UVIndices[7];
 } material;
 #endif
 
@@ -160,15 +162,15 @@ float microfacetDistribution(PBRInfo pbrInputs)
     return roughnessSq / (M_PI * f * f);
 }
 
-vec3 getNormal(bool hasNormal)
+vec3 getNormal(bool hasNormal, vec2 uv)
 {
     vec3 N = normalize(fragNormalWorld);
 #if BINDLESS == 1
     if (hasNormal)
-        N = normalize(texture(textures[nonuniformEXT(materials[materialIndexUBO.materialIndex].TextureIndices[4])], fragUV1).xyz * 2.0 - 1.0);
+        N = normalize(texture(textures[nonuniformEXT(materials[materialIndexUBO.materialIndex].TextureIndices[4])], uv).xyz * 2.0 - 1.0);
 #else
     if (hasNormal)
-        N = normalize(texture(normalTexture, fragUV1).xyz * 2.0 - 1.0);
+        N = normalize(texture(normalTexture, uv).xyz * 2.0 - 1.0);
 #endif
     return N;
 }
@@ -208,6 +210,12 @@ void main()
     bool hasEmissive = materials[matIdx].TextureIndices[3] != -1;
     bool hasBaseColor = materials[matIdx].TextureIndices[5] != -1;
     bool hasAO = materials[matIdx].TextureIndices[6] != -1;
+    vec2 uvNormal = (materials[matIdx].UVIndices[4] == 0) ? fragUV1 : fragUV2;
+    vec2 uvRough = (materials[matIdx].UVIndices[0] == 0) ? fragUV1 : fragUV2;
+    vec2 uvMetallic = (materials[matIdx].UVIndices[1] == 0) ? fragUV1 : fragUV2;
+    vec2 uvEmissive = (materials[matIdx].UVIndices[3] == 0) ? fragUV1 : fragUV2;
+    vec2 uvBase = (materials[matIdx].UVIndices[5] == 0) ? fragUV1 : fragUV2;
+    vec2 uvAO = (materials[matIdx].UVIndices[6] == 0) ? fragUV1 : fragUV2;
 #else
     float roughness = material.Roughness;
     float metallic = material.Metallic;
@@ -217,15 +225,21 @@ void main()
     bool hasEmissive = material.TextureIndices[3] != -1;
     bool hasBaseColor = material.TextureIndices[5] != -1;
     bool hasAO = material.TextureIndices[6] != -1;
+    vec2 uvNormal = (material.UVIndices[4] == 0) ? fragUV1 : fragUV2;
+    vec2 uvRough = (material.UVIndices[0] == 0) ? fragUV1 : fragUV2;
+    vec2 uvMetallic = (material.UVIndices[1] == 0) ? fragUV1 : fragUV2;
+    vec2 uvEmissive = (material.UVIndices[3] == 0) ? fragUV1 : fragUV2;
+    vec2 uvBase = (material.UVIndices[5] == 0) ? fragUV1 : fragUV2;
+    vec2 uvAO = (material.UVIndices[6] == 0) ? fragUV1 : fragUV2;
 #endif
 
-    vec3 n = getNormal(hasNormal);
+    vec3 n = getNormal(hasNormal, uvNormal);
 
 vec4 baseColor;
 
 #if BINDLESS == 1
     vec4 texColor = hasBaseColor 
-        ? texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[5])], fragUV1)
+        ? texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[5])], uvBase)
         : vec4(1.0); // fallback if no texture
 
     // Combine fragment color only with RGB — preserve texture alpha
@@ -233,7 +247,7 @@ vec4 baseColor;
     baseColor.a = texColor.a * materials[matIdx].BaseColorAlpha;
 
     float ao = hasAO 
-        ? texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[6])], fragUV1).r
+        ? texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[6])], uvAO).r
         : 1.0;
 
     if (baseColor.a < materials[matIdx].AlphaCutoff)
@@ -241,14 +255,14 @@ vec4 baseColor;
 
 #else
     vec4 texColor = hasBaseColor 
-        ? texture(baseColorTexture, fragUV1)
+        ? texture(baseColorTexture, uvBase)
         : vec4(1.0);
 
     baseColor.rgb = fragColor * texColor.rgb;
     baseColor.a = texColor.a * material.BaseColorAlpha;
 
     float ao = hasAO 
-        ? texture(aoTexture, fragUV1).r 
+        ? texture(aoTexture, uvAO).r 
         : 1.0;
 
     if (baseColor.a < material.AlphaCutoff)
@@ -257,11 +271,11 @@ vec4 baseColor;
 
 
 #if BINDLESS == 1
-    if(hasRoughness) roughness *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[0])], fragUV1).g;
-    if(hasMetallic) metallic *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[1])], fragUV1).b;
+    if(hasRoughness) roughness *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[0])], uvRough).g;
+    if(hasMetallic) metallic *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[1])], uvMetallic).b;
 #else
-    if(hasRoughness) roughness *= texture(roughnessTexture, fragUV1).g;
-    if(hasMetallic) metallic *= texture(metallicTexture, fragUV1).b;
+    if(hasRoughness) roughness *= texture(roughnessTexture, uvRough).g;
+    if(hasMetallic) metallic *= texture(metallicTexture, uvMetallic).b;
 #endif
 
     roughness = clamp(roughness, c_MinRoughness, 1.0);
@@ -430,10 +444,10 @@ vec4 baseColor;
 
 #if BINDLESS == 1
     if(hasEmissive)
-        color += texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[3])], fragUV1).rgb;
+        color += texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[3])], uvEmissive).rgb;
 #else
     if(hasEmissive)
-        color += texture(emissiveTexture, fragUV1).rgb;
+        color += texture(emissiveTexture, uvEmissive).rgb;
 #endif
 
     //outColor = vec4(vec3(pbrInputs.NdotL), 1.0);

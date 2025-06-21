@@ -54,6 +54,7 @@ layout(std140, set = 1, binding = 1) uniform MaterialData
     vec4 EmissionColor;
     float Shininess;
     int TextureIndices[5]; // Indices for the textures: [Ambient, Diffuse, Specular, Normal, Alpha] (Value of -1 indicates it's missing)
+    int UVIndices[5];
 } materials[];
 
 layout(std140, set = 3, binding = 0) uniform MaterialIndexUBO
@@ -78,6 +79,7 @@ layout(std140, set = 2, binding = 5) uniform MaterialData
     vec4 EmissionColor;
     float Shininess;
     int TextureIndices[5]; // Indices for the textures: [Ambient, Diffuse, Specular, Normal, Alpha] (Value of -1 means does not exist, >= 0 exist)
+    int UVIndices[5];
 } material;
 
 #endif
@@ -103,6 +105,11 @@ void main()
     bool bHasSpecularTexture = materials[matIdx].TextureIndices[2] != -1;
     bool bHasNormalTexture = materials[matIdx].TextureIndices[3] != -1;
     bool bHasAlphaTexture = materials[matIdx].TextureIndices[4] != -1;
+    vec2 uvAmbient = (materials[matIdx].UVIndices[0] == 0) ? fragUV1 : fragUV2;
+    vec2 uvDiffuse = (materials[matIdx].UVIndices[1] == 0) ? fragUV1 : fragUV2;
+    vec2 uvSpecular = (materials[matIdx].UVIndices[2] == 0) ? fragUV1 : fragUV2;
+    vec2 uvNormal = (materials[matIdx].UVIndices[3] == 0) ? fragUV1 : fragUV2;
+    vec2 uvAlpha = (materials[matIdx].UVIndices[4] == 0) ? fragUV1 : fragUV2;
 #else
     vec4 ambientColor = material.AmbientColor;
     vec4 diffuseColor = material.DiffuseColor;
@@ -114,18 +121,23 @@ void main()
     bool bHasSpecularTexture = material.TextureIndices[2] != -1;
     bool bHasNormalTexture = material.TextureIndices[3] != -1;
     bool bHasAlphaTexture = material.TextureIndices[4] != -1;
+    vec2 uvAmbient = (material.UVIndices[0] == 0) ? fragUV1 : fragUV2;
+    vec2 uvDiffuse = (material.UVIndices[1] == 0) ? fragUV1 : fragUV2;
+    vec2 uvSpecular = (material.UVIndices[2] == 0) ? fragUV1 : fragUV2;
+    vec2 uvNormal = (material.UVIndices[3] == 0) ? fragUV1 : fragUV2;
+    vec2 uvAlpha = (material.UVIndices[4] == 0) ? fragUV1 : fragUV2;
 #endif
 
     float alpha = diffuseColor.a;
 #if BINDLESS == 1
     if (bHasAlphaTexture)
     {
-        alpha *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[4])], fragUV1).r;
+        alpha *= texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[4])], uvAlpha).r;
     }
 #else
     if (bHasAlphaTexture)
     {
-        alpha *= texture(alphaTexture, fragUV1).r;
+        alpha *= texture(alphaTexture, uvAlpha).r;
     }
 #endif
 
@@ -133,9 +145,9 @@ void main()
     if (bHasNormalTexture) 
     {
 #if BINDLESS == 1
-        vec3 normalMap = texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[3])], fragUV1).rgb * 2.0 - 1.0;
+        vec3 normalMap = texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[3])], uvNormal).rgb * 2.0 - 1.0;
 #else
-        vec3 normalMap = texture(normalTexture, fragUV1).rgb * 2.0 - 1.0;
+        vec3 normalMap = texture(normalTexture, uvNormal).rgb * 2.0 - 1.0;
 #endif
 
         normal = normalize(normalMap);
@@ -150,9 +162,9 @@ void main()
     if (bHasAmbientTexture) 
     {
 #if BINDLESS == 1
-        vec4 ambientTextureColor = texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[0])], fragUV1);
+        vec4 ambientTextureColor = texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[0])], uvAmbient);
 #else
-        vec4 ambientTextureColor = texture(ambientTexture, fragUV1);
+        vec4 ambientTextureColor = texture(ambientTexture, uvAmbient);
 #endif
 
         vec4 finalAmbientColor = ambientTextureColor * ambientColor;
@@ -163,9 +175,9 @@ void main()
     if (bHasDiffuseTexture) 
     {
 #if BINDLESS == 1
-        vec4 diffuseTextureColor = texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[1])], fragUV1);
+        vec4 diffuseTextureColor = texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[1])], uvDiffuse);
 #else
-        vec4 diffuseTextureColor = texture(diffuseTexture, fragUV1);
+        vec4 diffuseTextureColor = texture(diffuseTexture, uvDiffuse);
 #endif
 
         vec4 finalDiffuseColor = diffuseTextureColor * diffuseColor;
@@ -208,9 +220,9 @@ void main()
     if (bHasSpecularTexture) 
     {
 #if BINDLESS == 1
-        vec4 specularTextureColor = texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[2])], fragUV1);
+        vec4 specularTextureColor = texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[2])], uvSpecular);
 #else
-        vec4 specularTextureColor = texture(specularTexture, fragUV1);
+        vec4 specularTextureColor = texture(specularTexture, uvSpecular);
 #endif
         
         vec4 finalSpecularColor = specularTextureColor * specularColor;

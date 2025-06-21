@@ -96,7 +96,8 @@ public:
 		const std::vector<std::string>& _texturePaths,
 		const std::vector<std::any>& _values,
 		bool _bIsTransparent,
-		MaterialType _type);
+		MaterialType _type,
+		const std::vector<int32>& _uvIndices = {});
 
 	// Create material using textures already loaded. Pass nullptr entries to
 	// use default textures. The textures array MUST follow the order
@@ -106,7 +107,8 @@ public:
 		const std::vector<std::shared_ptr<TextureData>>& _textures,
 		const std::vector<std::any>& _values,
 		bool _bIsTransparent,
-		MaterialType _type);
+		MaterialType _type,
+		const std::vector<int32>& _uvIndices = {});
 
 	std::shared_ptr<MaterialData> CreateMaterial(const DefaultMaterialType& _defaultMaterial);
 

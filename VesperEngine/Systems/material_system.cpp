@@ -49,7 +49,8 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
 	const std::vector<std::string>& _texturePaths,
 	const std::vector<std::any>& _values,
 	bool _bIsTransparent,
-	MaterialType _type)
+	MaterialType _type,
+    const std::vector<int32>& _uvIndices)
 {
 	const uint32 hash = HashString(_name.c_str());
 
@@ -76,6 +77,7 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
         const int32 texCount = 7;
         const int32 valCount = 9;
         material->Textures.resize(texCount);
+        material->UVIndices.resize(texCount);
         assert(_texturePaths.size() == texCount &&"Texture array passed has not the amount of texture expected for material type!");
         assert(_values.size() == valCount && "Values array passed has not the amount of values expected for material type!");
 
@@ -110,6 +112,12 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
             }
         }
 
+        for (size_t i = 0; i < material->UVIndices.size(); ++i)
+        {
+            material->UVIndices[i] = (i < _uvIndices.size()) ? _uvIndices[i] : 0;
+            pbrUBO.UVIndices[i] = material->UVIndices[i];
+        }
+
         pbrUBO.Roughness = std::any_cast<float>(_values[0]);
         pbrUBO.Metallic = std::any_cast<float>(_values[1]);
         pbrUBO.Sheen = std::any_cast<float>(_values[2]);
@@ -131,6 +139,7 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
         const int32 texCount = 5;
         const int32 valCount = 5;
         material->Textures.resize(texCount);
+        material->UVIndices.resize(texCount);
         assert(_texturePaths.size() == texCount && "Texture array passed has not the amount of texture expected for material type!");
         assert(_values.size() == valCount && "Values array passed has not the amount of values expected for material type!");
 
@@ -163,6 +172,12 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
             }
         }
 
+        for (size_t i = 0; i < material->UVIndices.size(); ++i)
+        {
+            material->UVIndices[i] = (i < _uvIndices.size()) ? _uvIndices[i] : 0;
+            phongUBO.UVIndices[i] = material->UVIndices[i];
+        }
+
         phongUBO.AmbientColor = std::any_cast<glm::vec4>(_values[0]);
         phongUBO.DiffuseColor = std::any_cast<glm::vec4>(_values[1]);
         phongUBO.SpecularColor = std::any_cast<glm::vec4>(_values[2]);
@@ -191,7 +206,8 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
     const std::vector<std::shared_ptr<TextureData>>& _textures,
     const std::vector<std::any>& _values,
     bool _bIsTransparent,
-    MaterialType _type)
+    MaterialType _type,
+    const std::vector<int32>& _uvIndices)
 {
     const uint32 hash = HashString(_name.c_str());
 
@@ -218,6 +234,7 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
         const int32 texCount = 7;
         const int32 valCount = 9;
         material->Textures.resize(texCount);
+        material->UVIndices.resize(texCount);
         assert(_textures.size() == texCount && "Texture array passed has not the amount of texture expected for material type!");
         assert(_values.size() == valCount && "Values array passed has not the amount of values expected for material type!");
 
@@ -249,6 +266,12 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
             }
         }
 
+        for (size_t i = 0; i < material->UVIndices.size(); ++i)
+        {
+            material->UVIndices[i] = (i < _uvIndices.size()) ? _uvIndices[i] : 0;
+            pbrUBO.UVIndices[i] = material->UVIndices[i];
+        }
+
         pbrUBO.Roughness = std::any_cast<float>(_values[0]);
         pbrUBO.Metallic = std::any_cast<float>(_values[1]);
         pbrUBO.Sheen = std::any_cast<float>(_values[2]);
@@ -270,6 +293,7 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
         const int32 texCount = 5;
         const int32 valCount = 5;
         material->Textures.resize(texCount);
+        material->UVIndices.resize(texCount);
         assert(_textures.size() == texCount && "Texture array passed has not the amount of texture expected for material type!");
         assert(_values.size() == valCount && "Values array passed has not the amount of values expected for material type!");
 
@@ -300,6 +324,12 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
             }
         }
 
+        for (size_t i = 0; i < material->UVIndices.size(); ++i)
+        {
+            material->UVIndices[i] = (i < _uvIndices.size()) ? _uvIndices[i] : 0;
+            phongUBO.UVIndices[i] = material->UVIndices[i];
+        }
+
         m_materials.push_back(material);
         phongUBO.AmbientColor = std::any_cast<glm::vec4>(_values[0]);
         phongUBO.DiffuseColor = std::any_cast<glm::vec4>(_values[1]);
@@ -326,7 +356,7 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
 
 std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(const DefaultMaterialType& _defaultMaterial)
 {
-	return CreateMaterial(_defaultMaterial.Name, _defaultMaterial.Textures, _defaultMaterial.Values, _defaultMaterial.IsTransparent, _defaultMaterial.Type);
+	return CreateMaterial(_defaultMaterial.Name, _defaultMaterial.Textures, _defaultMaterial.Values, _defaultMaterial.IsTransparent, _defaultMaterial.Type, {});
 }
 
 void MaterialSystem::Cleanup()
