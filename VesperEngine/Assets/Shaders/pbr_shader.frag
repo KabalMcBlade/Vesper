@@ -204,30 +204,36 @@ void main()
     int matIdx = materialIndexUBO.materialIndex;
     float roughness = materials[matIdx].Roughness;
     float metallic = materials[matIdx].Metallic;
+    float sheen = materials[matIdx].Sheen;
     bool hasNormal = materials[matIdx].TextureIndices[4] != -1;
     bool hasRoughness = materials[matIdx].TextureIndices[0] != -1;
     bool hasMetallic = materials[matIdx].TextureIndices[1] != -1;
+    bool hasSheen = materials[matIdx].TextureIndices[2] != -1;
     bool hasEmissive = materials[matIdx].TextureIndices[3] != -1;
     bool hasBaseColor = materials[matIdx].TextureIndices[5] != -1;
     bool hasAO = materials[matIdx].TextureIndices[6] != -1;
     vec2 uvNormal = (materials[matIdx].UVIndices[4] == 0) ? fragUV1 : fragUV2;
     vec2 uvRough = (materials[matIdx].UVIndices[0] == 0) ? fragUV1 : fragUV2;
     vec2 uvMetallic = (materials[matIdx].UVIndices[1] == 0) ? fragUV1 : fragUV2;
+    vec2 uvSheen = (materials[matIdx].UVIndices[2] == 0) ? fragUV1 : fragUV2;
     vec2 uvEmissive = (materials[matIdx].UVIndices[3] == 0) ? fragUV1 : fragUV2;
     vec2 uvBase = (materials[matIdx].UVIndices[5] == 0) ? fragUV1 : fragUV2;
     vec2 uvAO = (materials[matIdx].UVIndices[6] == 0) ? fragUV1 : fragUV2;
 #else
     float roughness = material.Roughness;
     float metallic = material.Metallic;
+    float sheen = material.Sheen;
     bool hasNormal = material.TextureIndices[4] != -1;
     bool hasRoughness = material.TextureIndices[0] != -1;
     bool hasMetallic = material.TextureIndices[1] != -1;
+    bool hasSheen = material.TextureIndices[2] != -1;
     bool hasEmissive = material.TextureIndices[3] != -1;
     bool hasBaseColor = material.TextureIndices[5] != -1;
     bool hasAO = material.TextureIndices[6] != -1;
     vec2 uvNormal = (material.UVIndices[4] == 0) ? fragUV1 : fragUV2;
     vec2 uvRough = (material.UVIndices[0] == 0) ? fragUV1 : fragUV2;
     vec2 uvMetallic = (material.UVIndices[1] == 0) ? fragUV1 : fragUV2;
+    vec2 uvSheen = (material.UVIndices[2] == 0) ? fragUV1 : fragUV2;
     vec2 uvEmissive = (material.UVIndices[3] == 0) ? fragUV1 : fragUV2;
     vec2 uvBase = (material.UVIndices[5] == 0) ? fragUV1 : fragUV2;
     vec2 uvAO = (material.UVIndices[6] == 0) ? fragUV1 : fragUV2;
@@ -441,6 +447,14 @@ vec4 baseColor;
     color += ibl + ambientColor * (diffuseColor + specularColor);
     
     color = mix(color, color * ao, 1.0);
+
+#if BINDLESS == 1
+    if(hasSheen)
+        color += texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[2])], uvSheen).rgb * sheen;
+#else
+    if(hasSheen)
+        color += texture(sheenTexture, uvSheen).rgb * sheen;
+#endif
 
 #if BINDLESS == 1
     if(hasEmissive)
