@@ -68,7 +68,8 @@ Third render from the engine: OBJs loaded using the Custom Opaque and Custom Tra
 <img src="./Screenshots/3.png">
 
 Fourth render from the engine: PBR loaded, and featuring a skybox in HDR, one Directional Light and random Spot and Point Lights moving in the scene.
-![PBR](https://drive.google.com/file/d/1iOX2PdRnTwDEEK97HVz_CLNbpv69ExJF/view?usp=sharing)
+![PBR](https://drive.google.com/uc?export=view&id=1iOX2PdRnTwDEEK97HVz_CLNbpv69ExJF)
+
 
 ## LICENSE
 
