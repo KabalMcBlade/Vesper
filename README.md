@@ -45,10 +45,13 @@ The different settings for linkage are, in Windows and Visual Studio 2022:<br />
 - Automatic support for both bindless and standard resource binding (textures and buffers)
 - Phong shading pipeline for opaque rendering
 - Phong shading pipeline for transparent rendering
+- PBR shading pipeline for opaque rendering
+- PBR shading pipeline for transparent rendering
 - Integrated support for push constants (pre-allocated 128-byte layout) and specialization constants
 - PushConstants function allows injecting push constants without rebinding the global or bindless pipeline
 - Extendable render pipeline architecture (see the Viewer using CustomOpaqueRenderSystem and CustomTransparentRenderSystem, which apply per-object push constants without additional bindings)
 - Skybox supports both standard and HDR formats (float32 and float16), with projection types including Equirectangular, Cubemap, Hemisphere, Parabolic, and LatLongCubemap.
+- Point Lights, Spot Lights and Directional Lights supported.
 
 ## Screenshots
 
@@ -64,6 +67,9 @@ Second render from the engine: OBJ loaded using Opaque Phong shader rendering sy
 Third render from the engine: OBJs loaded using the Custom Opaque and Custom Transparent Phong shader rendering systems, utilizing push constants without additional bindings, and featuring a skybox.
 <img src="./Screenshots/3.png">
 
+Fourth render from the engine: PBR loaded, and featuring a skybox in HDR, one Directional Light and random Spot and Point Lights moving in the scene.
+![PBR](https://drive.google.com/file/d/1iOX2PdRnTwDEEK97HVz_CLNbpv69ExJF/view?usp=sharing)
+
 ## LICENSE
 
 - **Vesper Engine and Viewer**: MIT
@@ -78,7 +84,7 @@ Third render from the engine: OBJs loaded using the Custom Opaque and Custom Tra
 
 - Shaders (if not mine):
 	- **brdf_lut_shader.frag** source code is Copyright (c) 2018-2023, Sascha Willems - under MIT
-
+DamagedHelmet
 # Build Status
 
 | Platform | Build Status |
