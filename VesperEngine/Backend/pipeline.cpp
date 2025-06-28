@@ -54,9 +54,9 @@ void Pipeline::DefaultPipelineConfiguration(PipelineConfigInfo& _outConfigInfo)
 	_outConfigInfo.RasterizationInfo.lineWidth = 1.0f;
 	// depending by the facing, we can define to cull away what is back, front, both or as by default, nothing and render front and back
 	_outConfigInfo.RasterizationInfo.cullMode = VK_CULL_MODE_NONE;
-	// winding order, providing a vertex 0, the 1 and the 2 are in this order, clockwise at the moment, we can swap the order.
+	// winding order, providing a vertex 0, the 1 and the 2 are in this order, counter clockwise at the moment, we can swap the order.
 	// using this we can determine which face of the triangle we are seeing.
-	_outConfigInfo.RasterizationInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	_outConfigInfo.RasterizationInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	// the depths bias setting can be used to alter depth values, by a constant value or by a factor of the fragment's slope
 	_outConfigInfo.RasterizationInfo.depthBiasEnable = VK_FALSE;
 	_outConfigInfo.RasterizationInfo.depthBiasConstantFactor = 0.0f;  // Optional
@@ -139,6 +139,7 @@ void Pipeline::DefaultPipelineConfiguration(PipelineConfigInfo& _outConfigInfo)
 void Pipeline::OpaquePipelineConfiguration(PipelineConfigInfo& _outConfigInfo)
 {
 	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
+	_outConfigInfo.RasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;
 	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_TRUE;
 	_outConfigInfo.DepthStencilInfo.depthWriteEnable = VK_TRUE;
 	_outConfigInfo.DepthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS;
@@ -149,6 +150,7 @@ void Pipeline::OpaquePipelineConfiguration(PipelineConfigInfo& _outConfigInfo)
 void Pipeline::TransparentPipelineConfiguration(PipelineConfigInfo& _outConfigInfo)
 {
 	Pipeline::DefaultPipelineConfiguration(_outConfigInfo);
+	_outConfigInfo.RasterizationInfo.cullMode = VK_CULL_MODE_NONE;
 	_outConfigInfo.DepthStencilInfo.depthTestEnable = VK_TRUE;
 	_outConfigInfo.DepthStencilInfo.depthWriteEnable = VK_FALSE;  // Avoid depth overwrites
 	_outConfigInfo.DepthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS;
