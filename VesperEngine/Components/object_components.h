@@ -38,6 +38,7 @@ struct StaticComponent
 struct UpdateComponent
 {
 	glm::mat4 ModelMatrix{ 1 };
+	bool IsMirrored{ false };
 };
 
 // define the struct which each instance has at least to have, if needs to be visible

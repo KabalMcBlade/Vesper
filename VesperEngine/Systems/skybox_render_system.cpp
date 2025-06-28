@@ -134,6 +134,13 @@ void SkyboxRenderSystem::Render(const FrameInfo& _frameInfo)
             nullptr);
 
         PushConstants(_frameInfo.CommandBuffer, 0, 0, sizeof(SkyboxPushConstant), &push);
+
+        //if (vkCmdSetCullModeEXT && vkCmdSetFrontFaceEXT)  // no need, we do throw and exception if not supported
+        {
+            vkCmdSetCullModeEXT(_frameInfo.CommandBuffer, VK_CULL_MODE_NONE);
+            vkCmdSetFrontFaceEXT(_frameInfo.CommandBuffer, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+        }
+
         Bind(vertex, index, _frameInfo.CommandBuffer);
         Draw(index, _frameInfo.CommandBuffer);
     }

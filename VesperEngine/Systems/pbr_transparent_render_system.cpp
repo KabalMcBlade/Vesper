@@ -165,7 +165,7 @@ void PBRTransparentRenderSystem::Render(const FrameInfo& _frameInfo)
     ecs::EntityManager& entityManager = m_app.GetEntityManager();
     ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
-    auto entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PBRMaterialComponent, PipelineTransparentComponent, DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent, VisibilityComponent>(entityManager, componentManager, &PBRMaterialComponent::Index);
+    auto entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PBRMaterialComponent, PipelineTransparentComponent, DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent, VisibilityComponent, UpdateComponent>(entityManager, componentManager, &PBRMaterialComponent::Index);
 
     for (const auto& [key, entities] : entitiesGroupedAndCollected)
     {
@@ -187,6 +187,7 @@ void PBRTransparentRenderSystem::Render(const FrameInfo& _frameInfo)
             const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(entityCollected);
             const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(entityCollected);
             const IndexBufferComponent& indexBufferComponent = componentManager.GetComponent<IndexBufferComponent>(entityCollected);
+            const UpdateComponent& updateComponent = componentManager.GetComponent<UpdateComponent>(entityCollected);
 
             vkCmdBindDescriptorSets(
                 _frameInfo.CommandBuffer,
@@ -199,6 +200,16 @@ void PBRTransparentRenderSystem::Render(const FrameInfo& _frameInfo)
                 &dynamicOffsetComponent.DynamicOffset
             );
 
+            // always cull mode none for transparent for us
+            //const VkCullModeFlags cullMode = materialComponent.IsDoubleSided ? VK_CULL_MODE_NONE : VK_CULL_MODE_BACK_BIT;
+            const VkFrontFace frontFace = updateComponent.IsMirrored ? VK_FRONT_FACE_CLOCKWISE : VK_FRONT_FACE_COUNTER_CLOCKWISE;
+
+            //if (vkCmdSetCullModeEXT && vkCmdSetFrontFaceEXT)  // no need, we do throw and exception if not supported
+            {
+                //vkCmdSetCullModeEXT(_frameInfo.CommandBuffer, cullMode);
+                vkCmdSetFrontFaceEXT(_frameInfo.CommandBuffer, frontFace);
+            }
+
             PerEntityRender(_frameInfo, componentManager, entityCollected);
 
             Bind(vertexBufferComponent, indexBufferComponent, _frameInfo.CommandBuffer);
@@ -208,7 +219,7 @@ void PBRTransparentRenderSystem::Render(const FrameInfo& _frameInfo)
 
     entitiesGroupedAndCollected.clear();
 
-    entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PBRMaterialComponent, PipelineTransparentComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent, VisibilityComponent>(entityManager, componentManager, &PBRMaterialComponent::Index);
+    entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PBRMaterialComponent, PipelineTransparentComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent, VisibilityComponent, UpdateComponent>(entityManager, componentManager, &PBRMaterialComponent::Index);
 
     for (const auto& [key, entities] : entitiesGroupedAndCollected)
     {
@@ -229,6 +240,7 @@ void PBRTransparentRenderSystem::Render(const FrameInfo& _frameInfo)
         {
             const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(entityCollected);
             const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(entityCollected);
+            const UpdateComponent& updateComponent = componentManager.GetComponent<UpdateComponent>(entityCollected);
 
             vkCmdBindDescriptorSets(
                 _frameInfo.CommandBuffer,
@@ -240,6 +252,15 @@ void PBRTransparentRenderSystem::Render(const FrameInfo& _frameInfo)
                 1,
                 &dynamicOffsetComponent.DynamicOffset
             );
+
+            //const VkCullModeFlags cullMode = materialComponent.IsDoubleSided ? VK_CULL_MODE_NONE : VK_CULL_MODE_BACK_BIT;
+            const VkFrontFace frontFace = updateComponent.IsMirrored ? VK_FRONT_FACE_CLOCKWISE : VK_FRONT_FACE_COUNTER_CLOCKWISE;
+
+            //if (vkCmdSetCullModeEXT && vkCmdSetFrontFaceEXT)  // no need, we do throw and exception if not supported
+            {
+                vkCmdSetCullModeEXT(_frameInfo.CommandBuffer, VK_CULL_MODE_NONE);
+                vkCmdSetFrontFaceEXT(_frameInfo.CommandBuffer, frontFace);
+            }
 
             PerEntityRender(_frameInfo, componentManager, entityCollected);
 

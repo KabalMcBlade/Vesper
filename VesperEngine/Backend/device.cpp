@@ -16,6 +16,9 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
+PFN_vkCmdSetCullModeEXT  vkCmdSetCullModeEXT = nullptr;
+PFN_vkCmdSetFrontFaceEXT vkCmdSetFrontFaceEXT = nullptr;
+
 // local callback functions
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
 	VkDebugUtilsMessageSeverityFlagBitsEXT _messageSeverity,
@@ -198,7 +201,12 @@ void Device::CreateLogicalDevice()
 	VkPhysicalDeviceFeatures deviceFeatures = {};
 	deviceFeatures.samplerAnisotropy = VK_TRUE;
 
-	// EXT features
+	// EXT features -> Dynamic state
+	VkPhysicalDeviceExtendedDynamicStateFeaturesEXT dynamicStateFeatures = {};
+	dynamicStateFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT;
+	dynamicStateFeatures.extendedDynamicState = VK_TRUE;
+
+	// EXT features -> Indexing
 	VkPhysicalDeviceDescriptorIndexingFeaturesEXT indexingFeatures = {};
 	indexingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT;
 	indexingFeatures.runtimeDescriptorArray = VK_TRUE;
@@ -212,13 +220,19 @@ void Device::CreateLogicalDevice()
 // 	indexingFeatures.descriptorBindingUniformTexelBufferUpdateAfterBind = VK_TRUE;
 // 	indexingFeatures.descriptorBindingStorageTexelBufferUpdateAfterBind = VK_TRUE; 	
 
+
 	VkPhysicalDeviceFeatures2 deviceFeatures2 = {};
 	deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
 	deviceFeatures2.features = deviceFeatures;  // Include base features like samplerAnisotropy
 
 	if (m_bIsBindlessResourcesSupported)
 	{
-		deviceFeatures2.pNext = &indexingFeatures;
+		dynamicStateFeatures.pNext = &indexingFeatures;
+		deviceFeatures2.pNext = &dynamicStateFeatures;
+	}
+	else
+	{
+		dynamicStateFeatures.pNext = &indexingFeatures;
 	}
 
 	VkDeviceCreateInfo createInfo = {};
@@ -243,7 +257,16 @@ void Device::CreateLogicalDevice()
 
 	// Use features2 instead of pEnabledFeatures
 	createInfo.pEnabledFeatures = nullptr;
-	createInfo.pNext = &deviceFeatures2;
+
+	if (m_bIsBindlessResourcesSupported)
+	{
+		createInfo.pNext = &deviceFeatures2;
+	}
+	else
+	{
+		createInfo.pNext = &dynamicStateFeatures;;
+	}
+	//
 
 	if (vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) != VK_SUCCESS)
 	{
@@ -252,6 +275,22 @@ void Device::CreateLogicalDevice()
 
 	vkGetDeviceQueue(m_device, indices.GraphicsFamily, 0, &m_graphicsQueue);
 	vkGetDeviceQueue(m_device, indices.PresentFamily, 0, &m_presentQueue);
+
+	if (VK_EXT_extended_dynamic_state2_enabled)
+	{
+		// the function name vkCmdSetCullMode does not have EXT vkCmdSetCullModeEXT, because in Vulkan 1.3 they were promoted to Core
+		vkCmdSetCullModeEXT = reinterpret_cast<PFN_vkCmdSetCullModeEXT>(vkGetDeviceProcAddr(m_device, "vkCmdSetCullMode"));
+		vkCmdSetFrontFaceEXT = reinterpret_cast<PFN_vkCmdSetFrontFaceEXT>(vkGetDeviceProcAddr(m_device, "vkCmdSetFrontFace"));
+
+		if (!vkCmdSetCullModeEXT || !vkCmdSetFrontFaceEXT)
+		{
+			throw std::runtime_error("failed to create logical device! Device does not support VK_EXT_extended_dynamic_state2, which is required!");
+		}
+	}
+	else
+	{
+		throw std::runtime_error("failed to create logical device! Device does not support VK_EXT_extended_dynamic_state2, which is required!");
+	}
 }
 
 void Device::CreateCommandPool()
@@ -535,6 +574,10 @@ bool Device::CheckDeviceExtensionSupport(VkPhysicalDevice _device)
 		else if (strcmp(extension.extensionName, VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME) == 0)
 		{
 			VK_EXT_descriptor_indexing_extension_enabled = true;
+		}
+		else if (strcmp(extension.extensionName, VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME) == 0)
+		{
+			VK_EXT_extended_dynamic_state2_enabled = true;
 		}
 
 		requiredExtensions.erase(extension.extensionName);

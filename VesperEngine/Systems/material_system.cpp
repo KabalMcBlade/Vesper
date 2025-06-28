@@ -34,6 +34,7 @@ const MaterialSystem::DefaultMaterialType MaterialSystem::DefaultPhongMaterial =
 		float{0.5f}
 	},
 	false,
+    false,
 	MaterialType::Phong
 };
 
@@ -49,6 +50,7 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
 	const std::vector<std::string>& _texturePaths,
 	const std::vector<std::any>& _values,
 	bool _bIsTransparent,
+    bool _bIsDoubleSided,
 	MaterialType _type,
     const std::vector<int32>& _uvIndices)
 {
@@ -65,6 +67,7 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
 
 	material->Type = _type;
 	material->IsTransparent = _bIsTransparent;
+    material->IsDoubleSided = _bIsDoubleSided;
 
 #ifdef _DEBUG
 	material->Name = _name;
@@ -206,6 +209,7 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
     const std::vector<std::shared_ptr<TextureData>>& _textures,
     const std::vector<std::any>& _values,
     bool _bIsTransparent,
+    bool _bIsDoubleSided,
     MaterialType _type,
     const std::vector<int32>& _uvIndices)
 {
@@ -222,6 +226,7 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
 
     material->Type = _type;
     material->IsTransparent = _bIsTransparent;
+    material->IsDoubleSided = _bIsDoubleSided;
 
 #ifdef _DEBUG
     material->Name = _name;
@@ -356,7 +361,7 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
 
 std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(const DefaultMaterialType& _defaultMaterial)
 {
-	return CreateMaterial(_defaultMaterial.Name, _defaultMaterial.Textures, _defaultMaterial.Values, _defaultMaterial.IsTransparent, _defaultMaterial.Type, {});
+	return CreateMaterial(_defaultMaterial.Name, _defaultMaterial.Textures, _defaultMaterial.Values, _defaultMaterial.IsTransparent, _defaultMaterial.IsDoubleSided, _defaultMaterial.Type, {});
 }
 
 void MaterialSystem::Cleanup()

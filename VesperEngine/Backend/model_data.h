@@ -70,6 +70,7 @@ struct MaterialData
 	BufferComponent UniformBuffer;
 	int32 Index{ -1 };
 	bool IsTransparent{ false };
+	bool IsDoubleSided{ false };
 	MaterialType Type;
 };
 
@@ -91,6 +92,7 @@ struct ModelData
 	std::vector<uint32> Indices{};
 	std::shared_ptr<MaterialData> Material;
 	bool IsStatic{ false };
+	bool IsMirrored{ false };
 	glm::vec4 MorphWeights[2]{ glm::vec4(0.0f), glm::vec4(0.0f) };
 	uint32 MorphTargetCount{ 0 };
 	std::vector<MorphAnimation> Animations{};

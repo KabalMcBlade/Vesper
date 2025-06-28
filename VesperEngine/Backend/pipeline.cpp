@@ -123,8 +123,14 @@ void Pipeline::DefaultPipelineConfiguration(PipelineConfigInfo& _outConfigInfo)
 		VK_DYNAMIC_STATE_VIEWPORT, 
 
 		// Scissor is like Viewport, but instead "squash" the result image (Viewport.width/height if changed keep the image but squashed), it will cut it.
-	// Any pixels outside of the Scissor rectangle (offset + extent) will be discarded.
-		VK_DYNAMIC_STATE_SCISSOR 
+		// Any pixels outside of the Scissor rectangle (offset + extent) will be discarded.
+		VK_DYNAMIC_STATE_SCISSOR,
+
+		// Allow changing culling mode dynamically
+		VK_DYNAMIC_STATE_CULL_MODE,
+
+		// Allow changing front face dynamically
+		VK_DYNAMIC_STATE_FRONT_FACE
 	};
 	_outConfigInfo.DynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 	_outConfigInfo.DynamicStateInfo.pDynamicStates = _outConfigInfo.DynamicStateEnables.data();
@@ -326,6 +332,14 @@ void Pipeline::Bind(VkCommandBuffer _commandBuffer)
 {
 	// VK_PIPELINE_BIND_POINT_GRAPHICS signal is a graphic pipeline (other are compute and ray tracing)
 	vkCmdBindPipeline(_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicPipeline);
+
+	// TODO: This break Skybox!
+	// fallback, to avoid validation error, since is expecting culling to be dynamic (for now)
+//	vkCmdSetCullModeEXT(_commandBuffer, VK_CULL_MODE_BACK_BIT);
+//	vkCmdSetFrontFaceEXT(_commandBuffer, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+	//vkCmdSetDepthTestEnableEXT(_commandBuffer, VK_TRUE);          // if depth test is dynamic
+	//vkCmdSetDepthWriteEnableEXT(_commandBuffer, VK_TRUE);         // if write is dynamic
+	//vkCmdSetBlendConstants(_commandBuffer, blendConstants);       // if blending is dynamic
 }
 
 std::vector<int8> Pipeline::ReadFile(const std::string& _filepath)

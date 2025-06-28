@@ -31,6 +31,8 @@ struct QueueFamilyIndices
 	bool IsComplete() { return GraphicsFamilyHasValue && PresentFamilyHasValue; }
 };
 
+extern PFN_vkCmdSetCullModeEXT vkCmdSetCullModeEXT;
+extern PFN_vkCmdSetFrontFaceEXT vkCmdSetFrontFaceEXT;
 
 class VESPERENGINE_API Device final
 {
@@ -115,6 +117,7 @@ private:
 	bool VK_EXT_memory_priority_enabled = false;
 	bool VK_EXT_debug_utils_enabled = false;
 	bool VK_EXT_descriptor_indexing_extension_enabled = false;
+	bool VK_EXT_extended_dynamic_state2_enabled = false;
 
 	bool m_bIsBindlessResourcesSupported = false;
 
@@ -162,7 +165,8 @@ private:
 	const std::vector<const char*> m_validationLayers = { "VK_LAYER_KHRONOS_validation" };
 	const std::vector<const char*> m_deviceExtensions = { 
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME,			// Swapchain support
-		VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME	// Bindless binding support
+		VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,	// Bindless binding support
+		VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME  // Extended dynamic state 2
 	};
 };
 

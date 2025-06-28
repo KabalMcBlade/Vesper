@@ -279,7 +279,7 @@ namespace
     }
 
     std::unique_ptr<ModelData> LoadPrimitiveModel(const tinygltf::Model& _gltfModel,
-        const tinygltf::Primitive& _primitive, const glm::mat4& _transform, const std::array<glm::vec4, 2>& _weights,
+        const tinygltf::Primitive& _primitive, const glm::mat4& _transform, const std::array<glm::vec4, 2>& _weights, const bool _isMirrored,
         const std::string& _basePath, const std::string& _texturePath, MaterialSystem& _materialSystem, bool _isStatic)
     {
         auto modelData = std::make_unique<ModelData>();
@@ -288,6 +288,7 @@ namespace
         float baseAlphaFactor = 1.0f;
         float alphaCutoff = -1.0f;
         bool isTransparent = false;
+        bool isDoubleSided = false;
 
         if (_primitive.material >= 0 && _primitive.material < static_cast<int32>(_gltfModel.materials.size()))
         {
@@ -298,6 +299,7 @@ namespace
             auto metallicTex = roughTex;
             isTransparent = gltfMaterial.alphaMode == "BLEND";
             alphaCutoff = gltfMaterial.alphaMode == "MASK" ? static_cast<float>(gltfMaterial.alphaCutoff) : -1.0f;
+			isDoubleSided = gltfMaterial.doubleSided;
 
             std::array<float, 4> baseColorDefault = { 1.0f, 1.0f, 1.0f, 1.0f };
             for (size_t i = 0; i < pbr.baseColorFactor.size() && i < 4; ++i)
@@ -329,7 +331,9 @@ namespace
                 { static_cast<float>(pbr.roughnessFactor),
                   static_cast<float>(pbr.metallicFactor), 0.0f, 0.0f, 0.0f, 0.0f,
                   0.0f, alphaCutoff, baseAlphaFactor },
-                isTransparent, MaterialType::PBR, uvIndices);
+                isTransparent, isDoubleSided, MaterialType::PBR, uvIndices);
+
+			modelData->IsMirrored = _isMirrored;
         }
         else
         {
@@ -337,8 +341,10 @@ namespace
             std::vector<std::any> emptyMetadata = { 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f };
 
             modelData->Material = _materialSystem.CreateMaterial(
-                "_DefaultGltfPBR_", emptyTextures, emptyMetadata, false,
+                "_DefaultGltfPBR_", emptyTextures, emptyMetadata, isTransparent, isDoubleSided,
                 MaterialType::PBR, {});
+
+            modelData->IsMirrored = _isMirrored;
         }
 
         std::vector<glm::vec3> positions;
@@ -474,6 +480,12 @@ namespace
         const tinygltf::Node& node = _gltfModel.nodes[_nodeIdx];
         glm::mat4 transform = _parent * ComposeTransform(node);
 
+        // Determine if the resulting transform is mirrored (left-handed)
+        const glm::vec3 x = glm::vec3(transform[0]);
+        const glm::vec3 y = glm::vec3(transform[1]);
+        const glm::vec3 z = glm::vec3(transform[2]);
+        const bool isMirrored = glm::dot(glm::cross(x, y), z) < 0.0f;
+
         std::array<glm::vec4, 2> weights{ glm::vec4(0.0f), glm::vec4(0.0f) };
         bool hasNodeWeights = false;
 
@@ -500,7 +512,7 @@ namespace
 
             for (const auto& primitive : mesh.primitives)
             {
-                auto model = LoadPrimitiveModel(_gltfModel, primitive, transform, weights, _basePath, _texturePath, _materialSystem, _isStatic);
+                auto model = LoadPrimitiveModel(_gltfModel, primitive, transform, weights, isMirrored, _basePath, _texturePath, _materialSystem, _isStatic);
                 LOG(Logger::INFO, "Mesh: ", mesh.name, ", Primitive vertices: ", model->Vertices.size());
                 _models.push_back(std::move(model));
             }
@@ -514,6 +526,53 @@ namespace
             }
         }
     }
+
+    void PrintMirroredNodes(const tinygltf::Model& model) {
+        for (size_t i = 0; i < model.nodes.size(); ++i) {
+            const auto& node = model.nodes[i];
+
+            // Compute local transform (not including parent)
+            glm::mat4 localMatrix(1.0f);
+
+            if (node.matrix.size() == 16) {
+                localMatrix = glm::make_mat4x4(node.matrix.data());
+            }
+            else {
+                glm::vec3 translation = node.translation.size() == 3
+                    ? glm::vec3(node.translation[0], node.translation[1], node.translation[2])
+                    : glm::vec3(0.0f);
+
+                glm::quat rotation = node.rotation.size() == 4
+                    ? glm::quat(node.rotation[3], node.rotation[0], node.rotation[1], node.rotation[2])
+                    : glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+
+                glm::vec3 scale = node.scale.size() == 3
+                    ? glm::vec3(node.scale[0], node.scale[1], node.scale[2])
+                    : glm::vec3(1.0f);
+
+                localMatrix = glm::translate(glm::mat4(1.0f), translation)
+                    * glm::mat4_cast(rotation)
+                    * glm::scale(glm::mat4(1.0f), scale);
+            }
+
+            // Check if this matrix flips handedness (is mirrored)
+            glm::vec3 x = glm::vec3(localMatrix[0]);
+            glm::vec3 y = glm::vec3(localMatrix[1]);
+            glm::vec3 z = glm::vec3(localMatrix[2]);
+
+            bool isMirrored = glm::dot(glm::cross(x, y), z) < 0.0f;
+
+            if (isMirrored) {
+                std::string name = node.name.empty() ? "<unnamed>" : node.name;
+                std::string meshInfo = (node.mesh >= 0 && node.mesh < (int)model.meshes.size())
+                    ? model.meshes[node.mesh].name
+                    : "<no mesh>";
+                LOG(Logger::INFO, "Mirrored Node: ", name,
+                    " (index ", i, "), Mesh: ", meshInfo);
+            }
+        }
+    }
+
 }
 
 GltfLoader::GltfLoader(VesperApp& _app, Device& _device, MaterialSystem& _materialSystem)
@@ -558,6 +617,8 @@ std::vector<std::unique_ptr<ModelData>> GltfLoader::LoadModel(const std::string&
 
     std::vector<MorphAnimation> animations;
     LoadAnimations(gltfModel, animations);
+
+    PrintMirroredNodes(gltfModel);
 
     int32 sceneIndex = gltfModel.defaultScene >= 0 ? gltfModel.defaultScene : 0;
     if (sceneIndex < static_cast<int32>(gltfModel.scenes.size())) {

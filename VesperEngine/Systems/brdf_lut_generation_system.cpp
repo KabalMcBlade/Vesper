@@ -61,6 +61,12 @@ void BRDFLUTGenerationSystem::Generate(VkCommandBuffer _commandBuffer, uint32 _w
 	const PushResolution resolution{{ _width, _height }};
 	PushConstants(_commandBuffer, 0, &resolution);
 
+	//if (vkCmdSetCullModeEXT && vkCmdSetFrontFaceEXT)  // no need, we do throw and exception if not supported
+	{
+		vkCmdSetCullModeEXT(_commandBuffer, VK_CULL_MODE_NONE);
+		vkCmdSetFrontFaceEXT(_commandBuffer, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+	}
+
 	Bind(m_quadVertexBufferComponent, _commandBuffer);
 	Draw(m_quadVertexBufferComponent, _commandBuffer);
 }

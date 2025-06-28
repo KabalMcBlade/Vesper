@@ -60,6 +60,7 @@ struct MaterialComponent
 {
 	using FieldType = int32;
 	int32 Index{ -1 };
+	bool IsDoubleSided{ false };
 
 	// store the descriptor set bound to the resource per presentation frame (1,2 or 3)
 	std::vector<VkDescriptorSet> BoundDescriptorSet;

@@ -82,6 +82,7 @@ std::shared_ptr<MaterialData> CreateMaterial(MaterialSystem& _materialSystem, co
 				_tinyMaterial.shininess
 			},
 			_tinyMaterial.dissolve < 1.0f || !_tinyMaterial.alpha_texname.empty(),
+			false,
 			MaterialType::Phong
 		);
 	}
@@ -106,6 +107,7 @@ std::shared_ptr<MaterialData> CreateMaterial(MaterialSystem& _materialSystem, co
 				_tinyMaterial.anisotropy_rotation,
 			},
 			_tinyMaterial.dissolve < 1.0f,
+			false,
 			MaterialType::PBR
 		);
 	}

@@ -182,7 +182,7 @@ void PhongOpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 	ecs::ComponentManager& componentManager = m_app.GetComponentManager();
 
 	// 1. Render whatever has vertex buffers and index buffer
-    auto entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineOpaqueComponent, DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent, VisibilityComponent>(entityManager, componentManager, &PhongMaterialComponent::Index);
+    auto entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineOpaqueComponent, DynamicOffsetComponent, VertexBufferComponent, IndexBufferComponent, VisibilityComponent, UpdateComponent>(entityManager, componentManager, &PhongMaterialComponent::Index);
 
 	for (const auto& [key, entities] : entitiesGroupedAndCollected)
 	{
@@ -205,6 +205,7 @@ void PhongOpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
             const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(entityCollected);
             const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(entityCollected);
             const IndexBufferComponent& indexBufferComponent = componentManager.GetComponent<IndexBufferComponent>(entityCollected);
+			const UpdateComponent& updateComponent = componentManager.GetComponent<UpdateComponent>(entityCollected);
 
 			vkCmdBindDescriptorSets(
 				_frameInfo.CommandBuffer,
@@ -216,6 +217,15 @@ void PhongOpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 				1,
 				&dynamicOffsetComponent.DynamicOffset
 			);
+
+			const VkCullModeFlags cullMode = phongMaterialComponent.IsDoubleSided ? VK_CULL_MODE_NONE : VK_CULL_MODE_BACK_BIT;
+			const VkFrontFace frontFace = updateComponent.IsMirrored ? VK_FRONT_FACE_CLOCKWISE : VK_FRONT_FACE_COUNTER_CLOCKWISE;
+
+			//if (vkCmdSetCullModeEXT && vkCmdSetFrontFaceEXT)  // no need, we do throw and exception if not supported
+			{
+				vkCmdSetCullModeEXT(_frameInfo.CommandBuffer, cullMode);
+				vkCmdSetFrontFaceEXT(_frameInfo.CommandBuffer, frontFace);
+			}
 
 			PerEntityRender(_frameInfo, componentManager, entityCollected);
 
@@ -229,7 +239,7 @@ void PhongOpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 
 
 	// 2. Render only entities having Vertex buffers only
-    entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineOpaqueComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent, VisibilityComponent>(entityManager, componentManager, &PhongMaterialComponent::Index);
+    entitiesGroupedAndCollected = ecs::EntityCollector::CollectAndGroupEntitiesWithAllByField<PhongMaterialComponent, PipelineOpaqueComponent, DynamicOffsetComponent, VertexBufferComponent, NotIndexBufferComponent, VisibilityComponent, UpdateComponent>(entityManager, componentManager, &PhongMaterialComponent::Index);
 
 	for (const auto& [key, entities] : entitiesGroupedAndCollected)
 	{
@@ -251,6 +261,7 @@ void PhongOpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 		{
             const DynamicOffsetComponent& dynamicOffsetComponent = componentManager.GetComponent<DynamicOffsetComponent>(entityCollected);
             const VertexBufferComponent& vertexBufferComponent = componentManager.GetComponent<VertexBufferComponent>(entityCollected);
+			const UpdateComponent& updateComponent = componentManager.GetComponent<UpdateComponent>(entityCollected);
 
 			vkCmdBindDescriptorSets(
 				_frameInfo.CommandBuffer,
@@ -262,6 +273,15 @@ void PhongOpaqueRenderSystem::Render(const FrameInfo& _frameInfo)
 				1,
 				&dynamicOffsetComponent.DynamicOffset
 			);
+
+			const VkCullModeFlags cullMode = phongMaterialComponent.IsDoubleSided ? VK_CULL_MODE_NONE : VK_CULL_MODE_BACK_BIT;
+			const VkFrontFace frontFace = updateComponent.IsMirrored ? VK_FRONT_FACE_CLOCKWISE : VK_FRONT_FACE_COUNTER_CLOCKWISE;
+
+			//if (vkCmdSetCullModeEXT && vkCmdSetFrontFaceEXT)  // no need, we do throw and exception if not supported
+			{
+				vkCmdSetCullModeEXT(_frameInfo.CommandBuffer, cullMode);
+				vkCmdSetFrontFaceEXT(_frameInfo.CommandBuffer, frontFace);
+			}
 
 			PerEntityRender(_frameInfo, componentManager, entityCollected);
 

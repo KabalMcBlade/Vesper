@@ -37,6 +37,7 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 			PhongMaterialComponent& phongMaterialComponent = m_app.GetComponentManager().GetComponent<PhongMaterialComponent>(_entity);
 			
 			phongMaterialComponent.Index = _data->Material->Index;
+			phongMaterialComponent.IsDoubleSided = _data->Material->IsDoubleSided;
 
 			phongMaterialComponent.AmbientImageInfo.sampler = _data->Material->Textures[0]->Sampler;
 			phongMaterialComponent.AmbientImageInfo.imageView = _data->Material->Textures[0]->ImageView;
@@ -67,6 +68,7 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 			PBRMaterialComponent& pbrMaterialComponent = m_app.GetComponentManager().GetComponent<PBRMaterialComponent>(_entity);
 
 			pbrMaterialComponent.Index = _data->Material->Index;
+			pbrMaterialComponent.IsDoubleSided = _data->Material->IsDoubleSided;
 
 			pbrMaterialComponent.RoughnessImageInfo.sampler = _data->Material->Textures[0]->Sampler;
 			pbrMaterialComponent.RoughnessImageInfo.imageView = _data->Material->Textures[0]->ImageView;
@@ -174,6 +176,12 @@ void ModelSystem::LoadModel(ecs::Entity _entity, std::shared_ptr<ModelData> _dat
 			animComp.Animations = _data->Animations;
 			animComp.Playing = true;
 		}
+	}
+
+	if (m_app.GetComponentManager().HasComponents<UpdateComponent>(_entity))
+	{
+		UpdateComponent& updateComponent = m_app.GetComponentManager().GetComponent<UpdateComponent>(_entity);
+		updateComponent.IsMirrored = _data->IsMirrored;
 	}
 }
 

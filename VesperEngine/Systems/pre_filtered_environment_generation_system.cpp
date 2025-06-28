@@ -129,6 +129,12 @@ void PreFilteredEnvironmentGenerationSystem::Generate(
     PushConstant pc{ _viewProj, _roughness, _numSamples };
     PushConstants(_commandBuffer, 0, &pc);
 
+    //if (vkCmdSetCullModeEXT && vkCmdSetFrontFaceEXT)  // no need, we do throw and exception if not supported
+    {
+        vkCmdSetCullModeEXT(_commandBuffer, VK_CULL_MODE_NONE);
+        vkCmdSetFrontFaceEXT(_commandBuffer, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+    }
+
     Bind(m_cubeVertex, _commandBuffer);
     Draw(m_cubeVertex, _commandBuffer);
 }

@@ -75,6 +75,7 @@ private:
 		const std::vector<std::string>& Textures;
 		const std::vector<std::any> Values;
 		bool IsTransparent;
+		bool IsDoubleSided;
 		MaterialType Type;
 	};
 
@@ -96,6 +97,7 @@ public:
 		const std::vector<std::string>& _texturePaths,
 		const std::vector<std::any>& _values,
 		bool _bIsTransparent,
+		bool _bIsDoubleSided,
 		MaterialType _type,
 		const std::vector<int32>& _uvIndices = {});
 
@@ -107,6 +109,7 @@ public:
 		const std::vector<std::shared_ptr<TextureData>>& _textures,
 		const std::vector<std::any>& _values,
 		bool _bIsTransparent,
+		bool _bIsDoubleSided,
 		MaterialType _type,
 		const std::vector<int32>& _uvIndices = {});
 
