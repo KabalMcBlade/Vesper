@@ -53,6 +53,11 @@ namespace
                 const float* v = reinterpret_cast<const float*>(src);
                 _out[i] = glm::vec3(v[0], v[1], v[2]);
             }
+            else if constexpr (std::is_same_v<T, glm::vec4>)
+            {
+                const float* v = reinterpret_cast<const float*>(src);
+                _out[i] = glm::vec4(v[0], v[1], v[2], v[3]);
+            }
             else if constexpr (std::is_same_v<T, glm::vec2>)
             {
                 const float* v = reinterpret_cast<const float*>(src);
@@ -192,6 +197,76 @@ namespace
 
         LOG(Logger::WARNING, "Embedded image not supported: ", image.name);
         return nullptr;
+    }
+
+    void GenerateTangents(const std::vector<glm::vec3>& _positions,
+        const std::vector<glm::vec3>& _normals,
+        const std::vector<glm::vec2>& _uvs,
+        const std::vector<uint32>& _indices,
+        std::vector<glm::vec4>& _outTangents)
+    {
+        size_t count = _positions.size();
+        _outTangents.assign(count, glm::vec4(0.0f));
+        if (_positions.empty() || _normals.empty() || _uvs.empty())
+            return;
+
+        std::vector<glm::vec3> tan1(count, glm::vec3(0.0f));
+        std::vector<glm::vec3> tan2(count, glm::vec3(0.0f));
+
+        for (size_t i = 0; i + 2 < _indices.size(); i += 3)
+        {
+            uint32 i1 = _indices[i];
+            uint32 i2 = _indices[i + 1];
+            uint32 i3 = _indices[i + 2];
+
+            const glm::vec3& v1 = _positions[i1];
+            const glm::vec3& v2 = _positions[i2];
+            const glm::vec3& v3 = _positions[i3];
+
+            const glm::vec2& w1 = _uvs[i1];
+            const glm::vec2& w2 = _uvs[i2];
+            const glm::vec2& w3 = _uvs[i3];
+
+            float x1 = v2.x - v1.x;
+            float x2 = v3.x - v1.x;
+            float y1 = v2.y - v1.y;
+            float y2 = v3.y - v1.y;
+            float z1 = v2.z - v1.z;
+            float z2 = v3.z - v1.z;
+
+            float s1 = w2.x - w1.x;
+            float s2 = w3.x - w1.x;
+            float t1 = w2.y - w1.y;
+            float t2 = w3.y - w1.y;
+
+            float r = (s1 * t2 - s2 * t1);
+            if (r != 0.0f) r = 1.0f / r;
+
+            glm::vec3 sdir((t2 * x1 - t1 * x2) * r,
+                (t2 * y1 - t1 * y2) * r,
+                (t2 * z1 - t1 * z2) * r);
+            glm::vec3 tdir((s1 * x2 - s2 * x1) * r,
+                (s1 * y2 - s2 * y1) * r,
+                (s1 * z2 - s2 * z1) * r);
+
+            tan1[i1] += sdir;
+            tan1[i2] += sdir;
+            tan1[i3] += sdir;
+
+            tan2[i1] += tdir;
+            tan2[i2] += tdir;
+            tan2[i3] += tdir;
+        }
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            const glm::vec3& n = _normals[i];
+            const glm::vec3& t = tan1[i];
+
+            glm::vec3 tangent = glm::normalize(t - n * glm::dot(n, t));
+            float w = (glm::dot(glm::cross(n, t), tan2[i]) < 0.0f) ? -1.0f : 1.0f;
+            _outTangents[i] = glm::vec4(tangent, w);
+        }
     }
 
     glm::mat4 ComposeTransform(const tinygltf::Node& _node)
@@ -415,6 +490,19 @@ namespace
             }
         }
 
+        std::vector<glm::vec4> tangents;
+        auto itTan = _primitive.attributes.find("TANGENT");
+        if (itTan != _primitive.attributes.end())
+        {
+            ReadAccessor(_gltfModel, _gltfModel.accessors[itTan->second], tangents);
+        }
+
+        if (tangents.empty())
+        {
+            const std::vector<glm::vec2>& uvSource = !uvs1.empty() ? uvs1 : uvs2;
+            GenerateTangents(positions, normals, uvSource, indices, tangents);
+        }
+
         modelData->Vertices.resize(indices.size());
         modelData->Indices.resize(indices.size());
         modelData->MorphTargetCount = static_cast<uint32>(morphCount);
@@ -444,9 +532,14 @@ namespace
             {
                 vertex.UV2 = uvs2[vIndex];
             }
+            if (vIndex < tangents.size())
+            {
+                glm::vec4 t = tangents[vIndex];
+                vertex.Tangent = glm::vec4(normalMatrix * glm::vec3(t), t.w * (_isMirrored ? -1.0f : 1.0f));
+            }
             if (vIndex < colors.size())
             {
-                vertex.Color = colors[vIndex] * baseColorFactorRGB;;
+                vertex.Color = colors[vIndex] * baseColorFactorRGB;
             }
             else
             {
@@ -543,7 +636,7 @@ namespace
                     : glm::vec3(0.0f);
 
                 glm::quat rotation = node.rotation.size() == 4
-                    ? glm::quat(node.rotation[3], node.rotation[0], node.rotation[1], node.rotation[2])
+                    ? glm::quat(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2]))
                     : glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 
                 glm::vec3 scale = node.scale.size() == 3

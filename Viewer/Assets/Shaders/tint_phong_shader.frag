@@ -10,6 +10,7 @@ layout(location = 1) in vec3 fragPositionWorld;
 layout(location = 2) in vec3 fragNormalWorld;
 layout(location = 3) in vec2 fragUV1;
 layout(location = 4) in vec2 fragUV2;
+layout(location = 5) in vec4 fragTangentWorld;
 
 layout(location = 0) out vec4 outColor;
 
@@ -155,7 +156,11 @@ void main()
         vec3 normalMap = texture(normalTexture, uvNormal).rgb * 2.0 - 1.0;
 #endif
 
-        normal = normalize(normalMap);
+        normalMap.y = -normalMap.y; //FLIP GREEN CHANNEL
+
+        vec3 T = normalize(fragTangentWorld.xyz);
+        vec3 B = normalize(cross(normal, T)) * fragTangentWorld.w;
+        normal = normalize(mat3(T, B, normal) * normalMap);
     }
 
     vec3 cameraPosition = sceneUBO.CameraPosition.xyz;

@@ -26,12 +26,13 @@ std::vector<VkVertexInputAttributeDescription> Vertex::GetAttributeDescriptions(
     attributeDescriptions.push_back({ 2, 0, VK_FORMAT_R32G32B32_SFLOAT , offsetof(Vertex, Normal) });
     attributeDescriptions.push_back({ 3, 0, VK_FORMAT_R32G32_SFLOAT , offsetof(Vertex, UV1) });
     attributeDescriptions.push_back({ 4, 0, VK_FORMAT_R32G32_SFLOAT , offsetof(Vertex, UV2) });
+    attributeDescriptions.push_back({ 5, 0, VK_FORMAT_R32G32B32A32_SFLOAT , offsetof(Vertex, Tangent) });
     size_t morphPosOffset = offsetof(Vertex, MorphPos);
     size_t morphNormOffset = offsetof(Vertex, MorphNorm);
     for (uint32 i = 0; i < kMaxMorphTargets; ++i)
     {
-        attributeDescriptions.push_back({ static_cast<uint32>(5 + i * 2), 0, VK_FORMAT_R32G32B32_SFLOAT , static_cast<uint32>(morphPosOffset + sizeof(glm::vec3) * i) });
-        attributeDescriptions.push_back({ static_cast<uint32>(6 + i * 2), 0, VK_FORMAT_R32G32B32_SFLOAT , static_cast<uint32>(morphNormOffset + sizeof(glm::vec3) * i) });
+        attributeDescriptions.push_back({ static_cast<uint32>(6 + i * 2), 0, VK_FORMAT_R32G32B32_SFLOAT , static_cast<uint32>(morphPosOffset + sizeof(glm::vec3) * i) });
+        attributeDescriptions.push_back({ static_cast<uint32>(7 + i * 2), 0, VK_FORMAT_R32G32B32_SFLOAT , static_cast<uint32>(morphNormOffset + sizeof(glm::vec3) * i) });
     }
 
 

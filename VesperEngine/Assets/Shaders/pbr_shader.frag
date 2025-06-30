@@ -9,6 +9,7 @@ layout(location = 1) in vec3 fragPositionWorld;
 layout(location = 2) in vec3 fragNormalWorld;
 layout(location = 3) in vec2 fragUV1;
 layout(location = 4) in vec2 fragUV2;
+layout(location = 5) in vec4 fragTangentWorld;
 
 layout(location = 0) out vec4 outColor;
 
@@ -165,12 +166,23 @@ float microfacetDistribution(PBRInfo pbrInputs)
 vec3 getNormal(bool hasNormal, vec2 uv)
 {
     vec3 N = normalize(fragNormalWorld);
+    vec3 T = normalize(fragTangentWorld.xyz);
+    vec3 B = normalize(cross(N, T)) * fragTangentWorld.w;
+
 #if BINDLESS == 1
-    if (hasNormal)
-        N = normalize(texture(textures[nonuniformEXT(materials[materialIndexUBO.materialIndex].TextureIndices[4])], uv).xyz * 2.0 - 1.0);
+    if (hasNormal) 
+    {
+        vec3 tangentNormal = texture(textures[nonuniformEXT(materials[materialIndexUBO.materialIndex].TextureIndices[4])], uv).xyz * 2.0 - 1.0;
+        tangentNormal.y = -tangentNormal.y; //FLIP GREEN CHANNEL
+        N = normalize(mat3(T, B, N) * tangentNormal);
+    }
 #else
     if (hasNormal)
-        N = normalize(texture(normalTexture, uv).xyz * 2.0 - 1.0);
+    {
+        vec3 tangentNormal = texture(normalTexture, uv).xyz * 2.0 - 1.0;
+        tangentNormal.y = -tangentNormal.y; // FLIP GREEN CHANNEL
+        N = normalize(mat3(T, B, N) * tangentNormal);
+    }
 #endif
     return N;
 }

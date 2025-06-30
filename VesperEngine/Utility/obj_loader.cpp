@@ -35,7 +35,7 @@ namespace std
 		size_t operator()(vesper::Vertex const& _vertex) const
 		{
 			size_t seed = 0;
-			vesper::HashCombine(seed, _vertex.Position, _vertex.Color, _vertex.Normal, _vertex.UV1, _vertex.UV2);
+			vesper::HashCombine(seed, _vertex.Position, _vertex.Color, _vertex.Normal, _vertex.UV1, _vertex.UV2, _vertex.Tangent);
 			return seed;
 		}
 	};
