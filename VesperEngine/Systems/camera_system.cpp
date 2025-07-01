@@ -98,82 +98,33 @@ void CameraSystem::GetActiveCameraData(const uint32 _activeCameraIndex, CameraCo
 
 void CameraSystem::SetOrthographicProjection(CameraComponent& _camera, float _left, float _right, float _top, float _bottom, float _near, float _far) const
 {
-	_camera.ProjectionMatrix = glm::mat4{ 1.0f };
-	_camera.ProjectionMatrix[0][0] = 2.f / (_right - _left);
-	_camera.ProjectionMatrix[1][1] = 2.f / (_bottom - _top);
-	_camera.ProjectionMatrix[2][2] = 1.f / (_far - _near);
-	_camera.ProjectionMatrix[3][0] = -(_right + _left) / (_right - _left);
-	_camera.ProjectionMatrix[3][1] = -(_bottom + _top) / (_bottom - _top);
-	_camera.ProjectionMatrix[3][2] = -_near / (_far - _near);
+	_camera.ProjectionMatrix = glm::orthoLH_ZO(_left, _right, _bottom, _top, _near, _far);
 }
 
 void CameraSystem::SetPerspectiveProjection(CameraComponent& _camera, float _fovY, float _aspectRatio, float _near, float _far) const
 {
 	assertMsgReturnVoid(glm::abs(_aspectRatio - std::numeric_limits<float>::epsilon()) > 0.0f, "Aspect ratio is not valid");
-
-	const float tanHalfFovy = tan(_fovY / 2.f);
-	_camera.ProjectionMatrix = glm::mat4{ 0.0f };
-	_camera.ProjectionMatrix[0][0] = 1.f / (_aspectRatio * tanHalfFovy);
-	_camera.ProjectionMatrix[1][1] = 1.f / (tanHalfFovy);
-	_camera.ProjectionMatrix[2][2] = _far / (_far - _near);
-	_camera.ProjectionMatrix[2][3] = 1.f;
-	_camera.ProjectionMatrix[3][2] = -(_far * _near) / (_far - _near);
+	_camera.ProjectionMatrix = glm::perspectiveLH_ZO(_fovY, _aspectRatio, _near, _far);
 }
 
 void CameraSystem::SetViewDirection(CameraComponent& _camera, const glm::vec3 _position, const glm::vec3 _direction, const glm::vec3 _up) const
 {
-	// same as glm::lookAt, but have direction directly
-	const glm::vec3 w{ glm::normalize(_direction) };
-	const glm::vec3 u{ glm::normalize(glm::cross(w, _up)) };
-	const glm::vec3 v{ glm::cross(w, u) };
-
-	_camera.ViewMatrix = glm::mat4{ 1.f };
-	_camera.ViewMatrix[0][0] = u.x;
-	_camera.ViewMatrix[1][0] = u.y;
-	_camera.ViewMatrix[2][0] = u.z;
-	_camera.ViewMatrix[0][1] = v.x;
-	_camera.ViewMatrix[1][1] = v.y;
-	_camera.ViewMatrix[2][1] = v.z;
-	_camera.ViewMatrix[0][2] = w.x;
-	_camera.ViewMatrix[1][2] = w.y;
-	_camera.ViewMatrix[2][2] = w.z;
-	_camera.ViewMatrix[3][0] = -glm::dot(u, _position);
-	_camera.ViewMatrix[3][1] = -glm::dot(v, _position);
-	_camera.ViewMatrix[3][2] = -glm::dot(w, _position);
+	const glm::vec3 target = _position + _direction;
+	_camera.ViewMatrix = glm::lookAtLH(_position, target, _up);
 }
 
 void CameraSystem::SetViewTarget(CameraComponent& _camera, const glm::vec3 _position, const glm::vec3 _target, const glm::vec3 _up) const
 {
 	assertMsgReturnVoid(glm::length(_target - _position) > 0.0f, "The direction cannot be 0");
-	
-	// same as glm::lookAt
 	SetViewDirection(_camera, _position, _target - _position, _up);
 }
 
 void CameraSystem::SetViewRotation(CameraComponent& _camera, const glm::vec3 _position, const float _yaw, const float _pitch, const float _roll) const
 {
-	const float c3 = glm::cos(_roll);
-	const float s3 = glm::sin(_roll);
-	const float c2 = glm::cos(_pitch);
-	const float s2 = glm::sin(_pitch);
-	const float c1 = glm::cos(_yaw);
-	const float s1 = glm::sin(_yaw);
-	const glm::vec3 u{ (c1 * c3 + s1 * s2 * s3), (c2 * s3), (c1 * s2 * s3 - c3 * s1) };
-	const glm::vec3 v{ (c3 * s1 * s2 - c1 * s3), (c2 * c3), (c1 * c3 * s2 + s1 * s3) };
-	const glm::vec3 w{ (c2 * s1), (-s2), (c1 * c2) };
-	_camera.ViewMatrix = glm::mat4{ 1.f };
-	_camera.ViewMatrix[0][0] = u.x;
-	_camera.ViewMatrix[1][0] = u.y;
-	_camera.ViewMatrix[2][0] = u.z;
-	_camera.ViewMatrix[0][1] = v.x;
-	_camera.ViewMatrix[1][1] = v.y;
-	_camera.ViewMatrix[2][1] = v.z;
-	_camera.ViewMatrix[0][2] = w.x;
-	_camera.ViewMatrix[1][2] = w.y;
-	_camera.ViewMatrix[2][2] = w.z;
-	_camera.ViewMatrix[3][0] = -glm::dot(u, _position);
-	_camera.ViewMatrix[3][1] = -glm::dot(v, _position);
-	_camera.ViewMatrix[3][2] = -glm::dot(w, _position);
+	// Build transform: rotate then translate
+	glm::mat4 rotation = glm::yawPitchRoll(_yaw, _pitch, _roll);
+	glm::mat4 translation = glm::translate(glm::mat4(1.0f), -_position);
+	_camera.ViewMatrix = glm::inverse(rotation) * translation;
 }
 
 void CameraSystem::SetViewRotation(CameraComponent& _camera, const CameraTransformComponent& _transform) const

@@ -260,9 +260,10 @@ vec4 baseColor;
         ? texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[5])], uvBase)
         : vec4(1.0); // fallback if no texture
 
-    // Combine fragment color only with RGB — preserve texture alpha
+    // Combine fragment color only with RGB preserve texture alpha
     baseColor.rgb = fragColor * texColor.rgb;
-    baseColor.a = texColor.a * materials[matIdx].BaseColorAlpha;
+    baseColor.a = texColor.a * clamp(materials[matIdx].BaseColorAlpha, 0.0, 1.0);
+    baseColor.a = clamp(baseColor.a, 0.0, 1.0);
 
     float ao = hasAO 
         ? texture(textures[nonuniformEXT(materials[matIdx].TextureIndices[6])], uvAO).r

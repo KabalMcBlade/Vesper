@@ -88,7 +88,7 @@ void KeyboardMovementCameraController::Update(GLFWwindow* _window, float _dt)
 		float yaw = transformComponent.Rotation.y;
 		const glm::vec3 forwardDir{ glm::sin(yaw), 0.f, glm::cos(yaw) };
 		const glm::vec3 rightDir{ forwardDir.z, 0.f, -forwardDir.x };
-		const glm::vec3 upDir{ 0.f, -1.f, 0.f };
+		const glm::vec3 upDir{ 0.f, 1.f, 0.f };
 
 		glm::vec3 moveDir{ 0.f };
 		if (glfwGetKey(_window, m_keys.MoveForward) == GLFW_PRESS) moveDir += forwardDir;

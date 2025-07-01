@@ -227,11 +227,11 @@ void ViewerApp::Run()
 
             m_skyboxRenderSystem->Render(frameInfo);
 
-            m_phongOpaqueRenderSystem->Render(frameInfo);
-			m_phongTransparentRenderSystem->Render(frameInfo);
-
 			m_pbrOpaqueRenderSystem->Render(frameInfo);
+            m_phongOpaqueRenderSystem->Render(frameInfo);
+
 			m_pbrTransparentRenderSystem->Render(frameInfo);
+			m_phongTransparentRenderSystem->Render(frameInfo);
 
 			m_renderer->EndSwapChainRenderPass(commandBuffer);
 			m_renderer->EndFrame();
