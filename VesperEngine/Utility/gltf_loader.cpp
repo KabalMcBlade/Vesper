@@ -645,11 +645,9 @@ namespace
         const tinygltf::Node& node = _gltfModel.nodes[_nodeIdx];
         glm::mat4 transform = _parent * ComposeTransform(node);
 
-        // Determine if the resulting transform is mirrored (left-handed)
-        const glm::vec3 x = glm::vec3(transform[0]);
-        const glm::vec3 y = glm::vec3(transform[1]);
-        const glm::vec3 z = glm::vec3(transform[2]);
-        const bool isMirrored = glm::dot(glm::cross(x, y), z) < 0.0f;
+        // Determine if the resulting transform flips handedness
+        // Using the determinant is independent from GLM's handedness setting
+        const bool isMirrored = glm::determinant(glm::mat3(transform)) < 0.0f;
 
         std::array<glm::vec4, 2> weights{ glm::vec4(0.0f), glm::vec4(0.0f) };
         bool hasNodeWeights = false;
@@ -721,11 +719,9 @@ namespace
             }
 
             // Check if this matrix flips handedness (is mirrored)
-            glm::vec3 x = glm::vec3(localMatrix[0]);
-            glm::vec3 y = glm::vec3(localMatrix[1]);
-            glm::vec3 z = glm::vec3(localMatrix[2]);
-
-            bool isMirrored = glm::dot(glm::cross(x, y), z) < 0.0f;
+            // Using determinant instead of cross product avoids issues when
+            // GLM is configured for left-handed coordinates
+            bool isMirrored = glm::determinant(glm::mat3(localMatrix)) < 0.0f;
 
             if (isMirrored) {
                 std::string name = node.name.empty() ? "<unnamed>" : node.name;
