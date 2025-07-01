@@ -372,6 +372,76 @@ namespace
 
             auto roughTex = GetTexture(_gltfModel, pbr.metallicRoughnessTexture.index, _basePath, _texturePath, _materialSystem);
             auto metallicTex = roughTex;
+
+
+            // Optional PBR values
+            float sheenFactor = 0.0f;
+            float clearcoatFactor = 0.0f;
+            float clearcoatRoughness = 0.0f;
+            float anisotropy = 0.0f;
+            float anisotropyRotation = 0.0f;
+            std::shared_ptr<TextureData> sheenTex = nullptr;
+            int32 sheenTexCoord = 0;
+
+            const auto sheenIt = gltfMaterial.extensions.find("KHR_materials_sheen");
+            if (sheenIt != gltfMaterial.extensions.end() && sheenIt->second.IsObject())
+            {
+                const auto& sheenVal = sheenIt->second;
+                if (sheenVal.Has("sheenColorFactor"))
+                {
+                    const auto& arr = sheenVal.Get("sheenColorFactor");
+                    if (arr.IsArray() && arr.ArrayLen() > 0)
+                    {
+                        sheenFactor = static_cast<float>(arr.Get(0).GetNumberAsDouble());
+                    }
+                }
+                if (sheenVal.Has("sheenColorTexture"))
+                {
+                    const auto& texObj = sheenVal.Get("sheenColorTexture");
+                    if (texObj.IsObject())
+                    {
+                        int texIndex = -1;
+                        if (texObj.Get("index").IsNumber())
+                        {
+                            texIndex = texObj.Get("index").GetNumberAsInt();
+                        }
+                        if (texObj.Has("texCoord"))
+                        {
+                            sheenTexCoord = texObj.Get("texCoord").GetNumberAsInt();
+                        }
+                        sheenTex = GetTexture(_gltfModel, texIndex, _basePath, _texturePath, _materialSystem);
+                    }
+                }
+            }
+
+            const auto clearcoatIt = gltfMaterial.extensions.find("KHR_materials_clearcoat");
+            if (clearcoatIt != gltfMaterial.extensions.end() && clearcoatIt->second.IsObject())
+            {
+                const auto& cc = clearcoatIt->second;
+                if (cc.Has("clearcoatFactor"))
+                {
+                    clearcoatFactor = static_cast<float>(cc.Get("clearcoatFactor").GetNumberAsDouble());
+                }
+                if (cc.Has("clearcoatRoughnessFactor"))
+                {
+                    clearcoatRoughness = static_cast<float>(cc.Get("clearcoatRoughnessFactor").GetNumberAsDouble());
+                }
+            }
+
+            const auto anisoIt = gltfMaterial.extensions.find("KHR_materials_anisotropy");
+            if (anisoIt != gltfMaterial.extensions.end() && anisoIt->second.IsObject())
+            {
+                const auto& an = anisoIt->second;
+                if (an.Has("anisotropyStrength"))
+                {
+                    anisotropy = static_cast<float>(an.Get("anisotropyStrength").GetNumberAsDouble());
+                }
+                if (an.Has("anisotropyRotation"))
+                {
+                    anisotropyRotation = static_cast<float>(an.Get("anisotropyRotation").GetNumberAsDouble());
+                }
+            }
+
             isTransparent = gltfMaterial.alphaMode == "BLEND";
             alphaCutoff = gltfMaterial.alphaMode == "MASK" ? static_cast<float>(gltfMaterial.alphaCutoff) : -1.0f;
 			isDoubleSided = gltfMaterial.doubleSided;
@@ -393,7 +463,7 @@ namespace
             std::vector<int32> uvIndices = {
                 pbr.metallicRoughnessTexture.texCoord,
                 pbr.metallicRoughnessTexture.texCoord,
-                0,
+                sheenTexCoord,
                 gltfMaterial.emissiveTexture.texCoord,
                 gltfMaterial.normalTexture.texCoord,
                 pbr.baseColorTexture.texCoord,
@@ -402,10 +472,12 @@ namespace
 
             modelData->Material = _materialSystem.CreateMaterial(
                 gltfMaterial.name,
-                { roughTex, metallicTex, nullptr, emissiveTex, normalTex, albedoTex, occlusionTex },
+                { roughTex, metallicTex, sheenTex, emissiveTex, normalTex, albedoTex, occlusionTex },
                 { static_cast<float>(pbr.roughnessFactor),
-                  static_cast<float>(pbr.metallicFactor), 0.0f, 0.0f, 0.0f, 0.0f,
-                  0.0f, alphaCutoff, baseAlphaFactor },
+                    static_cast<float>(pbr.metallicFactor), sheenFactor,
+                    clearcoatFactor, clearcoatRoughness,
+                    anisotropy, anisotropyRotation,
+                    alphaCutoff, baseAlphaFactor },
                 isTransparent, isDoubleSided, MaterialType::PBR, uvIndices);
 
 			modelData->IsMirrored = _isMirrored;
