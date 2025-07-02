@@ -562,6 +562,12 @@ namespace
             }
         }
 
+        if (positions.empty() || indices.empty())
+        {
+            LOG(Logger::WARNING, "Skipping primitive with no geometry");
+            return nullptr;
+        }
+
         std::vector<glm::vec4> tangents;
         auto itTan = _primitive.attributes.find("TANGENT");
         if (itTan != _primitive.attributes.end())
@@ -581,7 +587,7 @@ namespace
         modelData->MorphWeights[0] = _weights[0];
         modelData->MorphWeights[1] = _weights[1];
 
-        glm::mat3 normalMatrix = glm::mat3(_transform);
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(_transform)));
 
         for (size_t i = 0; i < indices.size(); ++i)
         {
@@ -675,9 +681,18 @@ namespace
 
             for (const auto& primitive : mesh.primitives)
             {
+                if (primitive.mode != TINYGLTF_MODE_TRIANGLES)
+                {
+                    LOG(Logger::WARNING, "Skipping primitive with unsupported mode ", primitive.mode, " in mesh ", mesh.name);
+                    continue;
+                }
+
                 auto model = LoadPrimitiveModel(_gltfModel, primitive, transform, weights, isMirrored, _basePath, _texturePath, _materialSystem, _isStatic);
-                LOG(Logger::INFO, "Mesh: ", mesh.name, ", Primitive vertices: ", model->Vertices.size());
-                _models.push_back(std::move(model));
+                if (model && !model->Vertices.empty())
+                {
+                    LOG(Logger::INFO, "Mesh: ", mesh.name, ", Primitive vertices: ", model->Vertices.size());
+                    _models.push_back(std::move(model));
+                }
             }
         }
 
@@ -797,6 +812,15 @@ std::vector<std::unique_ptr<ModelData>> GltfLoader::LoadModel(const std::string&
     {
         model->Animations = animations;
     }
+
+    // Ensure predictable rendering order by grouping primitives by material
+    std::sort(models.begin(), models.end(),
+        [](const std::unique_ptr<ModelData>& a, const std::unique_ptr<ModelData>& b)
+        {
+            const int32 lhs = a->Material ? a->Material->Index : -1;
+            const int32 rhs = b->Material ? b->Material->Index : -1;
+            return lhs < rhs;
+        });
 
     LOG(Logger::INFO, "Total primitives processed: ", models.size());
     LOG_NL();

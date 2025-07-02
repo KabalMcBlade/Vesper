@@ -16,6 +16,99 @@
 
 VESPERENGINE_NAMESPACE_BEGIN
 
+
+// For string paths
+uint32 ComputeMaterialHash(
+    const std::string& name,
+    const std::vector<std::string>& texturePaths,
+    const std::vector<std::any>& values,
+    bool isTransparent,
+    bool isDoubleSided,
+    vesper::MaterialType type,
+    const std::vector<int32>& uvIndices)
+{
+    size_t seed = HashString(name.c_str());
+
+    for (const auto& path : texturePaths)
+    {
+        HashCombine(seed, path); // empty path included
+    }
+
+    for (const auto& val : values)
+    {
+        if (val.type() == typeid(float))
+        {
+            HashCombine(seed, std::any_cast<float>(val));
+        }
+        else if (val.type() == typeid(glm::vec4))
+        {
+            const auto& v = std::any_cast<glm::vec4>(val);
+            HashCombine(seed, v.x); HashCombine(seed, v.y); HashCombine(seed, v.z); HashCombine(seed, v.w);
+        }
+    }
+
+    HashCombine(seed, static_cast<int>(isTransparent));
+    HashCombine(seed, static_cast<int>(isDoubleSided));
+    HashCombine(seed, static_cast<int>(type));
+
+    for (int32 uv : uvIndices)
+    {
+        HashCombine(seed, uv);
+    }
+
+    return static_cast<uint32>(seed);
+}
+
+// For loaded textures
+uint32 ComputeMaterialHash(
+    const std::string& name,
+    const std::vector<std::shared_ptr<TextureData>>& textures,
+    const std::vector<std::any>& values,
+    bool isTransparent,
+    bool isDoubleSided,
+    MaterialType type,
+    const std::vector<int32>& uvIndices)
+{
+    size_t seed = HashString(name.c_str());
+
+    // Include texture pointers or indices
+    for (const auto& tex : textures)
+    {
+        // You can use pointer address if textures are unique instances
+        HashCombine(seed, reinterpret_cast<uintptr_t>(tex.get()));
+        // Or, better, if they have a unique ID or path, hash that
+        // if (tex) HashCombine(seed, tex->PathOrID);
+    }
+
+    // Include values – only the types you expect
+    for (const auto& val : values)
+    {
+        if (val.type() == typeid(float))
+        {
+            HashCombine(seed, std::any_cast<float>(val));
+        }
+        else if (val.type() == typeid(glm::vec4))
+        {
+            const auto& v = std::any_cast<glm::vec4>(val);
+            HashCombine(seed, v.x); HashCombine(seed, v.y); HashCombine(seed, v.z); HashCombine(seed, v.w);
+        }
+        // Extend for other types as needed
+    }
+
+    // Include flags and type
+    HashCombine(seed, static_cast<int>(isTransparent));
+    HashCombine(seed, static_cast<int>(isDoubleSided));
+    HashCombine(seed, static_cast<int>(type));
+
+    for (int32 uv : uvIndices)
+    {
+        HashCombine(seed, uv);
+    }
+
+    return static_cast<uint32>(seed);
+}
+
+
 const MaterialSystem::DefaultMaterialType MaterialSystem::DefaultPhongMaterial =
 {
         "_DefaultPhongMaterial_",
@@ -54,7 +147,7 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
 	MaterialType _type,
     const std::vector<int32>& _uvIndices)
 {
-	const uint32 hash = HashString(_name.c_str());
+    const uint32 hash = ComputeMaterialHash(_name, _texturePaths, _values, _bIsTransparent, _bIsDoubleSided, _type, _uvIndices);
 
 	auto it = m_materialLookup.find(hash);
 	if (it != m_materialLookup.end())
@@ -213,7 +306,7 @@ std::shared_ptr<MaterialData> MaterialSystem::CreateMaterial(
     MaterialType _type,
     const std::vector<int32>& _uvIndices)
 {
-    const uint32 hash = HashString(_name.c_str());
+    const uint32 hash = ComputeMaterialHash(_name, _textures, _values, _bIsTransparent, _bIsDoubleSided, _type, _uvIndices);
 
     auto it = m_materialLookup.find(hash);
     if (it != m_materialLookup.end())
