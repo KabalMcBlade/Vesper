@@ -165,7 +165,7 @@ void Pipeline::TransparentPipelineConfiguration(PipelineConfigInfo& _outConfigIn
 	_outConfigInfo.ColorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
 	_outConfigInfo.ColorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 	_outConfigInfo.ColorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-	_outConfigInfo.ColorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+	_outConfigInfo.ColorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
 	_outConfigInfo.ColorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 	_outConfigInfo.ColorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
 }

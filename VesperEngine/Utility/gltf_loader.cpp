@@ -152,14 +152,14 @@ namespace
                 return nullptr;
             }
 
-            auto tex = textureSystem.LoadTexture(image.uri, VK_FORMAT_R8G8B8A8_SRGB, img, w, h);
+            auto tex = textureSystem.LoadTexture(image.uri, VK_FORMAT_R8G8B8A8_UNORM, img, w, h);
             stbi_image_free(img);
             return tex;
         }
 
         if (!image.image.empty()) 
         {
-            VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
+            VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
             std::vector<uint8> data;
 
             if (image.bits == 8) 
