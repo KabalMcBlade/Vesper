@@ -22,6 +22,7 @@
 #include <filesystem>
 #include <algorithm>
 #include <vector>
+#include <cmath>
 
 
 VESPERENGINE_NAMESPACE_BEGIN
@@ -257,14 +258,16 @@ std::shared_ptr<TextureData> TextureSystem::LoadTexture(const std::string& _path
 		format = _overrideFormat;
 	}
 
-	// Step 3: Create Vulkan texture image
-	CreateTextureImage(data, width, height, format, texture->Image, texture->AllocationMemory);
+	const uint32 mipLevels = static_cast<uint32>(std::floor(std::log2(std::max(width, height)))) + 1;
+
+	// Step 3: Create Vulkan texture image with mipmaps
+	CreateTextureImage(data, width, height, format, texture->Image, texture->AllocationMemory, 1, mipLevels);
 
 	// Step 4: Create Vulkan image view
-	texture->ImageView = CreateImageView(texture->Image, format);
+	texture->ImageView = CreateImageView(texture->Image, format, 1, mipLevels);
 
 	// Step 5: Create Vulkan texture sampler
-	texture->Sampler = CreateTextureSampler();
+	texture->Sampler = CreateTextureSampler(static_cast<float>(mipLevels));
 
 	// Free the loaded texture data
 	FreeTextureData(data);
@@ -292,9 +295,11 @@ std::shared_ptr<TextureData> TextureSystem::LoadTexture(const std::string& _name
 
 	auto texture = std::make_shared<TextureData>();
 
-	CreateTextureImage(_data, _width, _height, _format, texture->Image, texture->AllocationMemory);
-	texture->ImageView = CreateImageView(texture->Image, _format);
-	texture->Sampler = CreateTextureSampler();
+	const uint32 mipLevels = static_cast<uint32>(std::floor(std::log2(std::max(_width, _height)))) + 1;
+
+	CreateTextureImage(_data, _width, _height, _format, texture->Image, texture->AllocationMemory, 1, mipLevels);
+	texture->ImageView = CreateImageView(texture->Image, _format, 1, mipLevels);
+	texture->Sampler = CreateTextureSampler(static_cast<float>(mipLevels));
 
 	m_textures.push_back(texture);
 
@@ -668,6 +673,102 @@ void TextureSystem::FreeTextureData(uint8* _data)
 	stbi_image_free(_data);
 }
 
+void TextureSystem::GenerateMipmaps(VkImage _image, VkFormat _format, int32 _width, int32 _height, uint32 _mipLevels)
+{
+	VkFormatProperties formatProperties;
+	vkGetPhysicalDeviceFormatProperties(m_device.GetPhysicalDevice(), _format, &formatProperties);
+
+	if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
+	{
+		throw std::runtime_error("Texture image format does not support linear blitting!");
+	}
+
+	VkCommandBuffer commandBuffer = m_device.BeginSingleTimeCommands();
+
+	VkImageMemoryBarrier barrier{};
+	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	barrier.image = _image;
+	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	barrier.subresourceRange.baseArrayLayer = 0;
+	barrier.subresourceRange.layerCount = 1;
+	barrier.subresourceRange.levelCount = 1;
+
+	int32 mipWidth = _width;
+	int32 mipHeight = _height;
+
+	for (uint32 i = 1; i < _mipLevels; ++i)
+	{
+		barrier.subresourceRange.baseMipLevel = i - 1;
+		barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+		vkCmdPipelineBarrier(
+			commandBuffer,
+			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+			0,
+			0, nullptr,
+			0, nullptr,
+			1, &barrier);
+
+		VkImageBlit blit{};
+		blit.srcOffsets[0] = { 0, 0, 0 };
+		blit.srcOffsets[1] = { mipWidth, mipHeight, 1 };
+		blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		blit.srcSubresource.mipLevel = i - 1;
+		blit.srcSubresource.baseArrayLayer = 0;
+		blit.srcSubresource.layerCount = 1;
+		blit.dstOffsets[0] = { 0, 0, 0 };
+		blit.dstOffsets[1] = { mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1 };
+		blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		blit.dstSubresource.mipLevel = i;
+		blit.dstSubresource.baseArrayLayer = 0;
+		blit.dstSubresource.layerCount = 1;
+
+		vkCmdBlitImage(
+			commandBuffer,
+			_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+			_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			1, &blit,
+			VK_FILTER_LINEAR);
+
+		barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		vkCmdPipelineBarrier(
+			commandBuffer,
+			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+			0,
+			0, nullptr,
+			0, nullptr,
+			1, &barrier);
+
+		if (mipWidth > 1) mipWidth /= 2;
+		if (mipHeight > 1) mipHeight /= 2;
+	}
+
+	barrier.subresourceRange.baseMipLevel = _mipLevels - 1;
+	barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+	vkCmdPipelineBarrier(
+		commandBuffer,
+		VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		0,
+		0, nullptr,
+		0, nullptr,
+		1, &barrier);
+
+	m_device.EndSingleTimeCommands(commandBuffer);
+}
+
 VkImageView TextureSystem::CreateImageView(VkImage _image, VkFormat _format, uint32 _layerCount, uint32 _mipLevels)
 {
 	VkImageViewCreateInfo viewInfo{};
@@ -704,7 +805,7 @@ VkImageView TextureSystem::CreateImageView(VkImage _image, VkFormat _format, uin
 	return imageView;
 }
 
-VkSampler TextureSystem::CreateTextureSampler()
+VkSampler TextureSystem::CreateTextureSampler(float _maxLod)
 {
 	VkSamplerCreateInfo samplerInfo{};
 	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -721,7 +822,7 @@ VkSampler TextureSystem::CreateTextureSampler()
 	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
 	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 	samplerInfo.minLod = 0.0f;
-	samplerInfo.maxLod = 1.0f;
+	samplerInfo.maxLod = _maxLod;
 
 	VkSampler sampler;
 	if (vkCreateSampler(m_device.GetDevice(), &samplerInfo, nullptr, &sampler) != VK_SUCCESS)

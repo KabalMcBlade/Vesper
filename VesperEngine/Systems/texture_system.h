@@ -166,6 +166,7 @@ public:
 private:
 	uint8* LoadTextureData(const std::string& _path, int32& _width, int32& _height, int32& _channels, int32 _desired_channels);
 	void FreeTextureData(uint8* _data);
+	void GenerateMipmaps(VkImage _image, VkFormat _format, int32 _width, int32 _height, uint32 _mipLevels);
 
 	template <typename T>
 	void CreateTextureImage(const T* _data, int32 _width, int32 _height, VkFormat _format, VkImage& _image, VmaAllocation& _allocation,
@@ -207,7 +208,7 @@ private:
 		imageInfo.format = _format;
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+		imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageInfo.flags = _flags;
@@ -219,10 +220,19 @@ private:
 		VkCommandBuffer commandBuffer = m_device.BeginSingleTimeCommands();
 
 		m_device.TransitionImageLayout(commandBuffer, _image, _format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, _layerCount, _mipLevels);
-		m_device.CopyBufferToImage(commandBuffer, stagingBuffer.Buffer, _image, _width, _height, _layerCount, _mipLevels);
-		m_device.TransitionImageLayout(commandBuffer, _image, _format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, _layerCount, _mipLevels);
-
+		m_device.CopyBufferToImage(commandBuffer, stagingBuffer.Buffer, _image, _width, _height, _layerCount, 1);
 		m_device.EndSingleTimeCommands(commandBuffer);
+
+		if (_mipLevels > 1)
+		{
+			GenerateMipmaps(_image, _format, _width, _height, _mipLevels);
+		}
+		else
+		{
+			VkCommandBuffer cb = m_device.BeginSingleTimeCommands();
+			m_device.TransitionImageLayout(cb, _image, _format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, _layerCount, 1);
+			m_device.EndSingleTimeCommands(cb);
+		}
 
 		// Cleanup staging buffer
 		m_buffer->Destroy(stagingBuffer);
@@ -258,7 +268,7 @@ private:
 	}
 
 	VkImageView CreateImageView(VkImage _image, VkFormat _format, uint32 _layerCount = 1, uint32 _mipLevels = 1);
-	VkSampler CreateTextureSampler();
+	VkSampler CreateTextureSampler(float _maxLod = 1.0f);
 
 private:
 	VesperApp& m_app;
