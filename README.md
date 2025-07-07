@@ -67,9 +67,8 @@ Second render from the engine: OBJ loaded using Opaque Phong shader rendering sy
 Third render from the engine: OBJs loaded using the Custom Opaque and Custom Transparent Phong shader rendering systems, utilizing push constants without additional bindings, and featuring a skybox.
 <img src="./Screenshots/3.png">
 
-Fourth and Fifth render from the engine: PBR loaded, and featuring a skybox in HDR, one Directional Light and random Spot and Point Lights moving in the scene.
-<img src="./Screenshots/4a.png">
-<img src="./Screenshots/4b.png">
+Fourth render from the engine: PBR loaded, and featuring a skybox in HDR, one Directional Light and random Spot and Point Lights moving in the scene.
+<img src="./Screenshots/4.png">
 
 
 ## LICENSE
